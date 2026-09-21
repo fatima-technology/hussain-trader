@@ -666,6 +666,17 @@ input:focus,select:focus,textarea:focus { border-color:#1769e0 !important; box-s
   .sidebar { width:220px !important; }
 }
 </style>
+
+<style id="ft-final-mobile-report-css">
+/* ===== FATIMA TECH FINAL REPORT + MOBILE LAYER ===== */
+.report-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px}.report-toolbar button{min-height:38px;padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1;font-weight:700;cursor:pointer}.report-toolbar .ft-report-print{background:#111827;color:#fff}.report-toolbar .ft-report-pdf{background:#b91c1c;color:#fff}.report-toolbar .ft-report-excel{background:#166534;color:#fff}.report-meta{font-size:12px;color:#64748b;margin:0 0 8px}.ft-report-print-area{background:#fff;color:#111;padding:18px}.ft-report-print-area table{width:100%;border-collapse:collapse}.ft-report-print-area th,.ft-report-print-area td{border:1px solid #cbd5e1;padding:6px;font-size:10px}.ft-report-print-area th{background:#e2e8f0}.ft-report-print-area h1{font-size:18px;margin:0 0 4px}.ft-report-print-area h2{font-size:14px;margin:0 0 10px}
+@media (max-width:700px){
+  body{font-size:14px;overflow-x:hidden}.sidebar{display:none!important}.main-content{margin-left:0!important;width:100%!important;padding:10px!important}.topbar{position:sticky;top:0;z-index:1000;margin:0 0 8px!important;padding:8px!important}.content-wrapper,.tab-content{width:100%!important;max-width:100%!important}.tab-content{padding:0!important}.card,.section-box,.pos-card,.dashboard-card,.ft-owner-card{width:100%!important;max-width:100%!important;box-sizing:border-box}.form-grid{grid-template-columns:1fr!important;gap:8px!important}.pos-container{display:block!important}.pos-card{margin-bottom:10px!important}.table-responsive{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.table-responsive table{min-width:620px}.btn-add,.btn-excel,.btn-print,.btn-edit,.btn-delete,.btn-save,.btn-primary{min-height:44px!important;font-size:14px!important}.report-toolbar{position:sticky;top:58px;z-index:20;background:var(--bg-body);padding:6px 0}.report-toolbar button{flex:1 1 30%;min-width:100px}.login-box{width:min(94vw,420px)!important}.login-box input,.login-box select,.login-btn{min-height:48px!important;font-size:16px!important}.mobile-only-spacer{display:block!important}
+}
+@media (min-width:701px){.mobile-only-spacer{display:none!important}}
+@media print{body{background:#fff!important;color:#111!important}.no-print,.sidebar,.topbar,.report-toolbar{display:none!important}.main-content{margin:0!important;padding:0!important;width:100%!important}.tab-content{display:none!important}.ft-report-print-target{display:block!important}.ft-report-print-area{padding:4mm!important}.ft-report-print-area th,.ft-report-print-area td{font-size:9px!important;padding:4px!important}}
+</style>
+
 </head>
 <body>
 
@@ -743,6 +754,7 @@ input:focus,select:focus,textarea:focus { border-color:#1769e0 !important; box-s
             </a>
             <ul class="submenu" id="reportsSubmenu">
                 <li data-perm="marketCreditReportTab"><a class="nav-link" onclick="openTab('marketCreditReportTab', this)">💳 Market Credit Report</a></li>
+                <li data-perm="recoveryReportTab"><a class="nav-link" onclick="openTab('recoveryReportTab', this)">💰 Recovery Report</a></li>
                 <li data-perm="activityLogTab"><a class="nav-link" onclick="openTab('activityLogTab', this)">🧾 Activity Log</a></li>
                 <li data-perm="shopWiseTaxReportTab"><a class="nav-link" onclick="openTab('shopWiseTaxReportTab', this)">📑 Shop Wise Tax Report</a></li>
                 <li data-perm="stockDetailReport"><a class="nav-link" onclick="openTab('stockDetailReport', this)">📦 Stock Detail Report</a></li>
@@ -1096,6 +1108,35 @@ input:focus,select:focus,textarea:focus { border-color:#1769e0 !important; box-s
                     </tr>
                 </thead>
                 <tbody id="recoveryApprovalTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- RECOVERY REPORT -->
+    <div id="recoveryReportTab" class="tab-content" data-perm="recoveryReportTab">
+        <h3>💰 Recovery Report</h3>
+        <div class="section-box no-print">
+            <div class="form-grid">
+                <div><label>From Date</label><input type="date" id="recoveryReportFrom" onchange="renderRecoveryReport()"></div>
+                <div><label>To Date</label><input type="date" id="recoveryReportTo" onchange="renderRecoveryReport()"></div>
+                <div><label>Booker / Collector</label><select id="recoveryReportBooker" onchange="renderRecoveryReport()"><option value="ALL">All Bookers</option></select></div>
+                <div><label>Shop</label><select id="recoveryReportShop" onchange="renderRecoveryReport()"><option value="ALL">All Shops</option></select></div>
+                <div><label>Payment Method</label><select id="recoveryReportMethod" onchange="renderRecoveryReport()"><option value="ALL">All Methods</option><option value="Cash">Cash</option><option value="Cheque">Cheque</option><option value="Online Transfer">Online Transfer</option><option value="Bank">Bank</option></select></div>
+                <div><label>Status</label><select id="recoveryReportStatus" onchange="renderRecoveryReport()"><option value="Approved">Approved</option><option value="Pending">Pending</option><option value="Rejected">Rejected</option><option value="ALL">All Statuses</option></select></div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+                <button class="btn-add" onclick="renderRecoveryReport()">Generate Report 🔄</button>
+            </div>
+        </div>
+        <div class="summary-cards no-print" style="margin:12px 0">
+            <div class="bubble-card"><h3>Total Recovery</h3><p id="recoveryReportTotal">Rs. 0</p></div>
+            <div class="bubble-card"><h3>Entries</h3><p id="recoveryReportCount">0</p></div>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead><tr><th>#</th><th>Date</th><th>Booker / Collector</th><th>Shop</th><th>Payment Method</th><th>Status</th><th>Amount (Rs)</th></tr></thead>
+                <tbody id="recoveryReportTbody"></tbody>
+                <tfoot><tr><th colspan="6" style="text-align:right">Total Recovery</th><th id="recoveryReportFootTotal">Rs. 0</th></tr></tfoot>
             </table>
         </div>
     </div>
@@ -1763,9 +1804,9 @@ input:focus,select:focus,textarea:focus { border-color:#1769e0 !important; box-s
     let dbAuditLog = JSON.parse(localStorage.getItem('ht_audit_log')) || [];
     let dbUsers = JSON.parse(localStorage.getItem('ht_users')) || [
         { username: 'admin', pass: '1234', role: 'Admin', permissions: ['ALL'] },
-        { username: 'booker', pass: '1234', role: 'Order Booker', permissions: ['dashboard', 'posSales', 'invoicesList', 'shops'] },
-        { username: 'kpo', pass: '1234', role: 'KPO', permissions: ['dashboard', 'invoicesList', 'picklistTab', 'supplyManTab'] },
-        { username: 'supplyman', pass: '1234', role: 'Supply Man', permissions: ['dashboard', 'supplyManTab'] }
+        { username: 'booker', pass: '1234', role: 'Order Booker', permissions: ['dashboard','posSales','invoicesList','shops','recoveryEntry','marketCreditReportTab','liveStockTab'] },
+        { username: 'kpo', pass: '1234', role: 'KPO', permissions: ['ALL'] },
+        { username: 'supplyman', pass: '1234', role: 'Supply Man', permissions: ['dashboard','supplyManTab'] }
     ];
     // Remove legacy demo names from the login list without touching business data.
     dbUsers = dbUsers.filter(u => !['shiraz','aftab'].includes(String(u.username).trim().toLowerCase()));
@@ -1917,6 +1958,7 @@ input:focus,select:focus,textarea:focus { border-color:#1769e0 !important; box-s
         if(tabId === 'invoicesList') renderInvoicesTable();
         if(tabId === 'supplyManTab') { populateSupplyManDropdowns(); renderSupplyManPendingInvoices(); renderKpoLogsTable(); }
         if(tabId === 'recoveryEntry') { renderRecoveryApprovalTable(); }
+        if(tabId === 'recoveryReportTab') { renderRecoveryReport(); }
         if(tabId === 'marketCreditReportTab') { renderMarketCreditReport(); }
         if(tabId === 'ownerDailySummary') renderOwnerDailySummary();
     }
@@ -2145,6 +2187,7 @@ input:focus,select:focus,textarea:focus { border-color:#1769e0 !important; box-s
         dbCashInHand += amount;
         localStorage.setItem('ht_cash_in_hand', dbCashInHand);
         localStorage.setItem('ht_recoveries', JSON.stringify(dbRecoveries));
+        window.dbRecoveries = dbRecoveries;
 
         alert('ریکوری کامیابی سے شامل ہو گئی!');
         document.getElementById('recAmount').value = '';
@@ -3129,40 +3172,65 @@ function autoFillItemDetails() {
         }
     }
 
+function getPosPacking(name) {
+        const found = dbStock.find(s => String(s.name || '').toUpperCase() === String(name || '').toUpperCase());
+        return Math.max(1, parseFloat(found && found.pcsPerCarton) || 12);
+    }
+
+function getPosItemTotalPieces(item) {
+        // Cartons and pieces are independent inputs. A carton is converted internally
+        // for stock/amount calculation, but the Pieces input is NEVER auto-filled.
+        if(item && item.totalPcsQty != null) return Math.max(0, parseFloat(item.totalPcsQty) || 0);
+        const packing = Math.max(1, parseFloat(item && item.packing) || getPosPacking(item && item.name));
+        return (parseFloat(item && item.ctnQty) || 0) * packing + (parseFloat(item && item.pcsQty) || 0);
+    }
+
 function recalcPosPieceFromCarton() {
         const name = document.getElementById('posStockInput').value.trim();
         const ctnQty = parseFloat(document.getElementById('posItemCtnQty').value) || 0;
-        const found = dbStock.find(s => s.name.toUpperCase() === name.toUpperCase());
-        const packing = found ? (found.pcsPerCarton || 12) : 12;
-        if(ctnQty > 0) {
-            document.getElementById('posItemPcsQty').value = ctnQty * packing;
-        }
+        const pcsQty = parseFloat(document.getElementById('posItemPcsQty').value) || 0;
+        const packing = getPosPacking(name);
+        const equivalent = (ctnQty * packing) + pcsQty;
+        const label = document.getElementById('posEquivalentPieces');
+        if(label) label.textContent = 'Equivalent Pieces: ' + equivalent;
+        // IMPORTANT: do not write into posItemPcsQty. User-entered pieces stay independent.
+    }
+
+function calculateRowTotal() {
+        // Live helper for the POS quantity fields. It updates only the equivalent-piece
+        // indicator and never overwrites the manually entered Pieces value.
+        recalcPosPieceFromCarton();
     }
 
 function addPosItem() {
         const name = document.getElementById('posStockInput').value.trim().toUpperCase();
         const ctnQty = parseFloat(document.getElementById('posItemCtnQty').value) || 0;
         const pcsQty = parseFloat(document.getElementById('posItemPcsQty').value) || 0;
+        const packing = getPosPacking(name);
+        const totalPcsQty = (ctnQty * packing) + pcsQty;
         const tradeRate = parseFloat(document.getElementById('posItemTradeRate').value) || 0;
         const retailRate = parseFloat(document.getElementById('posItemRetailRate').value) || 0;
         const discType = document.getElementById('posItemDiscType').value;
         const discVal = parseFloat(document.getElementById('posItemDiscVal').value) || 0;
 
-        if(!name || pcsQty <= 0) return alert('پروڈکٹ کی معلومات اور تعداد صحیح درج کریں۔');
+        // Either Carton OR Pieces is valid. Carton-only orders must punch successfully.
+        if(!name || totalPcsQty <= 0) return alert('Product and quantity required. Enter Carton and/or Pieces.');
 
-        let fullTradeAmount = pcsQty * tradeRate;
+        let fullTradeAmount = totalPcsQty * tradeRate;
         let calculatedDisc = discType === 'Percent' ? (fullTradeAmount * (discVal / 100)) : discVal;
         let rowTotal = fullTradeAmount - calculatedDisc;
 
         currentPosItems.push({
-            name, ctnQty, pcsQty, tradeRate, retailRate, discType, discVal, calculatedDisc, rowTotal
+            name, ctnQty, pcsQty, totalPcsQty, packing, tradeRate, retailRate, discType, discVal, calculatedDisc, rowTotal
         });
 
         renderPosCartTable();
         calculatePosTotals();
         document.getElementById('posStockInput').value = '';
         document.getElementById('posItemCtnQty').value = '0';
-        document.getElementById('posItemPcsQty').value = '1';
+        document.getElementById('posItemPcsQty').value = '0';
+        const label = document.getElementById('posEquivalentPieces');
+        if(label) label.textContent = 'Equivalent Pieces: 0';
     }
 
 function renderPosCartTable() {
@@ -3190,7 +3258,7 @@ function renderPosCartTable() {
     }
 
 function calculatePosTotals() {
-        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (item.pcsQty * item.tradeRate), 0);
+        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (getPosItemTotalPieces(item) * item.tradeRate), 0);
         let totalDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
         let remainingSubtotal = tradeSubtotal - totalDiscounts;
 
@@ -3234,7 +3302,7 @@ function savePosInvoice(print) {
         let shop = document.getElementById('posShopSelect').value;
         let payType = document.getElementById('posPayType').value;
 
-        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (item.pcsQty * item.tradeRate), 0);
+        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (getPosItemTotalPieces(item) * item.tradeRate), 0);
         let itemDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
         let remainingSubtotal = tradeSubtotal - itemDiscounts;
 
@@ -3260,7 +3328,7 @@ function savePosInvoice(print) {
         currentPosItems.forEach(item => {
             let found = dbStock.find(s => s.name === item.name);
             if(found) {
-                found.qty = Math.max(0, found.qty - item.pcsQty);
+                found.qty = Math.max(0, found.qty - getPosItemTotalPieces(item));
             }
         });
 
@@ -3534,5 +3602,123 @@ function renderShops() {
   ['saveUserRecord','deleteUserRecord'].forEach(fn=>{if(typeof window[fn]==='function'){const orig=window[fn];window[fn]=function(){const r=orig.apply(this,arguments);audit('Action','User Management','User',fn,'User management action executed.');initActivity();return r;};}});
 })();
 </script>
+
+<script id="ft-recovery-report-js">
+(function(){
+  function rrDateNow(){ return new Date().toISOString().slice(0,10); }
+  function rrN(v){ const n=parseFloat(v); return Number.isFinite(n)?n:0; }
+  function rrMoney(v){ return 'Rs. ' + rrN(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}); }
+  function rrFillSelect(id, values, firstLabel){
+    const el=document.getElementById(id); if(!el)return;
+    const current=el.value||'ALL';
+    el.innerHTML='<option value="ALL">'+firstLabel+'</option>'+values.filter(Boolean).sort((a,b)=>String(a).localeCompare(String(b))).map(v=>'<option value="'+String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')+'">'+String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')+'</option>').join('');
+    if([...el.options].some(o=>o.value===current))el.value=current;
+  }
+  window.renderRecoveryReport=function(){
+    const all=Array.isArray(window.dbRecoveries)?window.dbRecoveries:[];
+    const today=rrDateNow();
+    const from=document.getElementById('recoveryReportFrom');
+    const to=document.getElementById('recoveryReportTo');
+    if(from && !from.value) from.value=today;
+    if(to && !to.value) to.value=today;
+    rrFillSelect('recoveryReportBooker',[...new Set(all.map(x=>x.booker))],'All Bookers');
+    rrFillSelect('recoveryReportShop',[...new Set(all.map(x=>x.shop))],'All Shops');
+    const f=from?.value||'';
+    const t=to?.value||'';
+    const booker=document.getElementById('recoveryReportBooker')?.value||'ALL';
+    const shop=document.getElementById('recoveryReportShop')?.value||'ALL';
+    const method=document.getElementById('recoveryReportMethod')?.value||'ALL';
+    const status=document.getElementById('recoveryReportStatus')?.value||'Approved';
+    const rows=all.filter(r=>{
+      if(f && String(r.date||'')<f)return false;
+      if(t && String(r.date||'')>t)return false;
+      if(booker!=='ALL' && r.booker!==booker)return false;
+      if(shop!=='ALL' && r.shop!==shop)return false;
+      if(method!=='ALL' && r.method!==method)return false;
+      if(status!=='ALL' && r.status!==status)return false;
+      return true;
+    }).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    let total=0;
+    const body=document.getElementById('recoveryReportTbody');
+    if(body) body.innerHTML=rows.map((r,i)=>{total+=rrN(r.amount);return '<tr><td>'+(i+1)+'</td><td>'+String(r.date||'')+'</td><td>'+String(r.booker||'')+'</td><td>'+String(r.shop||'')+'</td><td>'+String(r.method||'')+'</td><td>'+String(r.status||'')+'</td><td>'+rrN(r.amount).toLocaleString()+'</td></tr>';}).join('')||'<tr><td colspan="7" style="text-align:center">No recovery records found for the selected filters.</td></tr>';
+    const totalEl=document.getElementById('recoveryReportTotal'); if(totalEl)totalEl.textContent=rrMoney(total);
+    const countEl=document.getElementById('recoveryReportCount'); if(countEl)countEl.textContent=String(rows.length);
+    const foot=document.getElementById('recoveryReportFootTotal'); if(foot)foot.textContent=rrMoney(total);
+  };
+  window.addEventListener('load',function(){
+    const d=rrDateNow();
+    const f=document.getElementById('recoveryReportFrom'),t=document.getElementById('recoveryReportTo');
+    if(f)f.value=d; if(t)t.value=d;
+    setTimeout(window.renderRecoveryReport,300);
+  });
+})();
+</script>
+<script id="ft-final-mobile-report-js">
+(function(){
+  const ROLE_PERMS={
+    'Admin':['ALL'],
+    'Fatima Tech Owner':['ALL'],
+    'KPO':['ALL'],
+    'Order Booker':['dashboard','posSales','invoicesList','shops','recoveryEntry','marketCreditReportTab','liveStockTab'],
+    'Supply Man':['dashboard','supplyManTab']
+  };
+  const REPORT_IDS=['marketCreditReportTab','recoveryReportTab','activityLogTab','shopWiseTaxReport','udhaarReport','stockDetailReport','bookerReports','expensesReport','ownerDailySummary','financeTab','purchaseStockReportTab','purchaseInvoiceListTab','invoicesList'];
+  function rolePerms(u){ return ROLE_PERMS[u?.role] || (u?.permissions||[]); }
+  function enforceRole(){
+    if(!currentUser) return;
+    const perms=rolePerms(currentUser);
+    currentUser.permissions=perms;
+    document.body.classList.toggle('ft-booker-mobile',currentUser.role==='Order Booker');
+    document.body.classList.toggle('ft-supply-mobile',currentUser.role==='Supply Man');
+    document.querySelectorAll('[data-perm]').forEach(el=>{
+      const p=el.getAttribute('data-perm'); el.style.display=(perms.includes('ALL')||perms.includes(p))?'':'none';
+    });
+    if(currentUser.role==='Order Booker'){
+      const b=document.getElementById('posBookerSelect'); if(b){b.value=currentUser.username;b.disabled=true;}
+      const r=document.getElementById('recBookerSelect'); if(r){r.value=currentUser.username;r.disabled=true;}
+      const nb=document.getElementById('newShopBooker'); if(nb){nb.value=currentUser.username;nb.disabled=true;}
+      const ownerBtn=document.getElementById('ftOwnerStudioBtn'); if(ownerBtn) ownerBtn.style.display='none';
+    }
+    if(currentUser.role==='Supply Man'){
+      const sel=document.getElementById('kpoSupplyManSelect'); if(sel){sel.value=currentUser.username;sel.disabled=true;}
+    }
+    filterPosShopsByBooker(); filterRecoveryShopsByBooker();
+  }
+  window.applyUserAccessPermissions=enforceRole;
+  const oldOpenTab=window.openTab;
+  window.openTab=function(tabId,btn){
+    if(currentUser){const perms=rolePerms(currentUser); if(!perms.includes('ALL')&&!perms.includes(tabId)){alert('Access denied for this role.');return;}}
+    return oldOpenTab(tabId,btn);
+  };
+  function tableFor(id){const el=document.getElementById(id);return el?el.querySelector('table'):null}
+  function reportTitle(id){const el=document.getElementById(id);const h=el&&el.querySelector('h3');return h?h.textContent.replace(/^[^A-Za-z0-9]+/,'').trim():id}
+  function addReportToolbar(id){
+    const el=document.getElementById(id); if(!el||el.dataset.ftToolbar) return;
+    const table=tableFor(id); if(!table) return;
+    const tb=document.createElement('div'); tb.className='report-toolbar no-print';
+    tb.innerHTML='<button class="ft-report-print" type="button">🖨 Print</button><button class="ft-report-pdf" type="button">📄 PDF</button><button class="ft-report-excel" type="button">📊 Excel</button>';
+    const meta=document.createElement('div'); meta.className='report-meta'; meta.textContent='Report: '+reportTitle(id)+' | Generated: '+new Date().toLocaleString();
+    el.insertBefore(tb,el.firstChild); el.insertBefore(meta,tb.nextSibling); el.dataset.ftToolbar='1';
+    tb.children[0].onclick=()=>printReport(id); tb.children[1].onclick=()=>pdfReport(id); tb.children[2].onclick=()=>excelReport(id);
+  }
+  function reportHTML(id){
+    const el=document.getElementById(id), table=tableFor(id); if(!table) return null;
+    const clone=table.cloneNode(true); clone.querySelectorAll('button,input,select').forEach(x=>x.remove());
+    const title=reportTitle(id), date=new Date().toLocaleString();
+    return '<div class="ft-report-print-area"><h1>Fatima Tech — Distribution ERP</h1><h2>'+escapeHtml(title)+'</h2><div class="report-meta">Generated: '+escapeHtml(date)+'</div>'+clone.outerHTML+'</div>';
+  }
+  function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+  window.printReport=function(id){const html=reportHTML(id);if(!html)return alert('No report data available.');const w=window.open('','_blank','width=1200,height=800');if(!w)return alert('Please allow pop-ups for report printing.');w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111;margin:0}.ft-report-print-area{padding:4mm}.ft-report-print-area table{width:100%;border-collapse:collapse}.ft-report-print-area th,.ft-report-print-area td{border:1px solid #999;padding:5px;font-size:9px}.ft-report-print-area th{background:#e5e7eb}.report-meta{font-size:10px;color:#555;margin-bottom:8px}h1{font-size:18px;margin:0}h2{font-size:14px}</style></head><body>'+html+'</body></html>');w.document.close();w.focus();setTimeout(()=>{w.print();w.close()},250)};
+  window.pdfReport=function(id){const table=tableFor(id);if(!table)return alert('No report data available.');if(!window.jspdf||!window.jspdf.jsPDF)return alert('PDF library is not loaded.');const {jsPDF}=window.jspdf;const doc=new jsPDF('landscape','mm','a4');const title=reportTitle(id);doc.setFontSize(16);doc.text('Fatima Tech — Distribution ERP',14,12);doc.setFontSize(11);doc.text(title,14,19);doc.setFontSize(8);doc.text('Generated: '+new Date().toLocaleString(),14,25);const rows=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.children].map(td=>td.innerText.trim()));const heads=[...table.querySelectorAll('thead tr:last-child th')].map(th=>th.innerText.trim());if(typeof doc.autoTable==='function'){doc.autoTable({head:[heads],body:rows,startY:30,theme:'grid',styles:{fontSize:7,cellPadding:2},headStyles:{fontSize:7}});}else{alert('PDF table engine is not loaded.');return;}doc.save(title.replace(/[^a-z0-9]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf')};
+  window.excelReport=function(id){const table=tableFor(id);if(!table)return alert('No report data available.');if(!window.XLSX)return alert('Excel library is not loaded.');const clean=table.cloneNode(true);clean.querySelectorAll('button,input,select').forEach(x=>x.remove());const wb=XLSX.utils.table_to_book(clean,{sheet_name:'Report'});const ws=wb.Sheets[wb.SheetNames[0]];ws['!cols']=(XLSX.utils.decode_range(ws['!ref'])?Array(XLSX.utils.decode_range(ws['!ref']).e.c+1).fill({wch:18}):[]);XLSX.writeFile(wb,titleSafe(reportTitle(id))+'_'+new Date().toISOString().slice(0,10)+'.xlsx')};
+  function titleSafe(v){return String(v).replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'')||'Report'}
+  function addAll(){REPORT_IDS.forEach(addReportToolbar);enforceRole();}
+  window.addEventListener('load',()=>setTimeout(addAll,500));
+  const oldRenderMarket=window.renderMarketCreditReport; if(oldRenderMarket) window.renderMarketCreditReport=function(){const r=oldRenderMarket.apply(this,arguments);setTimeout(()=>addReportToolbar('marketCreditReportTab'),50);return r};
+  /* Keep invoice print isolated to the exact invoice object; never read another invoice during print. */
+  window.ftPrintInvoiceSafe=function(inv){if(!inv||!Array.isArray(inv.items))return alert('Invoice data is incomplete.');const copy=JSON.parse(JSON.stringify(inv));return printDualA5Invoice(copy)};
+})();
+</script>
+
 </body>
 </html>
