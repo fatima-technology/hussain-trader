@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-<html lang="ur" dir="ltr">
+<!--
+  FATIMA TECH DISTRIBUTION ERP — COMMERCIAL MERGED EDITION
+  Base: supplied Hussain Traders ERP
+  Added: Owner Studio, configurable distribution identity,
+         invoice layout configuration, carton/piece commercial demo,
+         SaaS-ready product direction.
+  Note: this is a front-end HTML build. A secure online multi-user
+        deployment still requires a backend/cloud database/authentication.
+-->
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🟢 Hussain Traders - FMCG Enterprise ERP & Sales Distribution System</title>
+    <!-- Urdu/InPage-style font hook: fonts/InPageNastaleeq.ttf -->
+<title>🟢 Hussain Traders - FMCG Enterprise ERP & Sales Distribution System</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Noto+Nastaliq+Urdu:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -443,7 +453,9 @@
         }
 
         @media print {
-            .no-print, .sidebar, .top-bar, button, .modal-overlay { display: none !important; }
+            html, body { width:100% !important; min-height:0 !important; }
+            .no-print, .sidebar, .top-bar, button, .modal-overlay, .main-wrapper > * { display: none !important; }
+            #printableA4DualContainer { display:flex !important; visibility:visible !important; } 
             body { background: white !important; padding: 0; margin: 0; color: #000; font-size: 9pt; }
             .main-wrapper { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
             
@@ -457,19 +469,203 @@
                 flex-direction: row !important;
                 justify-content: space-between !important;
                 width: 100% !important;
-                height: 100% !important;
-                gap: 10mm;
-                page-break-after: always;
+                height: auto !important;
+                min-height: 0 !important;
+                gap: 6mm;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
             }
 
             .print-invoice-half {
-                width: 48% !important;
+                width: 49% !important;
+                max-width:49% !important;
                 box-sizing: border-box;
                 border: 1px dashed #000;
                 padding: 8px;
             }
         }
+    
+/* =========================================================
+   FATIMA TECH COMMERCIAL EDITION — MERGED OWNER LAYER
+   ========================================================= */
+:root{
+  --ft-brand:#38ef7d;
+  --ft-urdu-font:'Jameel Noori Nastaleeq','Noto Nastaliq Urdu','Noto Naskh Arabic',serif;
+  --ft-cyan:#00f2fe;
+  --ft-purple:#7f00ff;
+}
+.ft-owner-btn{
+  background:linear-gradient(135deg,#11998e,#38ef7d)!important;
+  color:#04120a!important;border:0!important;padding:6px 11px!important;
+  border-radius:5px!important;font-weight:900!important;font-size:10px!important;
+  box-shadow:0 4px 14px rgba(56,239,125,.22);
+}
+.ft-owner-modal{
+  position:fixed;inset:0;background:rgba(2,7,15,.78);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:18px;z-index:10050;
+}
+.ft-owner-modal.open{display:flex}
+.ft-owner-panel{
+  width:min(980px,96vw);max-height:92vh;overflow:auto;background:#121826;
+  border:1px solid #2b3a55;border-radius:18px;color:#e2e8f0;
+  box-shadow:0 30px 100px #000b;
+}
+.ft-owner-head{
+  display:flex;justify-content:space-between;align-items:center;padding:18px 20px;
+  border-bottom:1px solid #27344b;position:sticky;top:0;background:#121826;z-index:2;
+}
+.ft-owner-head h2{margin:0;color:#38ef7d;font-size:18px}
+.ft-owner-body{padding:18px}
+.ft-owner-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ft-owner-card{background:#0d1421;border:1px solid #26344b;border-radius:12px;padding:14px}
+.ft-owner-card h3{margin:0 0 10px;color:#00f2fe;font-size:13px}
+.ft-owner-card label{display:block;margin:8px 0 4px;color:#aab8ca;font-size:10px;font-weight:800}
+.ft-owner-card input,.ft-owner-card select,.ft-owner-card textarea{
+  width:100%;padding:9px;border:1px solid #2a3850;border-radius:7px;background:#090f19;
+  color:#fff;font-size:11px;
+}
+.ft-owner-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.ft-owner-save{background:linear-gradient(135deg,#11998e,#38ef7d);border:0;border-radius:8px;
+  padding:10px 16px;font-weight:900;color:#04120a}
+.ft-owner-close{background:#26344b;color:#fff;border:1px solid #3b4b64;border-radius:8px;padding:10px 16px}
+.ft-mini-preview{
+  background:#fff;color:#111;border-radius:8px;padding:12px;margin-top:10px;font-size:10px;
+}
+.ft-mini-preview .ft-line{display:flex;justify-content:space-between;border-bottom:1px solid #ddd;padding:3px 0}
+.ft-badge{
+  display:inline-block;padding:4px 7px;border-radius:20px;background:#153526;color:#38ef7d;
+  border:1px solid #2a8d59;font-size:9px;font-weight:900;
+}
+.ft-commercial-footer{
+  text-align:center;color:#6f8198;font-size:9px;padding:10px 4px 12px;
+  border-top:1px solid #1d2a3d;margin-top:auto;
+}
+@media(max-width:760px){.ft-owner-grid{grid-template-columns:1fr}.ft-owner-head{padding:14px}.ft-owner-body{padding:12px}}
+
     </style>
+
+<style id="fatima-bilingual-style">
+/* =========================================================
+   FATIMA TECH — BILINGUAL UI
+   English is the default. Urdu is a complete UI language.
+   For true InPage/Jameel rendering, place a licensed font at:
+   fonts/InPageNastaleeq.ttf
+   ========================================================= */
+:root{
+  --urdu-font:"InPage Nastaleeq","Jameel Noori Nastaleeq","Noto Nastaliq Urdu","Nafees Nastaleeq",serif;
+}
+body.lang-urdu{
+  font-family:var(--urdu-font),Tahoma,sans-serif;
+}
+body.lang-urdu .sidebar,
+body.lang-urdu .main-content,
+body.lang-urdu .modal,
+body.lang-urdu .modal-content,
+body.lang-urdu .card,
+body.lang-urdu table,
+body.lang-urdu button,
+body.lang-urdu input,
+body.lang-urdu select,
+body.lang-urdu textarea,
+body.lang-urdu label{
+  font-family:var(--urdu-font),Tahoma,sans-serif;
+}
+body.lang-urdu{
+  direction:rtl;
+}
+body.lang-urdu .sidebar{
+  direction:rtl;
+  text-align:right;
+}
+body.lang-urdu .main-content{
+  direction:rtl;
+  text-align:right;
+}
+body.lang-urdu table{
+  direction:rtl;
+}
+body.lang-urdu input,
+body.lang-urdu select,
+body.lang-urdu textarea{
+  text-align:right;
+}
+body.lang-english{
+  direction:ltr;
+}
+.ft-language-switch{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  margin-right:8px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:10px;
+  padding:3px;
+}
+.ft-language-switch button{
+  border:0;
+  border-radius:7px;
+  padding:7px 11px;
+  cursor:pointer;
+  font-weight:700;
+  background:transparent;
+  color:inherit;
+}
+.ft-language-switch button.active{
+  background:linear-gradient(135deg,#16a34a,#06b6d4);
+  color:#fff;
+}
+.ft-urdu-note{
+  font-size:11px;
+  opacity:.7;
+  margin-top:4px;
+}
+</style>
+
+<style id="fatima-professional-ui">
+/* FATIMA TECH PROFESSIONAL UI — clean corporate ERP theme */
+:root {
+  --bg-body:#f5f7fb; --card-bg:#ffffff; --text-color:#172033; --border-color:#e3e8f0;
+  --primary-blue:#1769e0; --primary-blue-hover:#0f56bd; --header-bg:#ffffff; --input-bg:#ffffff;
+  --sidebar-bg:#101828; --sidebar-width:248px; --shadow-color:rgba(15,23,42,.08);
+  --accent-glow:transparent; --accent-purple:#1769e0; --urdu-red:#d92d20; --urdu-red-bg:#fff5f4;
+}
+body { background:#f5f7fb !important; color:#172033 !important; font-size:13px !important; }
+body::before { display:none !important; }
+.sidebar { background:#101828 !important; border-right:1px solid #253047 !important; box-shadow:4px 0 18px rgba(15,23,42,.08) !important; }
+.sidebar-brand { background:#101828 !important; padding:18px 14px !important; border-bottom:1px solid #26334a !important; }
+.urdu-title-main { color:#ffffff !important; font-size:20px !important; }
+.nav-link { color:#b8c3d4 !important; border-radius:8px !important; margin:2px 8px !important; padding:10px 12px !important; }
+.nav-link:hover,.nav-link.active { background:#1b2a44 !important; color:#ffffff !important; }
+.submenu { background:#0c1422 !important; }
+.tab-content { animation:none !important; }
+.summary-cards { gap:14px !important; }
+.bubble-card { background:#fff !important; border:1px solid #e3e8f0 !important; border-radius:12px !important; box-shadow:0 4px 14px rgba(15,23,42,.06) !important; }
+.bubble-card:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(15,23,42,.09) !important; }
+button,.btn { border-radius:7px !important; box-shadow:none !important; font-weight:600 !important; }
+input,select,textarea { background:#fff !important; color:#172033 !important; border:1px solid #d6dde8 !important; border-radius:7px !important; min-height:36px; }
+input:focus,select:focus,textarea:focus { border-color:#1769e0 !important; box-shadow:0 0 0 3px rgba(23,105,224,.10) !important; outline:none !important; }
+#loginOverlay { background:#f3f6fa !important; animation:none !important; padding:24px !important; }
+#loginOverlay::before,#loginOverlay::after { display:none !important; }
+.login-card { background:#fff !important; color:#172033 !important; border:1px solid #e1e7ef !important; border-radius:16px !important; max-width:430px !important; padding:38px 36px !important; box-shadow:0 20px 55px rgba(15,23,42,.12) !important; backdrop-filter:none !important; animation:none !important; }
+.login-card::before,.login-card::after { display:none !important; }
+.login-card .brand-logo-badge { width:58px !important; height:58px !important; background:#1769e0 !important; border:0 !important; box-shadow:none !important; animation:none !important; }
+.login-card .brand-logo-badge span { color:#fff !important; font-size:25px !important; }
+.login-card .fmcg-badge { background:#eef5ff !important; color:#1769e0 !important; border:1px solid #d7e7ff !important; }
+.login-card h2 { color:#172033 !important; font-family:'Segoe UI',Tahoma,sans-serif !important; font-size:25px !important; font-weight:700 !important; }
+.login-card .subtitle { color:#667085 !important; font-family:'Segoe UI',Tahoma,sans-serif !important; }
+.login-card label { color:#344054 !important; font-size:12px !important; font-weight:600 !important; }
+.login-username-input { width:100% !important; height:44px !important; font-size:14px !important; padding:0 13px !important; }
+.login-help-text { margin-top:6px; color:#98a2b3; font-size:11px; }
+#loginPassInput { height:44px !important; font-size:14px !important; padding:0 13px !important; }
+.login-btn { width:100% !important; height:44px !important; background:#1769e0 !important; color:#fff !important; border:0 !important; border-radius:7px !important; font-size:14px !important; }
+.login-btn:hover { background:#0f56bd !important; transform:none !important; }
+@media (max-width:700px) {
+  #loginOverlay { padding:16px !important; }
+  .login-card { max-width:100% !important; padding:30px 22px !important; border-radius:14px !important; }
+  .sidebar { width:220px !important; }
+}
+</style>
 </head>
 <body>
 
@@ -477,27 +673,23 @@
 <div id="loginOverlay" class="no-print">
     <div class="bg-glow-1"></div>
     <div class="bg-glow-2"></div>
-    
     <div class="login-card">
-        <div class="brand-logo-badge">
-            <span>🏢</span>
-        </div>
+        <div class="brand-logo-badge"><span>🏢</span></div>
         <br>
-        <span class="fmcg-badge">Multi-FMCG Enterprise ERP</span>
-        <h2>حُسَیْن ٹْرِیَڈَرْزْ</h2>
-        <p class="subtitle">Sales & Distribution Management System</p>
-        
-        <div class="form-group" style="text-align: left; margin-bottom: 14px;">
-            <label>Select User / یوزر منتخب کریں:</label>
-            <select id="loginUserSelect" onchange="onUserSelectChange()"></select>
+        <span class="fmcg-badge">Fatima Tech • Distribution ERP</span>
+        <h2>Distribution Management System</h2>
+        <p class="subtitle">Secure Role-Based Login</p>
+        <div class="form-group" style="text-align:left;margin-bottom:14px;">
+            <label>Username</label>
+            <input type="text" id="loginUserSelect" class="login-username-input" placeholder="Enter username" autocomplete="username" autocapitalize="none" spellcheck="false" oninput="onUserSelectChange()" onkeydown="if(event.key==='Enter')document.getElementById('loginPassInput').focus()">
+            <div class="login-help-text">Enter your assigned username manually.</div>
         </div>
-
-        <div class="form-group" style="text-align: left; margin-bottom: 18px;">
-            <label>Password / پاسورڈ:</label>
-            <input type="password" id="loginPassInput" placeholder="Enter Password">
+        <div class="form-group" style="text-align:left;margin-bottom:18px;">
+            <label>Password</label>
+            <input type="password" id="loginPassInput" placeholder="Enter Password" onkeydown="if(event.key==='Enter')attemptLogin()">
         </div>
-        
-        <button class="login-btn" onclick="attemptLogin()">Sign In (بِسمِ اللّٰهِ)</button>
+        <button class="login-btn" onclick="attemptLogin()">Sign In</button>
+        <div style="margin-top:10px;font-size:10px;color:#94a3b8;">Fatima Tech Owner • Admin • Booker • KPO • Supply Man</div>
     </div>
 </div>
 
@@ -551,12 +743,13 @@
             </a>
             <ul class="submenu" id="reportsSubmenu">
                 <li data-perm="marketCreditReportTab"><a class="nav-link" onclick="openTab('marketCreditReportTab', this)">💳 Market Credit Report</a></li>
+                <li data-perm="activityLogTab"><a class="nav-link" onclick="openTab('activityLogTab', this)">🧾 Activity Log</a></li>
                 <li data-perm="shopWiseTaxReportTab"><a class="nav-link" onclick="openTab('shopWiseTaxReportTab', this)">📑 Shop Wise Tax Report</a></li>
-                <li data-perm="reportUdhaar"><a class="nav-link" onclick="openTab('reportUdhaar', this)">📋 Udhaar Report</a></li>
                 <li data-perm="stockDetailReport"><a class="nav-link" onclick="openTab('stockDetailReport', this)">📦 Stock Detail Report</a></li>
                 <li data-perm="bookerReports"><a class="nav-link" onclick="openTab('bookerReports', this)">🏬 Booker Report</a></li>
                 <li data-perm="expensesReport"><a class="nav-link" onclick="openTab('expensesReport', this)">💵 Expense Report</a></li>
                 <li data-perm="ownerDailySummary"><a class="nav-link" onclick="openTab('ownerDailySummary', this)">📝 Daily Summary</a></li>
+                <li data-perm="financeTab"><a class="nav-link" onclick="openTab('financeTab', this)">💰 Finance & Profit / Loss</a></li>
             </ul>
         </li>
 
@@ -572,6 +765,7 @@
         <div style="display: flex; align-items: center; gap: 10px;">
             <button class="btn-edit" onclick="toggleTheme()">☀️ / 🌙</button>
             <span id="liveDateTimeLabel" style="color: var(--primary-blue); font-weight:bold;">--</span>
+             <button id="ftOwnerStudioBtn" class="ft-owner-btn" style="display:none" onclick="ftOpenOwnerStudio()">⚙ Owner Studio</button>
             <button class="btn-delete" onclick="logout()">Logout 🚪</button>
         </div>
     </div>
@@ -689,7 +883,7 @@
                     </div>
                     <div class="form-group">
                         <label>Pieces:</label>
-                        <input type="number" id="posItemPcsQty" placeholder="Pcs" value="1" oninput="calculateRowTotal()">
+                        <input type="number" id="posItemPcsQty" placeholder="Pcs" value="0" oninput="calculateRowTotal()"><div id="posEquivalentPieces" style="font-size:10px;color:#64748b;margin-top:3px;">Equivalent Pieces: 0</div>
                     </div>
                     <div class="form-group">
                         <label>Trade Price:</label>
@@ -927,6 +1121,12 @@
                     <label>Search Shop Name:</label>
                     <input type="text" id="creditReportSearch" placeholder="🔍 Search..." oninput="renderMarketCreditReport()">
                 </div>
+                <div>
+                    <label>Booker Wise Detail:</label>
+                    <select id="creditReportBookerFilter" onchange="renderMarketCreditReport()">
+                        <option value="ALL">All Bookers</option>
+                    </select>
+                </div>
                 <div style="display:flex; align-items:flex-end;">
                     <button class="btn-excel" style="width:100%;" onclick="exportMarketCreditToExcel()">Export Report to Excel 📊</button>
                 </div>
@@ -948,7 +1148,7 @@
                             <th>Credit Limit</th>
                             <th>Current Outstanding Balance</th>
                             <th>Status</th>
-                            <th>Ledger</th>
+                            <th>Ledger</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="marketCreditReportTbody"></tbody>
@@ -1222,6 +1422,7 @@
                 <div class="form-group"><label>Category *:</label><select id="purCategory"><option value="Shahi Foods">Shahi Foods</option><option value="General">General</option></select></div>
                 <div class="form-group"><label>Supplier Name *:</label><input type="text" id="purSupplierName" placeholder="e.g. Shahi Foods"></div>
                 <div class="form-group"><label>Purchase Invoice No *:</label><input type="text" id="purInvoiceNo" placeholder="INV-8890"></div>
+                <div class="form-group"><label>Purchase Payment:</label><select id="purPaymentType"><option value="Cash">Cash Paid</option><option value="Bank">Bank Paid</option><option value="Credit">Credit Purchase</option></select></div>
                 <div class="form-group"><label>Attach Invoice:</label><input type="file" id="purInvoiceAttachment" accept="image/*,.pdf,.xlsx,.xls"></div>
             </div>
 
@@ -1313,7 +1514,7 @@
         <div class="table-responsive">
             <table>
                 <thead>
-                    <tr><th>SKU Code</th><th>Category</th><th>Product Name</th><th>Packing</th><th>List Price</th><th>Trade Price</th><th>Retail Price</th><th>Available Stock</th><th>Total Pieces</th></tr>
+                    <tr><th>SKU Code</th><th>Category</th><th>Product Name</th><th>Packing</th><th>List Price</th><th>Trade Price</th><th>Retail Price</th><th>Available Stock</th><th>Total Pieces</th><th>Actions</th></tr>
                 </thead>
                 <tbody id="liveStockInventoryTbody"></tbody>
             </table>
@@ -1343,8 +1544,29 @@
         </div>
         <div class="table-responsive">
             <table>
-                <thead><tr><th>Shop Name</th><th>Owner</th><th>Route / Area Group</th><th>Booker</th><th>Credit Limit</th><th>Balance Due</th></tr></thead>
+                <thead><tr><th>Shop Name</th><th>Owner</th><th>Contact</th><th>Route / Area Group</th><th>Booker</th><th>Credit Limit</th><th>Balance Due</th><th>Actions</th></tr></thead>
                 <tbody id="shopsTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ACTIVITY LOG -->
+    <div id="activityLogTab" class="tab-content">
+        <h3>🧾 System Activity & Audit Log</h3>
+        <div class="section-box no-print">
+            <div class="form-grid">
+                <input type="date" id="activityFrom" onchange="renderActivityLog()">
+                <input type="date" id="activityTo" onchange="renderActivityLog()">
+                <select id="activityUser" onchange="renderActivityLog()"><option value="ALL">All Users</option></select>
+                <select id="activityAction" onchange="renderActivityLog()"><option value="ALL">All Actions</option></select>
+                <input type="text" id="activitySearch" placeholder="Search activity, shop, stock, reference..." oninput="renderActivityLog()">
+                <button class="btn-excel" onclick="exportActivityLog()">Export Excel 📊</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead><tr><th>Date / Time</th><th>User</th><th>Module</th><th>Action</th><th>Record</th><th>Reference</th><th>Details</th></tr></thead>
+                <tbody id="activityLogTbody"></tbody>
             </table>
         </div>
     </div>
@@ -1361,16 +1583,6 @@
     </div>
 
     <!-- REPORTS & USERS -->
-    <div id="reportUdhaar" class="tab-content">
-        <h3>📋 Udhaar & Ledger Report</h3>
-        <div class="table-responsive">
-            <table>
-                <thead><tr><th>Shop Name</th><th>Route</th><th>Booker</th><th>Balance Due</th></tr></thead>
-                <tbody id="ledgerTable"></tbody>
-            </table>
-        </div>
-    </div>
-
     <div id="stockDetailReport" class="tab-content">
         <h3>📦 Stock Detail Report</h3>
         <div class="table-responsive">
@@ -1413,6 +1625,50 @@
         </div>
     </div>
 
+    <!-- FINANCE / INVESTMENT / CASH / PROFIT & LOSS -->
+    <div id="financeTab" class="tab-content">
+      <h3>💰 Finance, Actual Cash & Profit / Loss</h3>
+      <div class="section-box">
+        <h4 style="color:var(--primary-blue);">➕ Owner Investment / Capital Entry</h4>
+        <div class="form-grid">
+          <div class="form-group"><label>Investment Date</label><input type="date" id="ftInvDate"></div>
+          <div class="form-group"><label>Investor / Owner</label><input type="text" id="ftInvOwner" placeholder="Owner name"></div>
+          <div class="form-group"><label>Amount</label><input type="number" id="ftInvAmount" min="0" step="0.01" placeholder="Amount"></div>
+          <div class="form-group"><label>Payment Method</label><select id="ftInvMethod"><option value="Cash">Cash</option><option value="Bank">Bank</option></select></div>
+          <div class="form-group"><label>Remarks</label><input type="text" id="ftInvRemarks" placeholder="Opening capital / additional investment"></div>
+        </div>
+        <button class="btn-add" onclick="ftAddInvestment()">Save Investment</button>
+      </div>
+
+      <div class="summary-cards" id="ftFinanceCards">
+        <div class="bubble-card"><h3>Actual Cash In Hand</h3><p id="ftCashInHand">Rs. 0</p></div>
+        <div class="bubble-card"><h3>Bank Balance</h3><p id="ftBankBalance">Rs. 0</p></div>
+        <div class="bubble-card"><h3>Total Investment</h3><p id="ftTotalInvestment">Rs. 0</p></div>
+        <div class="bubble-card"><h3>Net Sales</h3><p id="ftNetSales">Rs. 0</p></div>
+        <div class="bubble-card"><h3>Gross Profit</h3><p id="ftGrossProfit">Rs. 0</p></div>
+        <div class="bubble-card"><h3>Net Profit / Loss</h3><p id="ftNetProfit">Rs. 0</p></div>
+        <div class="bubble-card"><h3>Outstanding</h3><p id="ftOutstanding">Rs. 0</p></div>
+        <div class="bubble-card"><h3>Stock Value</h3><p id="ftStockValue">Rs. 0</p></div>
+      </div>
+
+      <div class="section-box">
+        <h4 style="color:var(--primary-blue);">📅 Profit & Loss Period</h4>
+        <div class="form-grid">
+          <div class="form-group"><label>From</label><input type="date" id="ftFromDate"></div>
+          <div class="form-group"><label>To</label><input type="date" id="ftToDate"></div>
+          <div class="form-group"><label>Quick Period</label><select id="ftPeriod" onchange="ftSetPeriod()"><option value="custom">Custom</option><option value="day">Today</option><option value="month">This Month</option><option value="year">This Year</option></select></div>
+        </div>
+        <button class="btn-add" onclick="ftRenderFinance()">Generate Report</button>
+        <button class="btn-excel" onclick="ftExportFinanceExcel()">Export Excel</button>
+      </div>
+
+      <div class="section-box" id="ftPLSummary"></div>
+      <div class="section-box"><h4>📆 Day-wise Cash & Profit/Loss</h4><div class="table-responsive"><table><thead><tr><th>Date</th><th>Sales</th><th>COGS</th><th>Gross Profit</th><th>Recovery</th><th>Expenses</th><th>Net Profit/Loss</th><th>Actual Cash</th></tr></thead><tbody id="ftDaywiseTbody"></tbody></table></div></div>
+      <div class="section-box"><h4>🏷️ Brand-wise Profit</h4><div class="table-responsive"><table><thead><tr><th>Brand / Category</th><th>Sales</th><th>COGS</th><th>Gross Profit</th><th>Margin %</th></tr></thead><tbody id="ftBrandTbody"></tbody></table></div></div>
+      <div class="section-box"><h4>🧾 Cash / Bank Ledger</h4><div class="table-responsive"><table><thead><tr><th>Date</th><th>Transaction</th><th>Reference</th><th>Cash In</th><th>Cash Out</th><th>Bank In</th><th>Bank Out</th><th>Running Cash</th></tr></thead><tbody id="ftCashLedgerTbody"></tbody></table></div></div>
+      <div class="section-box"><h4>💼 Investment History</h4><div class="table-responsive"><table><thead><tr><th>Date</th><th>Owner</th><th>Method</th><th>Amount</th><th>Remarks</th></tr></thead><tbody id="ftInvestmentTbody"></tbody></table></div></div>
+    </div>
+
     <!-- USER MANAGEMENT WITH EDIT CAPABILITY AND GRANULAR ACCESS CONTROLS -->
     <div id="users" class="tab-content">
         <h3>⚙️ User Management & Module Access Permissions</h3>
@@ -1425,6 +1681,7 @@
                 <select id="newUserRole">
                     <option value="Admin">Admin</option>
                     <option value="Order Booker">Order Booker</option>
+                    <option value="KPO">KPO</option>
                     <option value="Supply Man">Supply Man</option>
                     <option value="Custom">Custom Role</option>
                 </select>
@@ -1449,7 +1706,6 @@
                 <label class="perm-item"><input type="checkbox" value="shops" checked> Shops Management</label>
                 <label class="perm-item"><input type="checkbox" value="marketCreditReportTab" checked> Market Credit Report</label>
                 <label class="perm-item"><input type="checkbox" value="shopWiseTaxReportTab" checked> Tax Report</label>
-                <label class="perm-item"><input type="checkbox" value="reportUdhaar" checked> Udhaar Report</label>
                 <label class="perm-item"><input type="checkbox" value="stockDetailReport" checked> Stock Detail Report</label>
                 <label class="perm-item"><input type="checkbox" value="bookerReports" checked> Booker Report</label>
                 <label class="perm-item"><input type="checkbox" value="expensesReport" checked> Expense Report</label>
@@ -1503,11 +1759,17 @@
     let dbExpenses = JSON.parse(localStorage.getItem('ht_expenses')) || [];
     let dbReturns = JSON.parse(localStorage.getItem('ht_returns')) || [];
     let dbCompanyClaims = JSON.parse(localStorage.getItem('ht_company_claims')) || [];
+    let dbLedgerAdjustments = JSON.parse(localStorage.getItem('ht_ledger_adjustments')) || [];
+    let dbAuditLog = JSON.parse(localStorage.getItem('ht_audit_log')) || [];
     let dbUsers = JSON.parse(localStorage.getItem('ht_users')) || [
-        { username: 'admin', pass: 'admin', role: 'Admin', permissions: ['ALL'] },
-        { username: 'Huzaifa', pass: '1234', role: 'Order Booker', permissions: ['dashboard', 'posSales', 'invoicesList', 'shops'] },
-        { username: 'Tariq Supply', pass: '1234', role: 'Supply Man', permissions: ['dashboard', 'supplyManTab'] }
+        { username: 'admin', pass: '1234', role: 'Admin', permissions: ['ALL'] },
+        { username: 'booker', pass: '1234', role: 'Order Booker', permissions: ['dashboard', 'posSales', 'invoicesList', 'shops'] },
+        { username: 'kpo', pass: '1234', role: 'KPO', permissions: ['dashboard', 'invoicesList', 'picklistTab', 'supplyManTab'] },
+        { username: 'supplyman', pass: '1234', role: 'Supply Man', permissions: ['dashboard', 'supplyManTab'] }
     ];
+    // Remove legacy demo names from the login list without touching business data.
+    dbUsers = dbUsers.filter(u => !['shiraz','aftab'].includes(String(u.username).trim().toLowerCase()));
+    localStorage.setItem('ht_users', JSON.stringify(dbUsers));
     let dbGeneratedPicklists = JSON.parse(localStorage.getItem('ht_generated_picklists')) || [];
     let dbCashInHand = parseFloat(localStorage.getItem('ht_cash_in_hand')) || 0;
 
@@ -1554,35 +1816,67 @@
     function toggleSubmenu(id) { document.getElementById(id).classList.toggle('open'); }
 
     function generateInvoiceNumber() {
-        document.getElementById('posInvNum').value = 'INV-' + (1000 + dbInvoices.length + 1);
+        const pref = (typeof load==='function' ? load().invoicePrefix : 'INV');
+        document.getElementById('posInvNum').value = pref + '-' + (1000 + dbInvoices.length + 1);
         document.getElementById('prevInvNum').innerText = document.getElementById('posInvNum').value;
     }
 
-    /* UNFILTERED ALL USERS DROPDOWN FOR LOGIN SCREEN */
+    /* Secure role-separated login. Fatima Tech Owner is a separate master account. */
+    function getFatimaTechOwnerAuth() {
+        try {
+            return Object.assign({ username:'fatimatech', pass:'Fatima@2026' }, JSON.parse(localStorage.getItem('fatimaTechOwnerAuth') || '{}'));
+        } catch(e) { return { username:'fatimatech', pass:'Fatima@2026' }; }
+    }
+
     function populateLoginUserDropdown() {
-        const select = document.getElementById('loginUserSelect');
-        if(!select) return;
-        select.innerHTML = dbUsers.map(u => `<option value="${u.username}">${u.username} (${u.role})</option>`).join('');
-        onUserSelectChange();
+        // Username is intentionally NOT pre-filled or shown in a fixed dropdown.
+        // Every user enters their assigned username manually.
+        const input = document.getElementById('loginUserSelect');
+        if(!input) return;
+        input.value = '';
+        document.getElementById('loginPassInput').value = '';
+        const btn = document.getElementById('ftOwnerStudioBtn');
+        if(btn) btn.style.display = 'none';
     }
 
     function onUserSelectChange() {
-        document.getElementById('loginPassInput').value = '';
-        document.getElementById('loginPassInput').focus();
+        const input = document.getElementById('loginUserSelect');
+        const username = (input?.value || '').trim();
+        const btn = document.getElementById('ftOwnerStudioBtn');
+        const owner = getFatimaTechOwnerAuth();
+        if(btn) btn.style.display = username && username.toLowerCase() === String(owner.username).toLowerCase() ? 'inline-flex' : 'none';
     }
 
     function attemptLogin() {
-        const selectedUsername = document.getElementById('loginUserSelect').value;
-        const pass = document.getElementById('loginPassInput').value.trim();
-        const found = dbUsers.find(x => x.username.toLowerCase() === selectedUsername.toLowerCase() && x.pass === pass);
+        const selectedUsername = (document.getElementById('loginUserSelect').value || '').trim();
+        const pass = document.getElementById('loginPassInput').value || '';
+        if(!selectedUsername) return alert('Please enter your username.');
+        if(!pass) return alert('Please enter your password.');
+
+        const owner = getFatimaTechOwnerAuth();
+        if(selectedUsername.toLowerCase() === String(owner.username).toLowerCase()) {
+            if(pass === owner.pass) {
+                currentUser = { username:owner.username, role:'Fatima Tech Owner', permissions:['ALL'], isOwner:true };
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('loggedUsername').innerText = owner.username.toUpperCase();
+                document.getElementById('userRoleBadge').innerText = 'Fatima Tech Owner';
+                document.getElementById('ftOwnerStudioBtn').style.display = 'inline-flex';
+                applyUserAccessPermissions();
+                return;
+            }
+            return alert('Incorrect password.');
+        }
+        const found = dbUsers.find(x => String(x.username).toLowerCase() === selectedUsername.toLowerCase() && x.pass === pass);
         if(found) {
             currentUser = found;
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('loggedUsername').innerText = found.username.toUpperCase();
             document.getElementById('userRoleBadge').innerText = found.role;
+            const btn = document.getElementById('ftOwnerStudioBtn');
+            if(btn) btn.style.display = 'none';
             applyUserAccessPermissions();
         } else {
-            alert('غلط پاسورڈ! براہ کرم درست پاسورڈ درج کریں۔');
+            alert('Incorrect password.');
         }
     }
 
@@ -1624,7 +1918,6 @@
         if(tabId === 'supplyManTab') { populateSupplyManDropdowns(); renderSupplyManPendingInvoices(); renderKpoLogsTable(); }
         if(tabId === 'recoveryEntry') { renderRecoveryApprovalTable(); }
         if(tabId === 'marketCreditReportTab') { renderMarketCreditReport(); }
-        if(tabId === 'reportUdhaar') renderUdhaarReport();
         if(tabId === 'ownerDailySummary') renderOwnerDailySummary();
     }
 
@@ -1647,68 +1940,92 @@
     }
 
     function getShopPreviousBalance(shopName) {
-        let shopInvoices = dbInvoices.filter(i => i.shop === shopName);
-        if(shopInvoices.length === 0) return 0;
-        return shopInvoices[shopInvoices.length - 1].newGrandTotalBalance || 0;
+        // Live balance = all posted sales - invoice-paid amounts - approved recoveries + owner debit/credit adjustments.
+        // This avoids the old bug where the system only looked at the last invoice and ignored recoveries.
+        const invoiceNet = dbInvoices.filter(i => i.shop === shopName).reduce((sum, i) => {
+            const bill = Number(i.currentBillTotal ?? i.remainingSubtotal ?? 0) || 0;
+            const paid = Number(i.paidAmount || 0) || 0;
+            return sum + bill - paid;
+        }, 0);
+        const recoveryNet = dbRecoveries.filter(r => r.shop === shopName && r.status === 'Approved')
+            .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        const adjustmentNet = dbLedgerAdjustments.filter(a => a.shop === shopName)
+            .reduce((sum, a) => sum + (a.type === 'Debit' ? (Number(a.amount)||0) : -(Number(a.amount)||0)), 0);
+        return invoiceNet - recoveryNet + adjustmentNet;
     }
 
-    /* MARKET CREDIT REPORT */
+    function getBookerNames() {
+        const names = new Set();
+        dbUsers.filter(u => u.role === 'Order Booker').forEach(u => names.add(u.username));
+        dbShops.forEach(s => { if(s.booker) names.add(s.booker); });
+        dbInvoices.forEach(i => { if(i.booker) names.add(i.booker); });
+        return [...names].filter(Boolean).sort();
+    }
+
     function renderMarketCreditReport() {
-        const routes = [...new Set(dbShops.map(s => s.route || 'Unassigned'))];
-        let routeOpts = `<option value="ALL">All Routes</option>` + routes.map(r => `<option value="${r}">${r}</option>`).join('');
-        document.getElementById('creditReportRouteFilter').innerHTML = routeOpts;
+        const routeEl=document.getElementById('creditReportRouteFilter');
+        const shopEl=document.getElementById('creditReportShopFilter');
+        const bookerEl=document.getElementById('creditReportBookerFilter');
+        const routes = [...new Set(dbShops.map(s => s.route || 'Unassigned'))].sort();
+        const prevRoute=routeEl.value;
+        routeEl.innerHTML = `<option value="ALL">All Routes</option>` + routes.map(r => `<option value="${r}">${r}</option>`).join('');
+        if(routes.includes(prevRoute)) routeEl.value=prevRoute;
+        const prevShop=shopEl.value;
+        shopEl.innerHTML = `<option value="ALL">All Shops (Summary)</option>` + dbShops.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        if(dbShops.some(s=>s.name===prevShop)) shopEl.value=prevShop;
+        const prevBooker=bookerEl.value;
+        const bookers=getBookerNames();
+        bookerEl.innerHTML = `<option value="ALL">All Bookers</option>` + bookers.map(b => `<option value="${b}">${b}</option>`).join('');
+        if(bookers.includes(prevBooker)) bookerEl.value=prevBooker;
 
-        let shopOpts = `<option value="ALL">All Shops (Summary)</option>` + dbShops.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-        document.getElementById('creditReportShopFilter').innerHTML = shopOpts;
-
-        const selectedRoute = document.getElementById('creditReportRouteFilter').value;
-        const selectedShop = document.getElementById('creditReportShopFilter').value;
-        const searchQuery = document.getElementById('creditReportSearch').value.toLowerCase();
-
+        const selectedRoute = routeEl.value;
+        const selectedShop = shopEl.value;
+        const selectedBooker = bookerEl.value;
+        const searchQuery = (document.getElementById('creditReportSearch').value || '').toLowerCase().trim();
         const container = document.getElementById('marketCreditReportContainer');
 
-        if(selectedShop !== 'ALL') {
-            renderSingleShopLedgerView(selectedShop, container);
-            return;
+        if(currentUser && currentUser.role === 'Order Booker') {
+            // Bookers can only see their own assigned shops/booker detail.
+            if(selectedBooker !== 'ALL' && selectedBooker !== currentUser.username) { bookerEl.value=currentUser.username; }
+            if(selectedShop !== 'ALL') {
+                const allowedShop=dbShops.find(s=>s.name===selectedShop && s.booker===currentUser.username);
+                if(!allowedShop) { shopEl.value='ALL'; }
+            }
         }
+        const safeBooker = (currentUser && currentUser.role === 'Order Booker') ? currentUser.username : bookerEl.value;
+        const safeShop = shopEl.value;
+        if(safeShop !== 'ALL') { renderSingleShopLedgerView(safeShop, container); return; }
+        if(safeBooker !== 'ALL') { renderBookerCreditDetail(safeBooker, container); return; }
 
         let filteredShops = dbShops.filter(shop => {
-            let matchRoute = selectedRoute === 'ALL' || shop.route === selectedRoute;
-            let matchSearch = shop.name.toLowerCase().includes(searchQuery) || (shop.owner && shop.owner.toLowerCase().includes(searchQuery));
-            let matchBooker = true;
-
-            if(currentUser && currentUser.role === 'Order Booker') {
-                matchBooker = (shop.booker === currentUser.username);
-            }
-
+            const matchRoute = selectedRoute === 'ALL' || shop.route === selectedRoute;
+            const matchSearch = (shop.name||'').toLowerCase().includes(searchQuery) || ((shop.owner||'').toLowerCase().includes(searchQuery));
+            const matchBooker = !currentUser || currentUser.role !== 'Order Booker' || shop.booker === currentUser.username;
             return matchRoute && matchSearch && matchBooker;
         });
 
         let html = `<div class="table-responsive"><table><thead><tr>
             <th>#</th><th>Shop Name</th><th>Owner Name</th><th>Contact</th><th>Route / Area</th><th>Assigned Booker</th><th>Credit Limit</th><th>Current Outstanding</th><th>Status</th><th>Action</th>
         </tr></thead><tbody>`;
-
         filteredShops.forEach((shop, idx) => {
-            let bal = getShopPreviousBalance(shop.name);
-            let limit = shop.creditLimit || 50000;
-            let isOverLimit = bal > limit;
-
-            html += `<tr>
-                <td>${idx + 1}</td>
-                <td><strong>${shop.name}</strong></td>
-                <td>${shop.owner || '--'}</td>
-                <td>${shop.contact || '--'}</td>
-                <td>${shop.route || '--'}</td>
-                <td>${shop.booker || '--'}</td>
-                <td>Rs. ${limit.toLocaleString()}</td>
-                <td style="color:${isOverLimit ? '#ff4d4d' : 'var(--text-color)'}; font-weight:bold;">Rs. ${bal.toLocaleString()}</td>
-                <td><span style="background:${isOverLimit ? 'rgba(255, 77, 77, 0.2)' : 'rgba(56, 239, 125, 0.2)'}; color:${isOverLimit ? '#ff4d4d' : '#38ef7d'}; padding:2px 5px; border-radius:3px; font-weight:bold;">${isOverLimit ? '⚠️ Over Limit' : 'OK'}</span></td>
-                <td><button class="btn-print" onclick="viewSpecificShopLedger('${shop.name}')">View Ledger 📖</button></td>
-            </tr>`;
+            const bal=getShopPreviousBalance(shop.name), limit=Number(shop.creditLimit||50000), over=bal>limit;
+            html += `<tr><td>${idx+1}</td><td><strong>${shop.name}</strong></td><td>${shop.owner||'--'}</td><td>${shop.contact||'--'}</td><td>${shop.route||'--'}</td><td>${shop.booker||'--'}</td><td>Rs. ${limit.toLocaleString()}</td><td style="font-weight:bold;">Rs. ${bal.toLocaleString()}</td><td>${over?'⚠️ Over Limit':'OK'}</td><td><button class="btn-print" onclick="viewSpecificShopLedger('${shop.name.replace(/'/g,"\\'")}')">View Ledger 📖</button></td></tr>`;
         });
-
         html += `</tbody></table></div>`;
-        container.innerHTML = html;
+        container.innerHTML=html;
+    }
+
+    function renderBookerCreditDetail(booker, container) {
+        if(currentUser && currentUser.role === 'Order Booker' && booker !== currentUser.username) booker=currentUser.username;
+        const shops=dbShops.filter(s=>s.booker===booker);
+        const invoices=dbInvoices.filter(i=>i.booker===booker);
+        const recoveries=dbRecoveries.filter(r=>r.booker===booker && r.status==='Approved');
+        const sales=invoices.reduce((a,i)=>a+(Number(i.currentBillTotal)||0),0);
+        const paid=invoices.reduce((a,i)=>a+(Number(i.paidAmount)||0),0);
+        const rec=recoveries.reduce((a,r)=>a+(Number(r.amount)||0),0);
+        const outstanding=shops.reduce((a,s)=>a+getShopPreviousBalance(s.name),0);
+        let rows=shops.map((shop,i)=>`<tr><td>${i+1}</td><td><strong>${shop.name}</strong></td><td>${shop.route||'--'}</td><td>${invoices.filter(x=>x.shop===shop.name).length}</td><td>Rs. ${invoices.filter(x=>x.shop===shop.name).reduce((a,x)=>a+(Number(x.currentBillTotal)||0),0).toLocaleString()}</td><td>Rs. ${getShopPreviousBalance(shop.name).toLocaleString()}</td><td><button class="btn-print" onclick="viewSpecificShopLedger('${shop.name.replace(/'/g,"\\'")}')">Ledger</button></td></tr>`).join('');
+        container.innerHTML=`<div class="section-box"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><div><h3>${booker} — Market Credit Detail</h3><p>Shops: <strong>${shops.length}</strong> | Invoices: <strong>${invoices.length}</strong> | Sales: <strong>Rs. ${sales.toLocaleString()}</strong> | Invoice Paid: <strong>Rs. ${paid.toLocaleString()}</strong> | Recoveries: <strong>Rs. ${rec.toLocaleString()}</strong> | Outstanding: <strong>Rs. ${outstanding.toLocaleString()}</strong></p></div><button class="btn-add" onclick="document.getElementById('creditReportBookerFilter').value='ALL';renderMarketCreditReport();">Back to Summary ↩️</button></div><div class="table-responsive" style="margin-top:10px;"><table><thead><tr><th>#</th><th>Shop</th><th>Route</th><th>Invoices</th><th>Sales</th><th>Outstanding</th><th>Ledger</th></tr></thead><tbody>${rows||'<tr><td colspan="7">No records found.</td></tr>'}</tbody></table></div></div>`;
     }
 
     function viewSpecificShopLedger(shopName) {
@@ -1717,639 +2034,47 @@
     }
 
     function renderSingleShopLedgerView(shopName, container) {
-        const shop = dbShops.find(s => s.name === shopName);
-        const shopInvs = dbInvoices.filter(i => i.shop === shopName);
-        const shopRecs = dbRecoveries.filter(r => r.shop === shopName && r.status === 'Approved');
-
-        let ledgerEntries = [];
-        shopInvs.forEach(i => {
-            ledgerEntries.push({ date: i.date, type: 'Sale Invoice', ref: i.invNum, debit: i.currentBillTotal, credit: 0 });
-        });
-        shopRecs.forEach(r => {
-            ledgerEntries.push({ date: r.date, type: `Recovery (${r.method})`, ref: 'REC-' + r.id.slice(-4), debit: 0, credit: r.amount });
-        });
-
-        ledgerEntries.sort((a,b) => new Date(a.date) - new Date(b.date));
-
-        let runningBal = 0;
-        let rowsHtml = ledgerEntries.map(e => {
-            runningBal += (e.debit - e.credit);
-            return `<tr>
-                <td>${e.date}</td>
-                <td><strong>${e.type}</strong></td>
-                <td>${e.ref}</td>
-                <td style="color:#38ef7d;">${e.debit ? 'Rs. ' + e.debit.toLocaleString() : '--'}</td>
-                <td style="color:#00f2fe;">${e.credit ? 'Rs. ' + e.credit.toLocaleString() : '--'}</td>
-                <td style="font-weight:bold; color:#ff4d4d;">Rs. ${runningBal.toLocaleString()}</td>
-            </tr>`;
-        }).join('') || `<tr><td colspan="6" style="text-align:center;">اس دوکان کی کوئی ٹرانزیکشن موجود نہیں ہے</td></tr>`;
-
-        container.innerHTML = `
-            <div class="section-box" style="border-left: 4px solid var(--primary-blue);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h3 style="color:var(--primary-blue);">${shopName} - Detailed Account Ledger</h3>
-                        <p>Route/Area: <strong>${shop ? shop.route : '--'}</strong> | Booker: <strong>${shop ? shop.booker : '--'}</strong></p>
-                    </div>
-                    <div>
-                        <button class="btn-add" onclick="document.getElementById('creditReportShopFilter').value='ALL'; renderMarketCreditReport();">Back to All Shops ↩️</button>
-                    </div>
-                </div>
-                <div class="table-responsive" style="margin-top:10px;">
-                    <table>
-                        <thead>
-                            <tr><th>Date</th><th>Transaction Type</th><th>Reference #</th><th>Debit (Bill Total)</th><th>Credit (Paid/Recovery)</th><th>Running Balance</th></tr>
-                        </thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                </div>
-            </div>
-        `;
+        const shop=dbShops.find(s=>s.name===shopName);
+        const shopInvs=dbInvoices.filter(i=>i.shop===shopName);
+        const shopRecs=dbRecoveries.filter(r=>r.shop===shopName && r.status==='Approved');
+        const shopAdj=dbLedgerAdjustments.filter(a=>a.shop===shopName);
+        let ledger=[];
+        shopInvs.forEach(i=>ledger.push({date:i.date,time:i.createdAt||'',type:'Sale Invoice',ref:i.invNum,debit:Number(i.currentBillTotal||0),credit:Number(i.paidAmount||0),note:'Invoice'}));
+        shopRecs.forEach(r=>ledger.push({date:r.date,time:r.createdAt||'',type:`Recovery (${r.method||'Payment'})`,ref:'REC-'+String(r.id||'').slice(-6),debit:0,credit:Number(r.amount||0),note:'Approved recovery'}));
+        shopAdj.forEach(a=>ledger.push({date:a.date,time:a.createdAt||'',type:`Owner Adjustment — ${a.type}`,ref:a.id,debit:a.type==='Debit'?Number(a.amount||0):0,credit:a.type==='Credit'?Number(a.amount||0):0,note:a.reason||''}));
+        ledger.sort((a,b)=>String(a.date+' '+a.time).localeCompare(String(b.date+' '+b.time)));
+        let running=0;
+        const rows=ledger.map(e=>{running += e.debit-e.credit; const ownerBtn=(currentUser&&currentUser.isOwner)?`<button class="btn-delete" onclick="ownerRemoveLedgerAdjustment('${e.ref}')" ${e.type.startsWith('Owner Adjustment')?'':'style="display:none"'}>Reverse</button>`:''; return `<tr><td>${e.date}</td><td><strong>${e.type}</strong></td><td>${e.ref}</td><td>${e.debit?'Rs. '+e.debit.toLocaleString():'--'}</td><td>${e.credit?'Rs. '+e.credit.toLocaleString():'--'}</td><td><strong>Rs. ${running.toLocaleString()}</strong></td><td>${e.note||'--'} ${ownerBtn}</td></tr>`;}).join('')||'<tr><td colspan="7">No transactions found.</td></tr>';
+        const adjustmentBox=(currentUser&&currentUser.isOwner)?`<div class="section-box no-print" style="margin-top:10px;border-left:4px solid #ffb300;"><h4>Owner-Only Ledger Adjustment</h4><p style="font-size:12px;">Use this only to correct a verified posting mistake. The original transaction remains unchanged and every adjustment is logged.</p><div class="form-grid"><div><label>Date</label><input type="date" id="ledgerAdjDate" value="${new Date().toISOString().slice(0,10)}"></div><div><label>Type</label><select id="ledgerAdjType"><option value="Credit">Credit / Reduce Balance</option><option value="Debit">Debit / Increase Balance</option></select></div><div><label>Amount</label><input type="number" id="ledgerAdjAmount" min="0" step="0.01"></div><div><label>Reason / Verification Note</label><input type="text" id="ledgerAdjReason" placeholder="Verified posting correction"></div></div><button class="btn-add" onclick="ownerAddLedgerAdjustment('${shopName.replace(/'/g,"\\'")}')">Save Verified Adjustment</button></div>`:'';
+        container.innerHTML=`<div class="section-box" style="border-left:4px solid var(--primary-blue);"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><div><h3>${shopName} — Detailed Account Ledger</h3><p>Route: <strong>${shop?shop.route:'--'}</strong> | Booker: <strong>${shop?shop.booker:'--'}</strong> | Current Balance: <strong>Rs. ${getShopPreviousBalance(shopName).toLocaleString()}</strong></p></div><button class="btn-add" onclick="document.getElementById('creditReportShopFilter').value='ALL';renderMarketCreditReport();">Back to All Shops ↩️</button></div><div class="table-responsive" style="margin-top:10px;"><table><thead><tr><th>Date</th><th>Transaction</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Running Balance</th><th>Verification / Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>${adjustmentBox}`;
     }
 
-    function exportMarketCreditToExcel() {
-        let table = document.getElementById("marketCreditReportContainer").querySelector("table");
-        if(!table) return alert('ایکپورٹ کے لیے ڈیٹا موجود نہیں!');
-        let wb = XLSX.utils.table_to_book(table, {sheet: "Market Credit Report"});
-        XLSX.writeFile(wb, `Market_Credit_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+    function ownerAddLedgerAdjustment(shopName){
+        if(!currentUser || !currentUser.isOwner) return alert('Owner access only.');
+        const date=document.getElementById('ledgerAdjDate').value;
+        const type=document.getElementById('ledgerAdjType').value;
+        const amount=Number(document.getElementById('ledgerAdjAmount').value)||0;
+        const reason=document.getElementById('ledgerAdjReason').value.trim();
+        if(!date||amount<=0||!reason) return alert('Date, amount and verification note are required.');
+        const id='ADJ_'+Date.now();
+        dbLedgerAdjustments.push({id,date,type,amount,reason,shop:shopName,createdAt:new Date().toISOString(),createdBy:currentUser.username});
+        dbAuditLog.push({id:'AUD_'+Date.now(),date:new Date().toISOString(),user:currentUser.username,action:'Ledger Adjustment',shop:shopName,reference:id,details:`${type} Rs. ${amount} — ${reason}`});
+        localStorage.setItem('ht_ledger_adjustments',JSON.stringify(dbLedgerAdjustments));
+        localStorage.setItem('ht_audit_log',JSON.stringify(dbAuditLog));
+        renderDashboard(); renderShops(); renderMarketCreditReport();
+        alert('Verified owner adjustment saved and audit logged.');
     }
 
-    function handlePurchaseImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                
-                jsonData.forEach(row => {
-                    let name = row['Product'] || row['Item'] || row['Name'] || 'Imported Product';
-                    let ctnQty = parseFloat(row['Cartons'] || row['Qty'] || 1);
-                    let packing = parseFloat(row['Packing'] || 24);
-                    let cost = parseFloat(row['Cost'] || row['Price'] || 0);
-                    let tp = parseFloat(row['TP'] || cost * 1.1);
-                    let retail = parseFloat(row['Retail'] || cost * 1.2);
-
-                    currentPurInvoiceItems.push({
-                        sku: 'SKU-' + Date.now().toString().slice(-4),
-                        category: document.getElementById('purCategory').value,
-                        name: name.toUpperCase(),
-                        pcsPerCarton: packing,
-                        cartonQty: ctnQty,
-                        totalPcs: ctnQty * packing,
-                        pieceCost: cost,
-                        tradePrice: tp,
-                        retailPrice: retail,
-                        subtotal: (ctnQty * packing) * cost
-                    });
-                });
-                renderPurInvoiceItemsTable();
-                alert('ایکسل سے اسٹاک کامیابی سے امپورٹ ہو گیا!');
-            };
-            reader.readAsArrayBuffer(file);
-        } else {
-            alert('PDF/تصویر منسلک ہو گئی ہے۔ براہ کرم مصنوعات کی تفصیلات کی تصدیق کریں۔');
-        }
-    }
-
-    function addPurchaseRowItem() {
-        let name = document.getElementById('purItemName').value.trim().toUpperCase();
-        let pcsPerCarton = parseFloat(document.getElementById('purPcsPerCarton').value) || 24;
-        let cartonQty = parseFloat(document.getElementById('purCartonQty').value) || 0;
-        let pieceCost = parseFloat(document.getElementById('purPieceCost').value) || 0;
-        let tradePrice = parseFloat(document.getElementById('purTradePricePiece').value) || pieceCost;
-        let retailPrice = parseFloat(document.getElementById('purRetailPricePiece').value) || tradePrice;
-
-        if(!name || cartonQty <= 0) return alert('پروڈکٹ کا نام اور کارٹن کی تعداد درج کریں!');
-
-        let totalPcs = cartonQty * pcsPerCarton;
-        let subtotal = totalPcs * pieceCost;
-
-        currentPurInvoiceItems.push({
-            sku: 'SKU-' + Date.now().toString().slice(-4),
-            category: document.getElementById('purCategory').value,
-            name, pcsPerCarton, cartonQty, totalPcs, pieceCost, tradePrice, retailPrice, subtotal
-        });
-
-        renderPurInvoiceItemsTable();
-        document.getElementById('purItemName').value = '';
-        document.getElementById('purCartonQty').value = '';
-    }
-
-    function renderPurInvoiceItemsTable() {
-        document.getElementById('purInvoiceItemsTbody').innerHTML = currentPurInvoiceItems.map((item, idx) => `
-            <tr>
-                <td>${item.sku}</td>
-                <td>${item.category}</td>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.pcsPerCarton} Pcs</td>
-                <td>${item.cartonQty} Ctn</td>
-                <td>${item.totalPcs} Pcs</td>
-                <td>Rs. ${item.pieceCost}</td>
-                <td>Rs. ${item.tradePrice}</td>
-                <td>Rs. ${item.retailPrice}</td>
-                <td>Rs. ${item.subtotal.toLocaleString()}</td>
-                <td><button class="btn-delete" onclick="currentPurInvoiceItems.splice(${idx},1);renderPurInvoiceItemsTable();">X</button></td>
-            </tr>
-        `).join('');
-    }
-
-    function saveCompletePurchaseInvoice(print) {
-        if(currentPurInvoiceItems.length === 0) return alert('پرچیز انوائس خالی ہے!');
-
-        let date = document.getElementById('purInvDate').value;
-        let supplier = document.getElementById('purSupplierName').value.trim();
-        let invNo = document.getElementById('purInvoiceNo').value.trim();
-        let category = document.getElementById('purCategory').value;
-
-        let totalAmt = currentPurInvoiceItems.reduce((a, b) => a + b.subtotal, 0);
-
-        dbPurchaseInvoices.push({
-            invNo, date, supplier, category, items: [...currentPurInvoiceItems], totalAmt
-        });
-
-        currentPurInvoiceItems.forEach(item => {
-            let found = dbStock.find(s => s.name === item.name);
-            if(found) {
-                found.qty += item.totalPcs;
-                found.costPrice = item.pieceCost;
-                found.tradePrice = item.tradePrice;
-                found.retailPrice = item.retailPrice;
-            } else {
-                dbStock.push({
-                    id: 'STK_' + Date.now(),
-                    sku: item.sku,
-                    category: item.category,
-                    name: item.name,
-                    pcsPerCarton: item.pcsPerCarton,
-                    qty: item.totalPcs,
-                    costPrice: item.pieceCost,
-                    tradePrice: item.tradePrice,
-                    retailPrice: item.retailPrice
-                });
-            }
-        });
-
-        localStorage.setItem('ht_purchase_invoices', JSON.stringify(dbPurchaseInvoices));
-        localStorage.setItem('ht_stock', JSON.stringify(dbStock));
-
-        alert('پرچیز انوائس محفوظ ہو گئی اور لائیو اسٹاک اپڈیٹ ہو گیا!');
-        currentPurInvoiceItems = [];
-        renderPurInvoiceItemsTable();
-        renderLiveStockInventory();
-    }
-
-    function filterPosShopsByBooker() {
-        const b = document.getElementById('posBookerSelect').value;
-        
-        let filteredShops = dbShops;
-        if(currentUser && currentUser.role === 'Order Booker') {
-            filteredShops = dbShops.filter(s => s.booker === currentUser.username);
-            document.getElementById('posBookerSelect').value = currentUser.username;
-            document.getElementById('posBookerSelect').disabled = true;
-        } else if(b) {
-            filteredShops = dbShops.filter(s => s.booker === b);
-        }
-
-        document.getElementById('posShopSelect').innerHTML = filteredShops.map(s => `<option value="${s.name}">${s.name} (${s.route || 'No Route'})</option>`).join('');
-        updatePrevShopName();
-    }
-
-    function filterRecoveryShopsByBooker() {
-        const b = document.getElementById('recBookerSelect').value;
-        
-        let filteredShops = dbShops;
-        if(currentUser && currentUser.role === 'Order Booker') {
-            filteredShops = dbShops.filter(s => s.booker === currentUser.username);
-            document.getElementById('recBookerSelect').value = currentUser.username;
-            document.getElementById('recBookerSelect').disabled = true;
-        } else if(b) {
-            filteredShops = dbShops.filter(s => s.booker === b);
-        }
-
-        document.getElementById('recShopSelect').innerHTML = filteredShops.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-    }
-
-    function importBulkShopsExcel(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-            jsonData.forEach(row => {
-                let name = (row['Shop Name'] || row['Shop'] || '').toString().toUpperCase().trim();
-                let owner = row['Owner'] || '';
-                let contact = row['Contact'] || '';
-                let route = row['Route'] || row['Area'] || 'General Route';
-                let booker = row['Booker'] || 'Huzaifa';
-                let creditLimit = parseFloat(row['Credit Limit'] || 50000);
-
-                if(name && !dbShops.some(s => s.name === name)) {
-                    dbShops.push({ name, owner, contact, route, creditLimit, booker });
-                }
-            });
-
-            localStorage.setItem('ht_shops', JSON.stringify(dbShops));
-            alert('ایکسیل سے تمام دکانیں اور ایریا گروپس امپورٹ ہو گئے!');
-            renderShops();
-            filterPosShopsByBooker();
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    /* USER MANAGEMENT WITH FULL EDIT CAPABILITY */
-    function addNewUser() {
-        let username = document.getElementById('newUsername').value.trim();
-        let pass = document.getElementById('newUserPass').value.trim();
-        let role = document.getElementById('newUserRole').value;
-        let editIdx = parseInt(document.getElementById('editingUserIndex').value);
-
-        if(!username || !pass) return alert('یوزر کی معلومات درج کریں!');
-
-        let perms = [];
-        if(role === 'Admin') {
-            perms = ['ALL'];
-        } else {
-            document.querySelectorAll('#permissionCheckboxes input[type="checkbox"]:checked').forEach(cb => {
-                perms.push(cb.value);
-            });
-        }
-
-        if(editIdx >= 0 && editIdx < dbUsers.length) {
-            dbUsers[editIdx] = { username, pass, role, permissions: perms };
-            alert('یوزر کی معلومات کامیابی سے تبدیل ہو گئی ہیں!');
-        } else {
-            let existingIdx = dbUsers.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
-            if(existingIdx >= 0) {
-                dbUsers[existingIdx] = { username, pass, role, permissions: perms };
-            } else {
-                dbUsers.push({ username, pass, role, permissions: perms });
-            }
-            alert('نیا یوزر کامیابی سے شامل ہو گیا!');
-        }
-
-        localStorage.setItem('ht_users', JSON.stringify(dbUsers));
-        resetUserForm();
-        renderUsersTable();
-        populateLoginUserDropdown();
-        populateUserDropdowns();
-    }
-
-    function editUserRecord(index) {
-        let u = dbUsers[index];
-        if(!u) return;
-
-        document.getElementById('editingUserIndex').value = index;
-        document.getElementById('newUsername').value = u.username;
-        document.getElementById('newUserPass').value = u.pass;
-        document.getElementById('newUserRole').value = u.role;
-        document.getElementById('userFormTitle').innerText = 'Edit User Access Permissions';
-        document.getElementById('cancelEditBtn').style.display = 'inline-block';
-
-        let perms = u.permissions || [];
-        document.querySelectorAll('#permissionCheckboxes input[type="checkbox"]').forEach(cb => {
-            cb.checked = perms.includes('ALL') || perms.includes(cb.value);
-        });
-
-        document.getElementById('users').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function resetUserForm() {
-        document.getElementById('editingUserIndex').value = '-1';
-        document.getElementById('newUsername').value = '';
-        document.getElementById('newUserPass').value = '';
-        document.getElementById('newUserRole').value = 'Admin';
-        document.getElementById('userFormTitle').innerText = 'Add / Edit User Access';
-        document.getElementById('cancelEditBtn').style.display = 'none';
-
-        document.querySelectorAll('#permissionCheckboxes input[type="checkbox"]').forEach(cb => {
-            cb.checked = true;
-        });
-    }
-
-    function renderUsersTable() {
-        document.getElementById('usersTable').innerHTML = dbUsers.map((u, i) => `
-            <tr>
-                <td><strong>${u.username}</strong></td>
-                <td>${u.role}</td>
-                <td>${u.permissions.includes('ALL') ? '<strong style="color:#38ef7d;">Full Access (Admin)</strong>' : u.permissions.length + ' Modules Allowed'}</td>
-                <td>
-                    <button class="btn-edit" onclick="editUserRecord(${i})">Edit ✏️</button>
-                    <button class="btn-delete" onclick="dbUsers.splice(${i},1);localStorage.setItem('ht_users',JSON.stringify(dbUsers));renderUsersTable();populateLoginUserDropdown();populateUserDropdowns();">Delete</button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function downloadBackup() {
-        let backupData = {
-            ht_invoices: dbInvoices,
-            ht_purchase_invoices: dbPurchaseInvoices,
-            ht_shops: dbShops,
-            ht_stock: dbStock,
-            ht_recoveries: dbRecoveries,
-            ht_kpo_logs: dbKpoLogs,
-            ht_expenses: dbExpenses,
-            ht_returns: dbReturns,
-            ht_company_claims: dbCompanyClaims,
-            ht_users: dbUsers,
-            ht_cash_in_hand: dbCashInHand
-        };
-
-        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
-        let dlAnchorElem = document.createElement('a');
-        dlAnchorElem.setAttribute("href", dataStr);
-        dlAnchorElem.setAttribute("download", `HussainTraders_ERP_Backup_${new Date().toISOString().slice(0,10)}.json`);
-        dlAnchorElem.click();
-    }
-
-    function restoreData(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const restored = JSON.parse(e.target.result);
-                Object.keys(restored).forEach(key => {
-                    localStorage.setItem(key, typeof restored[key] === 'object' ? JSON.stringify(restored[key]) : restored[key]);
-                });
-                alert('تمام بیک اپ ڈیٹا کامیابی سے بحال (Restore) ہو گیا ہے!');
-                location.reload();
-            } catch(err) {
-                alert('فائل فارمیٹ غلط ہے!');
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function updateStockDatalist() {
-        document.getElementById('stockDatalist').innerHTML = dbStock.map(s => `<option value="${s.name}">[SKU: ${s.sku || 'N/A'}] Trade: Rs.${s.tradePrice} | Stock: ${s.qty} Pcs</option>`).join('');
-    }
-
-    function autoFillItemDetails() {
-        const name = document.getElementById('posStockInput').value.trim();
-        const found = dbStock.find(s => s.name.toUpperCase() === name.toUpperCase());
-        if(found) {
-            document.getElementById('posItemTradeRate').value = found.tradePrice || 0;
-            document.getElementById('posItemRetailRate').value = found.retailPrice || found.tradePrice || 0;
-            recalcPosPieceFromCarton();
-        }
-    }
-
-    function recalcPosPieceFromCarton() {
-        const name = document.getElementById('posStockInput').value.trim();
-        const ctnQty = parseFloat(document.getElementById('posItemCtnQty').value) || 0;
-        const found = dbStock.find(s => s.name.toUpperCase() === name.toUpperCase());
-        const packing = found ? (found.pcsPerCarton || 12) : 12;
-        if(ctnQty > 0) {
-            document.getElementById('posItemPcsQty').value = ctnQty * packing;
-        }
-    }
-
-    function addPosItem() {
-        const name = document.getElementById('posStockInput').value.trim().toUpperCase();
-        const ctnQty = parseFloat(document.getElementById('posItemCtnQty').value) || 0;
-        const pcsQty = parseFloat(document.getElementById('posItemPcsQty').value) || 0;
-        const tradeRate = parseFloat(document.getElementById('posItemTradeRate').value) || 0;
-        const retailRate = parseFloat(document.getElementById('posItemRetailRate').value) || 0;
-        const discType = document.getElementById('posItemDiscType').value;
-        const discVal = parseFloat(document.getElementById('posItemDiscVal').value) || 0;
-
-        if(!name || pcsQty <= 0) return alert('پروڈکٹ کی معلومات اور تعداد صحیح درج کریں۔');
-
-        let fullTradeAmount = pcsQty * tradeRate;
-        let calculatedDisc = discType === 'Percent' ? (fullTradeAmount * (discVal / 100)) : discVal;
-        let rowTotal = fullTradeAmount - calculatedDisc;
-
-        currentPosItems.push({
-            name, ctnQty, pcsQty, tradeRate, retailRate, discType, discVal, calculatedDisc, rowTotal
-        });
-
-        renderPosCartTable();
-        calculatePosTotals();
-        document.getElementById('posStockInput').value = '';
-        document.getElementById('posItemCtnQty').value = '0';
-        document.getElementById('posItemPcsQty').value = '1';
-    }
-
-    function renderPosCartTable() {
-        document.getElementById('posItemsTbody').innerHTML = currentPosItems.map((item, idx) => `
-            <tr>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.ctnQty} Ctn / ${item.pcsQty} Pcs</td>
-                <td>Rs. ${item.tradeRate}</td>
-                <td>Rs. ${item.retailRate}</td>
-                <td>Rs. ${item.calculatedDisc}</td>
-                <td>Rs. ${item.rowTotal}</td>
-                <td><button class="btn-delete" onclick="currentPosItems.splice(${idx},1);renderPosCartTable();calculatePosTotals();">X</button></td>
-            </tr>
-        `).join('');
-
-        document.getElementById('prevItemsTbody').innerHTML = currentPosItems.map(item => `
-            <tr>
-                <td>${item.name}</td>
-                <td style="text-align:center;">${item.ctnQty}c/${item.pcsQty}p</td>
-                <td style="text-align:right;">${item.tradeRate}</td>
-                <td style="text-align:right;">${item.calculatedDisc}</td>
-                <td style="text-align:right;">${item.rowTotal}</td>
-            </tr>
-        `).join('') || `<tr><td colspan="5" style="text-align:center;">No Items Added</td></tr>`;
-    }
-
-    function calculatePosTotals() {
-        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (item.pcsQty * item.tradeRate), 0);
-        let totalDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
-        let remainingSubtotal = tradeSubtotal - totalDiscounts;
-
-        let taxPercent = parseFloat(document.getElementById('posTaxPercent').value) || 0;
-        let taxAmt = remainingSubtotal * (taxPercent / 100);
-
-        let shopName = document.getElementById('posShopSelect').value;
-        let prevBal = getShopPreviousBalance(shopName);
-
-        let paid = parseFloat(document.getElementById('posPaid').value) || 0;
-        let grandTotal = (remainingSubtotal + taxAmt + prevBal) - paid;
-
-        document.getElementById('posTradeSubtotalLbl').innerText = 'Rs. ' + tradeSubtotal.toLocaleString();
-        document.getElementById('posItemDiscountsLbl').innerText = 'Rs. ' + totalDiscounts.toLocaleString();
-        document.getElementById('posRemainingSubtotalLbl').innerText = 'Rs. ' + remainingSubtotal.toLocaleString();
-        document.getElementById('posPrevBalanceLbl').innerText = 'Rs. ' + prevBal.toLocaleString();
-        document.getElementById('posGrandTotalLbl').innerText = 'Rs. ' + grandTotal.toLocaleString();
-
-        document.getElementById('prevTradeSubtotal').innerText = 'Rs. ' + tradeSubtotal.toLocaleString();
-        document.getElementById('prevItemDiscounts').innerText = 'Rs. ' + totalDiscounts.toLocaleString();
-        document.getElementById('prevTaxAmount').innerText = 'Rs. ' + taxAmt.toLocaleString();
-        document.getElementById('prevOldBalance').innerText = 'Rs. ' + prevBal.toLocaleString();
-        document.getElementById('prevRecoveryPaid').innerText = 'Rs. ' + paid.toLocaleString();
-        document.getElementById('prevGrandTotal').innerText = 'Rs. ' + grandTotal.toLocaleString();
-    }
-
-    function updatePrevShopName() {
-        let shopName = document.getElementById('posShopSelect').value;
-        document.getElementById('prevCustomer').innerText = shopName || 'N/A';
-        calculatePosTotals();
-    }
-
-    function savePosInvoice(print) {
-        if(currentPosItems.length === 0) return alert('آرڈر میں کوئی پروڈکٹ شامل نہیں ہے!');
-
-        let invNum = document.getElementById('posInvNum').value;
-        let date = document.getElementById('posInvDate').value;
-        let deliveryDate = document.getElementById('posDeliveryDate').value;
-        let booker = document.getElementById('posBookerSelect').value;
-        let supplyMan = document.getElementById('posSupplyManSelect').value;
-        let shop = document.getElementById('posShopSelect').value;
-        let payType = document.getElementById('posPayType').value;
-
-        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (item.pcsQty * item.tradeRate), 0);
-        let itemDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
-        let remainingSubtotal = tradeSubtotal - itemDiscounts;
-
-        let taxPercent = parseFloat(document.getElementById('posTaxPercent').value) || 0;
-        let taxAmount = remainingSubtotal * (taxPercent / 100);
-
-        let prevBalance = getShopPreviousBalance(shop);
-        let paidAmount = parseFloat(document.getElementById('posPaid').value) || 0;
-
-        let currentBillTotal = remainingSubtotal + taxAmount;
-        let newGrandTotalBalance = (currentBillTotal + prevBalance) - paidAmount;
-
-        let newInvoice = {
-            invNum, date, deliveryDate, booker, supplyMan, shop, payType,
-            items: [...currentPosItems],
-            tradeSubtotal, itemDiscounts, remainingSubtotal, taxPercent, taxAmount,
-            prevBalance, paidAmount, currentBillTotal, newGrandTotalBalance,
-            status: 'Delivered'
-        };
-
-        dbInvoices.push(newInvoice);
-
-        currentPosItems.forEach(item => {
-            let found = dbStock.find(s => s.name === item.name);
-            if(found) {
-                found.qty = Math.max(0, found.qty - item.pcsQty);
-            }
-        });
-
-        if(paidAmount > 0) {
-            dbCashInHand += paidAmount;
-            localStorage.setItem('ht_cash_in_hand', dbCashInHand);
-        }
-
-        localStorage.setItem('ht_invoices', JSON.stringify(dbInvoices));
-        localStorage.setItem('ht_stock', JSON.stringify(dbStock));
-
-        alert('انواؤس کامیابی سے محفوظ ہو گئی ہے!');
-
-        if(print) {
-            printDualA5Invoice(newInvoice);
-        }
-
-        currentPosItems = [];
-        renderPosCartTable();
-        generateInvoiceNumber();
-        renderDashboard();
-    }
-
-    function printDualA5Invoice(inv) {
-        let printArea = document.getElementById('printableA4DualContainer');
-        let singleInvoiceHtml = `
-            <div class="print-invoice-half">
-                <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px;">
-                    <h2 style="margin:0; font-size: 16px;">حُسَیْن ٹْرِیَڈَرْزْ (HUSSAIN TRADERS)</h2>
-                    <p style="font-size: 9px; margin:0;">FMCG Sales & Distribution, Bannu Road, Dera Ismail Khan</p>
-                    <p style="font-size: 9px; margin:0;">Phone: 0334-7218606 | Invoice Copy</p>
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px;">
-                    <div>
-                        <div><strong>Inv #:</strong> ${inv.invNum}</div>
-                        <div><strong>Shop:</strong> ${inv.shop}</div>
-                        <div><strong>Payment:</strong> ${inv.payType}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div><strong>Date:</strong> ${inv.date}</div>
-                        <div><strong>Delivery:</strong> ${inv.deliveryDate}</div>
-                        <div><strong>Booker:</strong> ${inv.booker}</div>
-                    </div>
-                </div>
-                <table style="width:100%; border-collapse:collapse; font-size:9px; margin-bottom:6px;">
-                    <thead>
-                        <tr style="background:#eee;">
-                            <th style="border:1px solid #000; padding:3px;">Item</th>
-                            <th style="border:1px solid #000; padding:3px; text-align:center;">Qty</th>
-                            <th style="border:1px solid #000; padding:3px; text-align:right;">Rate</th>
-                            <th style="border:1px solid #000; padding:3px; text-align:right;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${inv.items.map(it => `
-                            <tr>
-                                <td style="border:1px solid #000; padding:3px;">${it.name}</td>
-                                <td style="border:1px solid #000; padding:3px; text-align:center;">${it.ctnQty}c / ${it.pcsQty}p</td>
-                                <td style="border:1px solid #000; padding:3px; text-align:right;">${it.tradeRate}</td>
-                                <td style="border:1px solid #000; padding:3px; text-align:right;">${it.rowTotal}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div style="font-size:10px; border-top:1px solid #000; padding-top:4px;">
-                    <div style="display:flex; justify-content:space-between;"><span>Current Bill Amount:</span><strong>Rs. ${inv.currentBillTotal.toLocaleString()}</strong></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Previous Balance:</span><strong>Rs. ${inv.prevBalance.toLocaleString()}</strong></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Amount Paid:</span><strong>Rs. ${inv.paidAmount.toLocaleString()}</strong></div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; border-top:1px solid #000; margin-top:2px; padding-top:2px;"><span>Net Balance Due:</span><strong>Rs. ${inv.newGrandTotalBalance.toLocaleString()}</strong></div>
-                </div>
-                <div style="margin-top:20px; display:flex; justify-content:space-between; font-size:9px;">
-                    <div>__________________<br>Receiver Signature</div>
-                    <div>__________________<br>Authorized Signature</div>
-                </div>
-            </div>
-        `;
-
-        printArea.innerHTML = singleInvoiceHtml + singleInvoiceHtml;
-        printArea.style.display = 'flex';
-        window.print();
-        printArea.style.display = 'none';
-    }
-
-    function renderDashboard() {
-        let totalUdhaar = dbShops.reduce((acc, s) => acc + getShopPreviousBalance(s.name), 0);
-        let todayStr = new Date().toISOString().slice(0,10);
-        let todaySales = dbInvoices.filter(i => i.date === todayStr).reduce((acc, i) => acc + i.currentBillTotal, 0);
-        let todayRecovery = dbRecoveries.filter(r => r.date === todayStr && r.status === 'Approved').reduce((acc, r) => acc + r.amount, 0);
-        let totalExpenses = dbExpenses.reduce((acc, e) => acc + e.amount, 0);
-        let totalReturns = dbReturns.reduce((acc, r) => acc + (r.totalRefund || 0), 0);
-        let reservedClaims = dbCompanyClaims.reduce((acc, c) => acc + (c.totalVal || 0), 0);
-
-        document.getElementById('dashTotalUdhaar').innerText = 'Rs. ' + totalUdhaar.toLocaleString();
-        document.getElementById('dashTodaySales').innerText = 'Rs. ' + todaySales.toLocaleString();
-        document.getElementById('dashTodayRecovery').innerText = 'Rs. ' + todayRecovery.toLocaleString();
-        document.getElementById('dashCashInHand').innerText = 'Rs. ' + dbCashInHand.toLocaleString();
-        document.getElementById('dashReservedStockVal').innerText = 'Rs. ' + reservedClaims.toLocaleString();
-        document.getElementById('dashTotalExpenses').innerText = 'Rs. ' + totalExpenses.toLocaleString();
-        document.getElementById('dashTotalReturns').innerText = 'Rs. ' + totalReturns.toLocaleString();
-    }
-
-    function renderShops() {
-        document.getElementById('shopsTable').innerHTML = dbShops.map(s => `
-            <tr>
-                <td><strong>${s.name}</strong></td>
-                <td>${s.owner || '--'}</td>
-                <td>${s.route || '--'}</td>
-                <td>${s.booker || '--'}</td>
-                <td>Rs. ${(s.creditLimit || 50000).toLocaleString()}</td>
-                <td>Rs. ${getShopPreviousBalance(s.name).toLocaleString()}</td>
-            </tr>
-        `).join('');
+    function ownerRemoveLedgerAdjustment(ref){
+        if(!currentUser || !currentUser.isOwner) return alert('Owner access only.');
+        const idx=dbLedgerAdjustments.findIndex(a=>a.id===ref); if(idx<0) return;
+        const a=dbLedgerAdjustments[idx];
+        if(!confirm(`Reverse adjustment ${ref}? The reversal will also be logged.`)) return;
+        dbLedgerAdjustments.splice(idx,1);
+        dbAuditLog.push({id:'AUD_'+Date.now(),date:new Date().toISOString(),user:currentUser.username,action:'Ledger Adjustment Reversed',shop:a.shop,reference:ref,details:`Reversed ${a.type} Rs. ${a.amount} — ${a.reason}`});
+        localStorage.setItem('ht_ledger_adjustments',JSON.stringify(dbLedgerAdjustments));
+        localStorage.setItem('ht_audit_log',JSON.stringify(dbAuditLog));
+        renderDashboard(); renderShops(); renderMarketCreditReport();
     }
 
     function addSingleShop() {
@@ -2458,6 +2183,1356 @@
         document.getElementById('expAmount').value = '';
         renderDashboard();
     }
+</script>
+
+<!-- =========================================================
+     FATIMA TECH OWNER STUDIO
+     ========================================================= -->
+<div id="ftOwnerModal" class="ft-owner-modal no-print">
+  <div class="ft-owner-panel">
+    <div class="ft-owner-head">
+      <div>
+        <h2>Fatima Tech • Owner Studio</h2>
+        <div style="font-size:10px;color:#7f91a8;margin-top:3px">Business identity, invoice branding & commercial configuration</div>
+      </div>
+      <button class="ft-owner-close" onclick="ftCloseOwnerStudio()">✕ Close</button>
+    </div>
+    <div class="ft-owner-body">
+      <div class="ft-owner-grid">
+        <div class="ft-owner-card">
+          <h3>Distribution Identity</h3>
+          <label>Distribution Name</label>
+          <input id="ftCompanyName" placeholder="e.g. ABC Distributors">
+          <label>Phone</label>
+          <input id="ftCompanyPhone" placeholder="03xx-xxxxxxx">
+          <label>Address</label>
+          <textarea id="ftCompanyAddress" rows="3" placeholder="Office / warehouse address"></textarea>
+          <label>NTN / STRN</label>
+          <input id="ftCompanyTax" placeholder="Optional">
+        </div>
+
+        <div class="ft-owner-card">
+          <h3>Invoice Configuration</h3>
+          <label>Invoice Prefix</label>
+          <input id="ftInvoicePrefix" value="INV">
+          <label>Paper Layout</label>
+          <select id="ftInvoiceLayout">
+            <option value="dual">A4 Landscape • 2 Compact Invoices</option>
+            <option value="single">A4 • Single Invoice</option>
+            <option value="thermal">Thermal / Small Format</option>
+          </select>
+          <label>Developer / Product Brand</label>
+          <input value="Fatima Tech" disabled>
+          <div class="ft-mini-preview">
+            <b id="ftPreviewCompany">YOUR DISTRIBUTION</b>
+            <div class="ft-line"><span>Invoice</span><span id="ftPreviewPrefix">INV-0001</span></div>
+            <div class="ft-line"><span>Shop</span><span>ABC STORE</span></div>
+            <div class="ft-line"><span>Total</span><b>Rs. 1,500</b></div>
+          </div>
+        </div>
+
+        <div class="ft-owner-card">
+          <h3>Carton → Pieces Rule</h3>
+          <span class="ft-badge">Core Distribution Feature</span>
+          <label>Demo Pack Size</label>
+          <input id="ftPackSize" type="number" min="1" value="48">
+          <label>Carton Price</label>
+          <input id="ftCartonPrice" type="number" min="0" value="960">
+          <label>Sale Quantity</label>
+          <input id="ftPieceQty" type="number" min="0" value="12" oninput="ftCalcUnitDemo()">
+          <div class="ft-mini-preview">
+            <div class="ft-line"><span>Piece Rate</span><b id="ftPieceRate">Rs. 20.00</b></div>
+            <div class="ft-line"><span>12 PCS Sale</span><b id="ftPieceSale">Rs. 240.00</b></div>
+            <div style="margin-top:7px;color:#555">Warehouse stock remains carton-based while the calculation uses pieces as the base quantity.</div>
+          </div>
+        </div>
+
+        <div class="ft-owner-card">
+          <h3>Operational Modules</h3>
+          <label><input type="checkbox" checked> Mobile / Booker Order Punching</label>
+          <label><input type="checkbox" checked> KPO Processing</label>
+          <label><input type="checkbox" checked> Shop-wise Picklist</label>
+          <label><input type="checkbox" checked> Product-wise Warehouse Summary</label>
+          <label><input type="checkbox" checked> Supply Man Delivery & Recovery</label>
+          <label><input type="checkbox" checked> Admin Recovery Approval</label>
+        </div>
+
+        <div class="ft-owner-card">
+          <h3>Commercial Reports</h3>
+          <label><input type="checkbox" checked> Sales • Daily / Monthly / Yearly</label>
+          <label><input type="checkbox" checked> Stock Movement & Returns</label>
+          <label><input type="checkbox" checked> Shop Ledger / Outstanding</label>
+          <label><input type="checkbox" checked> Recovery / Cash</label>
+          <label><input type="checkbox" checked> Booker-wise Summary</label>
+          <label><input type="checkbox" checked> Date-to-Date Filters</label>
+        </div>
+
+        <div class="ft-owner-card">
+          <h3>Online Product Direction</h3>
+          <div style="font-size:11px;line-height:1.7;color:#b8c5d5">
+            This file is the front-end foundation. For a real online SaaS product, the same screens should connect to a secure cloud database, authentication, role permissions, backups and audit logs.
+            <br><br>
+            <b style="color:#38ef7d">Target:</b> multi-user • mobile-first • cloud-based • subscription-ready.
+          </div>
+        </div>
+      </div>
+
+      <div class="ft-owner-card" style="margin-top:10px;">
+        <h3>Fatima Tech Owner Security</h3>
+        <div class="ft-owner-grid" style="grid-template-columns:1fr 1fr;">
+          <div><label>Owner Login ID</label><input id="ftOwnerUsername" placeholder="fatimatech"></div>
+          <div><label>Owner Password</label><input id="ftOwnerPassword" type="password" placeholder="Change password"></div>
+        </div>
+        <div style="font-size:10px;color:#64748b;margin-top:5px;">This account is separate from Admin, Booker, KPO and Supply Man accounts.</div>
+      </div>
+      <div class="ft-owner-actions">
+        <button class="ft-owner-close" onclick="ftResetBranding()">Reset Demo</button>
+        <button class="ft-owner-save" onclick="ftSaveOwnerSettings()">Save Owner Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-commercial-footer no-print">
+  Fatima Tech • Distribution POS / ERP Commercial Edition • Front-end prototype
+</div>
+
+
+<script>
+/* =========================================================
+   FATIMA TECH COMMERCIAL OWNER LAYER
+   Keeps the original ERP functionality and adds configurable
+   distribution branding + carton/piece demo settings.
+   ========================================================= */
+(function(){
+  const KEY = "fatimaTechOwnerSettings";
+
+  function defaults(){
+    return {
+      companyName:"HUSSAIN TRADERS",
+      phone:"03347218606",
+      address:"Bannu Road, Dera Ismail Khan",
+      tax:"",
+      invoicePrefix:"INV",
+      invoiceLayout:"dual",
+      packSize:48,
+      cartonPrice:960
+    };
+  }
+
+  function load(){
+    try{return Object.assign(defaults(), JSON.parse(localStorage.getItem(KEY)||"{}"))}
+    catch(e){return defaults()}
+  }
+
+  function setTextNodeBrands(root, oldNames, newName){
+    const walker=document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n=>{
+      let v=n.nodeValue;
+      oldNames.forEach(old=>{
+        if(v.includes(old)) v=v.split(old).join(newName);
+      });
+      n.nodeValue=v;
+    });
+  }
+
+  function applyBranding(){
+    const s=load();
+    const oldNames=["HUSSAIN TRADERS","حُسَیْن ٹْرِیَڈَرْزْ","حُسَیْن ٹریڈرز"];
+    setTextNodeBrands(document.body,oldNames,s.companyName);
+    document.title=s.companyName+" - Distribution ERP | Fatima Tech";
+    const title=document.getElementById("ftPreviewCompany");
+    if(title) title.textContent=s.companyName;
+    const pref=document.getElementById("ftPreviewPrefix");
+    if(pref) pref.textContent=s.invoicePrefix+"-0001";
+    ftCalcUnitDemo();
+  }
+
+  window.ftOpenOwnerStudio=function(){
+    if(typeof currentUser === 'undefined' || !currentUser || !currentUser.isOwner) return alert('Owner access only.');
+    const s=load();
+    document.getElementById("ftCompanyName").value=s.companyName;
+    document.getElementById("ftCompanyPhone").value=s.phone;
+    document.getElementById("ftCompanyAddress").value=s.address;
+    document.getElementById("ftCompanyTax").value=s.tax;
+    document.getElementById("ftInvoicePrefix").value=s.invoicePrefix;
+    document.getElementById("ftInvoiceLayout").value=s.invoiceLayout;
+    document.getElementById("ftPackSize").value=s.packSize;
+    document.getElementById("ftCartonPrice").value=s.cartonPrice;
+    const oa=getFatimaTechOwnerAuth();
+    if(document.getElementById("ftOwnerUsername")) document.getElementById("ftOwnerUsername").value=oa.username;
+    if(document.getElementById("ftOwnerPassword")) document.getElementById("ftOwnerPassword").value="";
+    document.getElementById("ftOwnerModal").classList.add("open");
+    ftCalcUnitDemo();
+  };
+
+  window.ftCloseOwnerStudio=function(){
+    document.getElementById("ftOwnerModal").classList.remove("open");
+  };
+
+  window.ftSaveOwnerSettings=function(){
+    const s={
+      companyName:document.getElementById("ftCompanyName").value.trim()||"YOUR DISTRIBUTION",
+      phone:document.getElementById("ftCompanyPhone").value.trim(),
+      address:document.getElementById("ftCompanyAddress").value.trim(),
+      tax:document.getElementById("ftCompanyTax").value.trim(),
+      invoicePrefix:document.getElementById("ftInvoicePrefix").value.trim()||"INV",
+      invoiceLayout:document.getElementById("ftInvoiceLayout").value,
+      packSize:Math.max(1,Number(document.getElementById("ftPackSize").value)||48),
+      cartonPrice:Math.max(0,Number(document.getElementById("ftCartonPrice").value)||0)
+    };
+    localStorage.setItem(KEY,JSON.stringify(s));
+    const oldAuth=getFatimaTechOwnerAuth();
+    const ownerUsername=(document.getElementById("ftOwnerUsername")?.value||oldAuth.username).trim() || "fatimatech";
+    const ownerPassword=(document.getElementById("ftOwnerPassword")?.value||oldAuth.pass).trim();
+    localStorage.setItem("fatimaTechOwnerAuth",JSON.stringify({username:ownerUsername,pass:ownerPassword}));
+    dbAuditLog.push({id:'AUD_'+Date.now(),date:new Date().toISOString(),user:ownerUsername,action:'Owner Settings Updated',reference:'OWNER_SETTINGS',details:'Owner identity and distribution settings updated'});
+    localStorage.setItem('ht_audit_log',JSON.stringify(dbAuditLog));
+    ftCloseOwnerStudio();
+    applyBranding();
+    alert("Owner settings saved successfully. Demo data is stored locally in this browser.");
+  };
+
+  window.ftResetBranding=function(){
+    localStorage.removeItem(KEY);
+    location.reload();
+  };
+
+  window.ftCalcUnitDemo=function(){
+    const pack=Math.max(1,Number(document.getElementById("ftPackSize")?.value)||48);
+    const carton=Math.max(0,Number(document.getElementById("ftCartonPrice")?.value)||0);
+    const qty=Math.max(0,Number(document.getElementById("ftPieceQty")?.value)||0);
+    const piece=carton/pack;
+    const a=document.getElementById("ftPieceRate"),b=document.getElementById("ftPieceSale");
+    if(a)a.textContent="Rs. "+piece.toFixed(2);
+    if(b)b.textContent="Rs. "+(qty*piece).toFixed(2);
+  };
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    applyBranding();
+    const p=document.getElementById("ftPackSize");
+    const c=document.getElementById("ftCartonPrice");
+    if(p)p.addEventListener("input",ftCalcUnitDemo);
+    if(c)c.addEventListener("input",ftCalcUnitDemo);
+  });
+
+  // Also re-apply after the original ERP's window.onload initialization,
+  // without replacing any of its functions.
+  window.addEventListener("load",()=>setTimeout(applyBranding,300));
+})();
+</script>
+
+
+<script id="fatima-bilingual-engine">
+(function(){
+  "use strict";
+
+  const FT_LANG_KEY = "fatimaTechLanguage";
+
+  /*
+   * IMPORTANT:
+   * Each entry is a complete label/phrase.
+   * English and Urdu are never mixed in the translated result.
+   */
+  const FT = {
+    "Multi-FMCG Enterprise ERP":"ملٹی ایف ایم سی جی انٹرپرائز ای آر پی",
+    "Sales & Distribution Management System":"فروخت اور تقسیم کا انتظامی نظام",
+    "Select User / یوزر منتخب کریں:":"صارف منتخب کریں:",
+    "Password / پاسورڈ:":"پاس ورڈ:",
+    "Sign In (بِسمِ اللّٰهِ)":"سائن اِن",
+    "SIDEBAR NAVIGATION":"سائیڈ بار نیویگیشن",
+    "FMCG Sales & Distribution":"ایف ایم سی جی فروخت اور تقسیم",
+    "Dashboard Overview":"ڈیش بورڈ کا خلاصہ",
+    "SALES NAVIGATION":"فروخت کی نیویگیشن",
+    "Sales Navigation":"فروخت کی نیویگیشن",
+    "Order Punching / POS":"آرڈر اندراج / پی او ایس",
+    "Saved Invoices List":"محفوظ شدہ بلوں کی فہرست",
+    "Delivery Date Selection":"ترسیل کی تاریخ کا انتخاب",
+    "Picklist Summary":"پک لسٹ کا خلاصہ",
+    "Sales & Credit Stock Return":"فروخت اور ادھار اسٹاک واپسی",
+    "Company Claims":"کمپنی کلیمز",
+    "PURCHASE NAVIGATION":"خریداری کی نیویگیشن",
+    "Purchase":"خریداری",
+    "Purchase Invoice Entry":"خریداری کے بل کا اندراج",
+    "Purchase Invoices List":"خریداری کے بلوں کی فہرست",
+    "Purchase Stock Report":"خریداری اسٹاک رپورٹ",
+    "Live Stock Inventory":"موجودہ اسٹاک",
+    "Supply Man Recovery & KPO":"سپلائی مین وصولی اور کے پی او",
+    "Market Recovery & Approval":"مارکیٹ وصولی اور منظوری",
+    "Expense Entry":"اخراجات کا اندراج",
+    "Shops Management":"دکانوں کا انتظام",
+    "SYSTEM REPORTS":"سسٹم رپورٹس",
+    "System Reports":"سسٹم رپورٹس",
+    "Market Credit Report":"مارکیٹ ادھار رپورٹ",
+    "Shop Wise Tax Report":"دکان وار ٹیکس رپورٹ",
+    "Udhaar Report":"ادھار رپورٹ",
+    "Stock Detail Report":"اسٹاک کی تفصیلی رپورٹ",
+    "Booker Report":"بکر رپورٹ",
+    "Expense Report":"اخراجات کی رپورٹ",
+    "Daily Summary":"روزانہ خلاصہ",
+    "User Roles":"صارف کے کردار",
+    "Backup System":"بیک اپ نظام",
+    "MAIN WORKSPACE":"مرکزی ورک اسپیس",
+    "User:":"صارف:",
+    "Logout 🚪":"لاگ آؤٹ 🚪",
+    "DASHBOARD OVERVIEW":"ڈیش بورڈ کا خلاصہ",
+    "FMCG Business Dashboard Overview":"ایف ایم سی جی کاروباری ڈیش بورڈ کا خلاصہ",
+    "+ Order Punch":"+ آرڈر درج کریں",
+    "+ Recovery":"+ وصولی",
+    "Total Market Credit":"کل مارکیٹ ادھار",
+    "Net Sales":"خالص فروخت",
+    "Approved Recovery":"منظور شدہ وصولی",
+    "Cash In Hand":"موجود نقد رقم",
+    "Reserved Claims":"محفوظ کلیمز",
+    "Total Expenses":"کل اخراجات",
+    "Total Stock Returns":"کل اسٹاک واپسی",
+    "Booker Wise Performance":"بکر وار کارکردگی",
+    "Booker Name":"بکر کا نام",
+    "Shops":"دکانیں",
+    "Sales":"فروخت",
+    "Recovery":"وصولی",
+    "ORDER PUNCHING / POS":"آرڈر اندراج / پی او ایس",
+    "Order Punching & Point of Sale":"آرڈر اندراج اور پوائنٹ آف سیل",
+    "Order & Customer Info":"آرڈر اور گاہک کی معلومات",
+    "Invoice Number:":"بل نمبر:",
+    "Order Date *:":"آرڈر کی تاریخ *:",
+    "Order Booker / Admin *:":"آرڈر بکر / ایڈمن *:",
+    "Delivery Date (Single Selection) *:":"ترسیل کی تاریخ *:",
+    "Payment Type *:":"ادائیگی کی قسم *:",
+    "Credit (ادھار)":"ادھار",
+    "Cash (نقد)":"نقد",
+    "Supply Man Name *:":"سپلائی مین کا نام *:",
+    "Select Shop *:":"دکان منتخب کریں *:",
+    "Search/Select Product:":"مصنوعات تلاش کریں / منتخب کریں:",
+    "Cartons:":"کارٹن:",
+    "Pieces:":"پیِس:",
+    "Trade Price:":"ٹریڈ قیمت:",
+    "Retail Price:":"ریٹیل قیمت:",
+    "Discount Type:":"رعایت کی قسم:",
+    "Discount Value:":"رعایت کی رقم:",
+    "+ Add":"+ شامل کریں",
+    "Item Description":"آئٹم کی تفصیل",
+    "Discount":"رعایت",
+    "Rate":"ریٹ",
+    "Amount":"رقم",
+    "Total":"کل",
+    "Trade Rate":"ٹریڈ ریٹ",
+    "Retail Rate":"ریٹیل ریٹ",
+    "Ctn / Pcs":"کارٹن / پیِس",
+    "Trade Price Full Subtotal:":"ٹریڈ قیمت کا مکمل ذیلی کل:",
+    "Item-wise Total Discount (-):":"آئٹم وار کل رعایت (-):",
+    "Remaining Amount:":"باقی رقم:",
+    "Tax Add (+ %):":"ٹیکس شامل کریں (+ %):",
+    "Previous Balance (سابقہ بقایا):":"سابقہ بقایا:",
+    "Recovery / On-Spot Cash Paid (-):":"وصولی / موقع پر ادا نقد (-):",
+    "New Bill Grand Total Balance (نیا بقایا):":"نئے بل کا کل بقایا:",
+    "Save Order 💾":"آرڈر محفوظ کریں 💾",
+    "Save & Print (A4 Dual A5) 🖨️":"محفوظ کریں اور پرنٹ کریں 🖨️",
+    "Add Products":"مصنوعات شامل کریں",
+    "Item":"آئٹم",
+    "Route":"روٹ",
+    "Credit Limit":"ادھار کی حد",
+    "Order Date":"آرڈر کی تاریخ",
+    "Return Date:":"واپسی کی تاریخ:",
+    "Shop":"دکان",
+    "Type":"قسم",
+    "Qty Pcs":"تعداد پیِس",
+    "Product":"مصنوعہ",
+    "Total Investment":"کل سرمایہ کاری",
+    "Total Invoices":"کل بل",
+    "List Price":"فہرست قیمت",
+    "Trade Price":"ٹریڈ قیمت",
+    "Retail Price":"ریٹیل قیمت",
+    "Available Stock":"دستیاب اسٹاک",
+    "Balance Due":"بقایا رقم",
+    "Actions":"کارروائیاں",
+    "Status":"حیثیت",
+    "Category":"زمرہ",
+    "Product Name":"مصنوعے کا نام",
+    "Product Name *:":"مصنوعے کا نام *:",
+    "SKU Code":"ایس کے یو کوڈ",
+    "Packing":"پیکنگ",
+    "Total Pieces":"کل پیِس",
+    "Select Saved Invoice:":"محفوظ شدہ بل منتخب کریں:",
+    "Date":"تاریخ",
+    "Date:":"تاریخ:",
+    "Inv #":"بل نمبر",
+    "Inv #:":"بل نمبر:",
+    "Pay Mode:":"ادائیگی:",
+    "Shop:":"دکان:",
+    "ADMIN":"ایڈمن",
+    "Admin":"ایڈمن",
+    "Cash":"نقد",
+    "Credit":"ادھار",
+    "Save":"محفوظ کریں",
+    "Cancel":"منسوخ کریں",
+    "Edit":"ترمیم",
+    "Delete":"حذف کریں",
+    "Search":"تلاش",
+    "Filter":"فلٹر",
+    "Reset":"ری سیٹ",
+    "Print":"پرنٹ",
+    "Export":"ایکسپورٹ",
+    "Download":"ڈاؤن لوڈ",
+    "Close":"بند کریں",
+    "Select":"منتخب کریں",
+    "Add":"شامل کریں",
+    "Update":"اپ ڈیٹ",
+    "View":"دیکھیں",
+    "Pending":"زیر التوا",
+    "Approved":"منظور شدہ",
+    "Rejected":"مسترد شدہ",
+    "Completed":"مکمل",
+    "Total Amount":"کل رقم",
+    "Outstanding Balance":"بقایا رقم",
+    "Previous Balance":"سابقہ بقایا",
+    "Current Balance":"موجودہ بقایا",
+    "Payment Method":"ادائیگی کا طریقہ",
+    "Remarks":"ریمارکس",
+    "Owner Studio":"مالک کی ترتیبات",
+    "Distribution Name":"تقسیمی ادارے کا نام",
+    "Phone":"فون",
+    "Address":"پتہ",
+    "NTN / STRN":"این ٹی این / ایس ٹی آر این",
+    "Invoice Prefix":"بل کا سابقہ",
+    "Invoice Layout":"بل کی ترتیب",
+    "Save Owner Settings":"مالک کی ترتیبات محفوظ کریں",
+    "Reset Demo":"ڈیمو ری سیٹ کریں",
+    "English":"انگریزی",
+    "Urdu":"اردو"
+  };
+
+  const reverse = {};
+  Object.keys(FT).forEach(k => reverse[FT[k]] = k);
+
+  function clean(v){
+    return String(v || "").replace(/\s+/g," ").trim();
+  }
+
+  function isProtected(el){
+    if(!el) return true;
+    const tag=(el.tagName||"").toLowerCase();
+    return ["script","style","textarea","option"].includes(tag);
+  }
+
+  function translateElementText(root, lang){
+    const dict = lang==="ur" ? FT : reverse;
+    const walker=document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    let n;
+    while(n=walker.nextNode()){
+      if(isProtected(n.parentElement)) continue;
+      nodes.push(n);
+    }
+    nodes.forEach(node=>{
+      const raw=node.nodeValue;
+      const c=clean(raw);
+      if(!c) return;
+      if(dict[c]){
+        node.nodeValue=raw.replace(c,dict[c]);
+      }
+    });
+  }
+
+  function translateAttributes(lang){
+    const dict = lang==="ur" ? FT : reverse;
+    document.querySelectorAll("input,button,select,textarea").forEach(el=>{
+      ["placeholder","title","aria-label"].forEach(attr=>{
+        const v=el.getAttribute(attr);
+        if(!v) return;
+        const c=clean(v);
+        if(dict[c]) el.setAttribute(attr,dict[c]);
+      });
+    });
+  }
+
+  function applyLanguage(lang){
+    lang = lang==="ur" ? "ur" : "en";
+    document.documentElement.lang = lang==="ur" ? "ur" : "en";
+    document.documentElement.dir = lang==="ur" ? "rtl" : "ltr";
+    document.body.classList.toggle("lang-urdu",lang==="ur");
+    document.body.classList.toggle("lang-english",lang==="en");
+
+    // Restore original English before applying Urdu.
+    restoreEnglish();
+    if(lang==="ur") translateElementText(document.body,"ur");
+    translateAttributes(lang);
+
+    localStorage.setItem(FT_LANG_KEY,lang);
+    updateSwitch();
+  }
+
+  // Store the original text once so switching back never creates mixed language.
+  function snapshotEnglish(){
+    if(document.body.dataset.ftEnglishSnapshot==="1") return;
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    let n;
+    while(n=walker.nextNode()){
+      if(isProtected(n.parentElement)) continue;
+      if(n.nodeValue.trim()) n.__ftOriginal=n.nodeValue;
+    }
+    document.body.dataset.ftEnglishSnapshot="1";
+  }
+
+  function restoreEnglish(){
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    let n;
+    while(n=walker.nextNode()){
+      if(isProtected(n.parentElement)) continue;
+      if(typeof n.__ftOriginal==="string") n.nodeValue=n.__ftOriginal;
+    }
+    document.querySelectorAll("input,button,select,textarea").forEach(el=>{
+      ["placeholder","title","aria-label"].forEach(attr=>{
+        const key="data-ft-original-"+attr;
+        if(el.hasAttribute(key)) el.setAttribute(attr,el.getAttribute(key));
+      });
+    });
+  }
+
+  function snapshotAttributes(){
+    document.querySelectorAll("input,button,select,textarea").forEach(el=>{
+      ["placeholder","title","aria-label"].forEach(attr=>{
+        if(el.hasAttribute(attr)){
+          const key="data-ft-original-"+attr;
+          if(!el.hasAttribute(key)) el.setAttribute(key,el.getAttribute(attr));
+        }
+      });
+    });
+  }
+
+  function addSwitcher(){
+    if(document.getElementById("ftLanguageSwitch")) return;
+    const wrap=document.createElement("div");
+    wrap.id="ftLanguageSwitch";
+    wrap.className="ft-language-switch";
+    wrap.innerHTML='<button type="button" id="ftEnBtn">English</button><button type="button" id="ftUrBtn">اردو</button>';
+
+    // Put beside the existing theme/owner controls if possible.
+    const candidates=[
+      document.querySelector(".top-bar"),
+      document.querySelector(".header-actions"),
+      document.querySelector(".main-header"),
+      document.querySelector("header")
+    ].filter(Boolean);
+
+    const target=candidates[0];
+    if(target){
+      target.prepend(wrap);
+    }else{
+      wrap.style.position="fixed";
+      wrap.style.top="12px";
+      wrap.style.right="12px";
+      wrap.style.zIndex="99999";
+      document.body.appendChild(wrap);
+    }
+
+    document.getElementById("ftEnBtn").onclick=()=>applyLanguage("en");
+    document.getElementById("ftUrBtn").onclick=()=>applyLanguage("ur");
+  }
+
+  function updateSwitch(){
+    const lang=localStorage.getItem(FT_LANG_KEY)||"en";
+    const a=document.getElementById("ftEnBtn");
+    const b=document.getElementById("ftUrBtn");
+    if(a&&b){
+      a.classList.toggle("active",lang==="en");
+      b.classList.toggle("active",lang==="ur");
+    }
+  }
+
+  // Make dynamic content bilingual when modules render new rows/cards.
+  let translating=false;
+  const observer=new MutationObserver(mutations=>{
+    if(translating) return;
+    const lang=localStorage.getItem(FT_LANG_KEY)||"en";
+    if(lang!=="ur") return;
+    translating=true;
+    try{
+      mutations.forEach(m=>{
+        m.addedNodes.forEach(node=>{
+          if(node.nodeType===1){
+            snapshotEnglish();
+            translateElementText(node,"ur");
+          }
+        });
+      });
+      translateAttributes("ur");
+    }finally{
+      translating=false;
+    }
+  });
+
+  function init(){
+    snapshotEnglish();
+    snapshotAttributes();
+    addSwitcher();
+    const saved=localStorage.getItem(FT_LANG_KEY)||"en";
+    applyLanguage(saved);
+    observer.observe(document.body,{childList:true,subtree:true});
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",init,{once:true});
+  }else{
+    init();
+  }
+
+  window.FatimaTechLanguage={
+    set:applyLanguage,
+    get:()=>localStorage.getItem(FT_LANG_KEY)||"en",
+    dictionary:FT
+  };
+})();
+</script>
+
+<script id="ft-core-function-repair">
+/* Restored operational functions from the original ERP build. */
+function exportMarketCreditToExcel() {
+        let table = document.getElementById("marketCreditReportContainer").querySelector("table");
+        if(!table) return alert('ایکپورٹ کے لیے ڈیٹا موجود نہیں!');
+        let wb = XLSX.utils.table_to_book(table, {sheet: "Market Credit Report"});
+        XLSX.writeFile(wb, `Market_Credit_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+function handlePurchaseImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                jsonData.forEach(row => {
+                    let name = row['Product'] || row['Item'] || row['Name'] || 'Imported Product';
+                    let ctnQty = parseFloat(row['Cartons'] || row['Qty'] || 1);
+                    let packing = parseFloat(row['Packing'] || 24);
+                    let cost = parseFloat(row['Cost'] || row['Price'] || 0);
+                    let tp = parseFloat(row['TP'] || cost * 1.1);
+                    let retail = parseFloat(row['Retail'] || cost * 1.2);
+
+                    currentPurInvoiceItems.push({
+                        sku: 'SKU-' + Date.now().toString().slice(-4),
+                        category: document.getElementById('purCategory').value,
+                        name: name.toUpperCase(),
+                        pcsPerCarton: packing,
+                        cartonQty: ctnQty,
+                        totalPcs: ctnQty * packing,
+                        pieceCost: cost,
+                        tradePrice: tp,
+                        retailPrice: retail,
+                        subtotal: (ctnQty * packing) * cost
+                    });
+                });
+                renderPurInvoiceItemsTable();
+                alert('ایکسل سے اسٹاک کامیابی سے امپورٹ ہو گیا!');
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            alert('PDF/تصویر منسلک ہو گئی ہے۔ براہ کرم مصنوعات کی تفصیلات کی تصدیق کریں۔');
+        }
+    }
+
+function addPurchaseRowItem() {
+        let name = document.getElementById('purItemName').value.trim().toUpperCase();
+        let pcsPerCarton = parseFloat(document.getElementById('purPcsPerCarton').value) || 24;
+        let cartonQty = parseFloat(document.getElementById('purCartonQty').value) || 0;
+        let pieceCost = parseFloat(document.getElementById('purPieceCost').value) || 0;
+        let tradePrice = parseFloat(document.getElementById('purTradePricePiece').value) || pieceCost;
+        let retailPrice = parseFloat(document.getElementById('purRetailPricePiece').value) || tradePrice;
+
+        if(!name || cartonQty <= 0) return alert('پروڈکٹ کا نام اور کارٹن کی تعداد درج کریں!');
+
+        let totalPcs = cartonQty * pcsPerCarton;
+        let subtotal = totalPcs * pieceCost;
+
+        currentPurInvoiceItems.push({
+            sku: 'SKU-' + Date.now().toString().slice(-4),
+            category: document.getElementById('purCategory').value,
+            name, pcsPerCarton, cartonQty, totalPcs, pieceCost, tradePrice, retailPrice, subtotal
+        });
+
+        renderPurInvoiceItemsTable();
+        document.getElementById('purItemName').value = '';
+        document.getElementById('purCartonQty').value = '';
+    }
+
+function renderPurInvoiceItemsTable() {
+        document.getElementById('purInvoiceItemsTbody').innerHTML = currentPurInvoiceItems.map((item, idx) => `
+            <tr>
+                <td>${item.sku}</td>
+                <td>${item.category}</td>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.pcsPerCarton} Pcs</td>
+                <td>${item.cartonQty} Ctn</td>
+                <td>${item.totalPcs} Pcs</td>
+                <td>Rs. ${item.pieceCost}</td>
+                <td>Rs. ${item.tradePrice}</td>
+                <td>Rs. ${item.retailPrice}</td>
+                <td>Rs. ${item.subtotal.toLocaleString()}</td>
+                <td><button class="btn-delete" onclick="currentPurInvoiceItems.splice(${idx},1);renderPurInvoiceItemsTable();">X</button></td>
+            </tr>
+        `).join('');
+    }
+
+function saveCompletePurchaseInvoice(print) {
+        if(currentPurInvoiceItems.length === 0) return alert('پرچیز انوائس خالی ہے!');
+
+        let date = document.getElementById('purInvDate').value;
+        let supplier = document.getElementById('purSupplierName').value.trim();
+        let invNo = document.getElementById('purInvoiceNo').value.trim();
+        let category = document.getElementById('purCategory').value;
+
+        let totalAmt = currentPurInvoiceItems.reduce((a, b) => a + b.subtotal, 0);
+
+        dbPurchaseInvoices.push({
+            invNo, date, supplier, category, items: [...currentPurInvoiceItems], totalAmt
+        });
+
+        currentPurInvoiceItems.forEach(item => {
+            let found = dbStock.find(s => s.name === item.name);
+            if(found) {
+                found.qty += item.totalPcs;
+                found.costPrice = item.pieceCost;
+                found.tradePrice = item.tradePrice;
+                found.retailPrice = item.retailPrice;
+            } else {
+                dbStock.push({
+                    id: 'STK_' + Date.now(),
+                    sku: item.sku,
+                    category: item.category,
+                    name: item.name,
+                    pcsPerCarton: item.pcsPerCarton,
+                    qty: item.totalPcs,
+                    costPrice: item.pieceCost,
+                    tradePrice: item.tradePrice,
+                    retailPrice: item.retailPrice
+                });
+            }
+        });
+
+        localStorage.setItem('ht_purchase_invoices', JSON.stringify(dbPurchaseInvoices));
+        localStorage.setItem('ht_stock', JSON.stringify(dbStock));
+
+        alert('پرچیز انوائس محفوظ ہو گئی اور لائیو اسٹاک اپڈیٹ ہو گیا!');
+        currentPurInvoiceItems = [];
+        renderPurInvoiceItemsTable();
+        renderLiveStockInventory();
+    }
+
+function filterPosShopsByBooker() {
+        const b = document.getElementById('posBookerSelect').value;
+        
+        let filteredShops = dbShops;
+        if(currentUser && currentUser.role === 'Order Booker') {
+            filteredShops = dbShops.filter(s => s.booker === currentUser.username);
+            document.getElementById('posBookerSelect').value = currentUser.username;
+            document.getElementById('posBookerSelect').disabled = true;
+        } else if(b) {
+            filteredShops = dbShops.filter(s => s.booker === b);
+        }
+
+        document.getElementById('posShopSelect').innerHTML = filteredShops.map(s => `<option value="${s.name}">${s.name} (${s.route || 'No Route'})</option>`).join('');
+        updatePrevShopName();
+    }
+
+function filterRecoveryShopsByBooker() {
+        const b = document.getElementById('recBookerSelect').value;
+        
+        let filteredShops = dbShops;
+        if(currentUser && currentUser.role === 'Order Booker') {
+            filteredShops = dbShops.filter(s => s.booker === currentUser.username);
+            document.getElementById('recBookerSelect').value = currentUser.username;
+            document.getElementById('recBookerSelect').disabled = true;
+        } else if(b) {
+            filteredShops = dbShops.filter(s => s.booker === b);
+        }
+
+        document.getElementById('recShopSelect').innerHTML = filteredShops.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    }
+
+function importBulkShopsExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+            jsonData.forEach(row => {
+                let name = (row['Shop Name'] || row['Shop'] || '').toString().toUpperCase().trim();
+                let owner = row['Owner'] || '';
+                let contact = row['Contact'] || '';
+                let route = row['Route'] || row['Area'] || 'General Route';
+                let booker = row['Booker'] || 'Huzaifa';
+                let creditLimit = parseFloat(row['Credit Limit'] || 50000);
+
+                if(name && !dbShops.some(s => s.name === name)) {
+                    dbShops.push({ name, owner, contact, route, creditLimit, booker });
+                }
+            });
+
+            localStorage.setItem('ht_shops', JSON.stringify(dbShops));
+            alert('ایکسیل سے تمام دکانیں اور ایریا گروپس امپورٹ ہو گئے!');
+            renderShops();
+            filterPosShopsByBooker();
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    /* USER MANAGEMENT WITH FULL EDIT CAPABILITY */
+
+function addNewUser() {
+        let username = document.getElementById('newUsername').value.trim();
+        let pass = document.getElementById('newUserPass').value.trim();
+        let role = document.getElementById('newUserRole').value;
+        let editIdx = parseInt(document.getElementById('editingUserIndex').value);
+
+        if(!username || !pass) return alert('یوزر کی معلومات درج کریں!');
+
+        let perms = [];
+        if(role === 'Admin') {
+            perms = ['ALL'];
+        } else {
+            document.querySelectorAll('#permissionCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+                perms.push(cb.value);
+            });
+        }
+
+        if(editIdx >= 0 && editIdx < dbUsers.length) {
+            dbUsers[editIdx] = { username, pass, role, permissions: perms };
+            alert('یوزر کی معلومات کامیابی سے تبدیل ہو گئی ہیں!');
+        } else {
+            let existingIdx = dbUsers.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+            if(existingIdx >= 0) {
+                dbUsers[existingIdx] = { username, pass, role, permissions: perms };
+            } else {
+                dbUsers.push({ username, pass, role, permissions: perms });
+            }
+            alert('نیا یوزر کامیابی سے شامل ہو گیا!');
+        }
+
+        localStorage.setItem('ht_users', JSON.stringify(dbUsers));
+        resetUserForm();
+        renderUsersTable();
+        populateLoginUserDropdown();
+        populateUserDropdowns();
+    }
+
+function editUserRecord(index) {
+        let u = dbUsers[index];
+        if(!u) return;
+
+        document.getElementById('editingUserIndex').value = index;
+        document.getElementById('newUsername').value = u.username;
+        document.getElementById('newUserPass').value = u.pass;
+        document.getElementById('newUserRole').value = u.role;
+        document.getElementById('userFormTitle').innerText = 'Edit User Access Permissions';
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
+
+        let perms = u.permissions || [];
+        document.querySelectorAll('#permissionCheckboxes input[type="checkbox"]').forEach(cb => {
+            cb.checked = perms.includes('ALL') || perms.includes(cb.value);
+        });
+
+        document.getElementById('users').scrollIntoView({ behavior: 'smooth' });
+    }
+
+function resetUserForm() {
+        document.getElementById('editingUserIndex').value = '-1';
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newUserPass').value = '';
+        document.getElementById('newUserRole').value = 'Admin';
+        document.getElementById('userFormTitle').innerText = 'Add / Edit User Access';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+
+        document.querySelectorAll('#permissionCheckboxes input[type="checkbox"]').forEach(cb => {
+            cb.checked = true;
+        });
+    }
+
+function renderUsersTable() {
+        document.getElementById('usersTable').innerHTML = dbUsers.map((u, i) => `
+            <tr>
+                <td><strong>${u.username}</strong></td>
+                <td>${u.role}</td>
+                <td>${u.permissions.includes('ALL') ? '<strong style="color:#38ef7d;">Full Access (Admin)</strong>' : u.permissions.length + ' Modules Allowed'}</td>
+                <td>
+                    <button class="btn-edit" onclick="editUserRecord(${i})">Edit ✏️</button>
+                    <button class="btn-delete" onclick="dbUsers.splice(${i},1);localStorage.setItem('ht_users',JSON.stringify(dbUsers));renderUsersTable();populateLoginUserDropdown();populateUserDropdowns();">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+function downloadBackup() {
+        let backupData = {
+            ht_invoices: dbInvoices,
+            ht_purchase_invoices: dbPurchaseInvoices,
+            ht_shops: dbShops,
+            ht_stock: dbStock,
+            ht_recoveries: dbRecoveries,
+            ht_kpo_logs: dbKpoLogs,
+            ht_expenses: dbExpenses,
+            ht_returns: dbReturns,
+            ht_company_claims: dbCompanyClaims,
+            ht_users: dbUsers,
+            ht_cash_in_hand: dbCashInHand
+        };
+
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+        let dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", `HussainTraders_ERP_Backup_${new Date().toISOString().slice(0,10)}.json`);
+        dlAnchorElem.click();
+    }
+
+function restoreData(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const restored = JSON.parse(e.target.result);
+                Object.keys(restored).forEach(key => {
+                    localStorage.setItem(key, typeof restored[key] === 'object' ? JSON.stringify(restored[key]) : restored[key]);
+                });
+                alert('تمام بیک اپ ڈیٹا کامیابی سے بحال (Restore) ہو گیا ہے!');
+                location.reload();
+            } catch(err) {
+                alert('فائل فارمیٹ غلط ہے!');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+function updateStockDatalist() {
+        document.getElementById('stockDatalist').innerHTML = dbStock.map(s => `<option value="${s.name}">[SKU: ${s.sku || 'N/A'}] Trade: Rs.${s.tradePrice} | Stock: ${s.qty} Pcs</option>`).join('');
+    }
+
+function autoFillItemDetails() {
+        const name = document.getElementById('posStockInput').value.trim();
+        const found = dbStock.find(s => s.name.toUpperCase() === name.toUpperCase());
+        if(found) {
+            document.getElementById('posItemTradeRate').value = found.tradePrice || 0;
+            document.getElementById('posItemRetailRate').value = found.retailPrice || found.tradePrice || 0;
+            recalcPosPieceFromCarton();
+        }
+    }
+
+function recalcPosPieceFromCarton() {
+        const name = document.getElementById('posStockInput').value.trim();
+        const ctnQty = parseFloat(document.getElementById('posItemCtnQty').value) || 0;
+        const found = dbStock.find(s => s.name.toUpperCase() === name.toUpperCase());
+        const packing = found ? (found.pcsPerCarton || 12) : 12;
+        if(ctnQty > 0) {
+            document.getElementById('posItemPcsQty').value = ctnQty * packing;
+        }
+    }
+
+function addPosItem() {
+        const name = document.getElementById('posStockInput').value.trim().toUpperCase();
+        const ctnQty = parseFloat(document.getElementById('posItemCtnQty').value) || 0;
+        const pcsQty = parseFloat(document.getElementById('posItemPcsQty').value) || 0;
+        const tradeRate = parseFloat(document.getElementById('posItemTradeRate').value) || 0;
+        const retailRate = parseFloat(document.getElementById('posItemRetailRate').value) || 0;
+        const discType = document.getElementById('posItemDiscType').value;
+        const discVal = parseFloat(document.getElementById('posItemDiscVal').value) || 0;
+
+        if(!name || pcsQty <= 0) return alert('پروڈکٹ کی معلومات اور تعداد صحیح درج کریں۔');
+
+        let fullTradeAmount = pcsQty * tradeRate;
+        let calculatedDisc = discType === 'Percent' ? (fullTradeAmount * (discVal / 100)) : discVal;
+        let rowTotal = fullTradeAmount - calculatedDisc;
+
+        currentPosItems.push({
+            name, ctnQty, pcsQty, tradeRate, retailRate, discType, discVal, calculatedDisc, rowTotal
+        });
+
+        renderPosCartTable();
+        calculatePosTotals();
+        document.getElementById('posStockInput').value = '';
+        document.getElementById('posItemCtnQty').value = '0';
+        document.getElementById('posItemPcsQty').value = '1';
+    }
+
+function renderPosCartTable() {
+        document.getElementById('posItemsTbody').innerHTML = currentPosItems.map((item, idx) => `
+            <tr>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.ctnQty} Ctn / ${item.pcsQty} Pcs</td>
+                <td>Rs. ${item.tradeRate}</td>
+                <td>Rs. ${item.retailRate}</td>
+                <td>Rs. ${item.calculatedDisc}</td>
+                <td>Rs. ${item.rowTotal}</td>
+                <td><button class="btn-delete" onclick="currentPosItems.splice(${idx},1);renderPosCartTable();calculatePosTotals();">X</button></td>
+            </tr>
+        `).join('');
+
+        document.getElementById('prevItemsTbody').innerHTML = currentPosItems.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td style="text-align:center;">${item.ctnQty}c/${item.pcsQty}p</td>
+                <td style="text-align:right;">${item.tradeRate}</td>
+                <td style="text-align:right;">${item.calculatedDisc}</td>
+                <td style="text-align:right;">${item.rowTotal}</td>
+            </tr>
+        `).join('') || `<tr><td colspan="5" style="text-align:center;">No Items Added</td></tr>`;
+    }
+
+function calculatePosTotals() {
+        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (item.pcsQty * item.tradeRate), 0);
+        let totalDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
+        let remainingSubtotal = tradeSubtotal - totalDiscounts;
+
+        let taxPercent = parseFloat(document.getElementById('posTaxPercent').value) || 0;
+        let taxAmt = remainingSubtotal * (taxPercent / 100);
+
+        let shopName = document.getElementById('posShopSelect').value;
+        let prevBal = getShopPreviousBalance(shopName);
+
+        let paid = parseFloat(document.getElementById('posPaid').value) || 0;
+        let grandTotal = (remainingSubtotal + taxAmt + prevBal) - paid;
+
+        document.getElementById('posTradeSubtotalLbl').innerText = 'Rs. ' + tradeSubtotal.toLocaleString();
+        document.getElementById('posItemDiscountsLbl').innerText = 'Rs. ' + totalDiscounts.toLocaleString();
+        document.getElementById('posRemainingSubtotalLbl').innerText = 'Rs. ' + remainingSubtotal.toLocaleString();
+        document.getElementById('posPrevBalanceLbl').innerText = 'Rs. ' + prevBal.toLocaleString();
+        document.getElementById('posGrandTotalLbl').innerText = 'Rs. ' + grandTotal.toLocaleString();
+
+        document.getElementById('prevTradeSubtotal').innerText = 'Rs. ' + tradeSubtotal.toLocaleString();
+        document.getElementById('prevItemDiscounts').innerText = 'Rs. ' + totalDiscounts.toLocaleString();
+        document.getElementById('prevTaxAmount').innerText = 'Rs. ' + taxAmt.toLocaleString();
+        document.getElementById('prevOldBalance').innerText = 'Rs. ' + prevBal.toLocaleString();
+        document.getElementById('prevRecoveryPaid').innerText = 'Rs. ' + paid.toLocaleString();
+        document.getElementById('prevGrandTotal').innerText = 'Rs. ' + grandTotal.toLocaleString();
+    }
+
+function updatePrevShopName() {
+        let shopName = document.getElementById('posShopSelect').value;
+        document.getElementById('prevCustomer').innerText = shopName || 'N/A';
+        calculatePosTotals();
+    }
+
+function savePosInvoice(print) {
+        if(currentPosItems.length === 0) return alert('آرڈر میں کوئی پروڈکٹ شامل نہیں ہے!');
+
+        let invNum = document.getElementById('posInvNum').value;
+        let date = document.getElementById('posInvDate').value;
+        let deliveryDate = document.getElementById('posDeliveryDate').value;
+        let booker = document.getElementById('posBookerSelect').value;
+        let supplyMan = document.getElementById('posSupplyManSelect').value;
+        let shop = document.getElementById('posShopSelect').value;
+        let payType = document.getElementById('posPayType').value;
+
+        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (item.pcsQty * item.tradeRate), 0);
+        let itemDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
+        let remainingSubtotal = tradeSubtotal - itemDiscounts;
+
+        let taxPercent = parseFloat(document.getElementById('posTaxPercent').value) || 0;
+        let taxAmount = remainingSubtotal * (taxPercent / 100);
+
+        let prevBalance = getShopPreviousBalance(shop);
+        let paidAmount = parseFloat(document.getElementById('posPaid').value) || 0;
+
+        let currentBillTotal = remainingSubtotal + taxAmount;
+        let newGrandTotalBalance = (currentBillTotal + prevBalance) - paidAmount;
+
+        let newInvoice = {
+            invNum, date, deliveryDate, booker, supplyMan, shop, payType,
+            items: [...currentPosItems],
+            tradeSubtotal, itemDiscounts, remainingSubtotal, taxPercent, taxAmount,
+            prevBalance, paidAmount, currentBillTotal, newGrandTotalBalance,
+            status: 'Delivered'
+        };
+
+        dbInvoices.push(newInvoice);
+
+        currentPosItems.forEach(item => {
+            let found = dbStock.find(s => s.name === item.name);
+            if(found) {
+                found.qty = Math.max(0, found.qty - item.pcsQty);
+            }
+        });
+
+        if(paidAmount > 0) {
+            dbCashInHand += paidAmount;
+            localStorage.setItem('ht_cash_in_hand', dbCashInHand);
+        }
+
+        localStorage.setItem('ht_invoices', JSON.stringify(dbInvoices));
+        localStorage.setItem('ht_stock', JSON.stringify(dbStock));
+
+        alert('انواؤس کامیابی سے محفوظ ہو گئی ہے!');
+
+        if(print) {
+            printDualA5Invoice(newInvoice);
+        }
+
+        currentPosItems = [];
+        renderPosCartTable();
+        generateInvoiceNumber();
+        renderDashboard();
+    }
+
+function printDualA5Invoice(inv) {
+        let printArea = document.getElementById('printableA4DualContainer');
+        let singleInvoiceHtml = `
+            <div class="print-invoice-half">
+                <div style="text-align:center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px;">
+                    <h2 style="margin:0; font-size: 16px;">حُسَیْن ٹْرِیَڈَرْزْ (HUSSAIN TRADERS)</h2>
+                    <p style="font-size: 9px; margin:0;">FMCG Sales & Distribution, Bannu Road, Dera Ismail Khan</p>
+                    <p style="font-size: 9px; margin:0;">Phone: 0334-7218606 | Invoice Copy</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px;">
+                    <div>
+                        <div><strong>Inv #:</strong> ${inv.invNum}</div>
+                        <div><strong>Shop:</strong> ${inv.shop}</div>
+                        <div><strong>Payment:</strong> ${inv.payType}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div><strong>Date:</strong> ${inv.date}</div>
+                        <div><strong>Delivery:</strong> ${inv.deliveryDate}</div>
+                        <div><strong>Booker:</strong> ${inv.booker}</div>
+                    </div>
+                </div>
+                <table style="width:100%; border-collapse:collapse; font-size:9px; margin-bottom:6px;">
+                    <thead>
+                        <tr style="background:#eee;">
+                            <th style="border:1px solid #000; padding:3px;">Item</th>
+                            <th style="border:1px solid #000; padding:3px; text-align:center;">Qty</th>
+                            <th style="border:1px solid #000; padding:3px; text-align:right;">Rate</th>
+                            <th style="border:1px solid #000; padding:3px; text-align:right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${inv.items.map(it => `
+                            <tr>
+                                <td style="border:1px solid #000; padding:3px;">${it.name}</td>
+                                <td style="border:1px solid #000; padding:3px; text-align:center;">${it.ctnQty}c / ${it.pcsQty}p</td>
+                                <td style="border:1px solid #000; padding:3px; text-align:right;">${it.tradeRate}</td>
+                                <td style="border:1px solid #000; padding:3px; text-align:right;">${it.rowTotal}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div style="font-size:10px; border-top:1px solid #000; padding-top:4px;">
+                    <div style="display:flex; justify-content:space-between;"><span>Current Bill Amount:</span><strong>Rs. ${inv.currentBillTotal.toLocaleString()}</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Previous Balance:</span><strong>Rs. ${inv.prevBalance.toLocaleString()}</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Amount Paid:</span><strong>Rs. ${inv.paidAmount.toLocaleString()}</strong></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; border-top:1px solid #000; margin-top:2px; padding-top:2px;"><span>Net Balance Due:</span><strong>Rs. ${inv.newGrandTotalBalance.toLocaleString()}</strong></div>
+                </div>
+                <div style="margin-top:20px; display:flex; justify-content:space-between; font-size:9px;">
+                    <div>__________________<br>Receiver Signature</div>
+                    <div>__________________<br>Authorized Signature</div>
+                </div>
+            </div>
+        `;
+
+        printArea.innerHTML = singleInvoiceHtml + singleInvoiceHtml;
+        printArea.style.display = 'flex';
+        window.print();
+        printArea.style.display = 'none';
+    }
+
+function renderDashboard() {
+        let totalUdhaar = dbShops.reduce((acc, s) => acc + getShopPreviousBalance(s.name), 0);
+        let todayStr = new Date().toISOString().slice(0,10);
+        let todaySales = dbInvoices.filter(i => i.date === todayStr).reduce((acc, i) => acc + i.currentBillTotal, 0);
+        let todayRecovery = dbRecoveries.filter(r => r.date === todayStr && r.status === 'Approved').reduce((acc, r) => acc + r.amount, 0);
+        let totalExpenses = dbExpenses.reduce((acc, e) => acc + e.amount, 0);
+        let totalReturns = dbReturns.reduce((acc, r) => acc + (r.totalRefund || 0), 0);
+        let reservedClaims = dbCompanyClaims.reduce((acc, c) => acc + (c.totalVal || 0), 0);
+
+        document.getElementById('dashTotalUdhaar').innerText = 'Rs. ' + totalUdhaar.toLocaleString();
+        document.getElementById('dashTodaySales').innerText = 'Rs. ' + todaySales.toLocaleString();
+        document.getElementById('dashTodayRecovery').innerText = 'Rs. ' + todayRecovery.toLocaleString();
+        document.getElementById('dashCashInHand').innerText = 'Rs. ' + dbCashInHand.toLocaleString();
+        document.getElementById('dashReservedStockVal').innerText = 'Rs. ' + reservedClaims.toLocaleString();
+        document.getElementById('dashTotalExpenses').innerText = 'Rs. ' + totalExpenses.toLocaleString();
+        document.getElementById('dashTotalReturns').innerText = 'Rs. ' + totalReturns.toLocaleString();
+    }
+
+function renderShops() {
+        document.getElementById('shopsTable').innerHTML = dbShops.map(s => `
+            <tr>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.owner || '--'}</td>
+                <td>${s.route || '--'}</td>
+                <td>${s.booker || '--'}</td>
+                <td>Rs. ${(s.creditLimit || 50000).toLocaleString()}</td>
+                <td>Rs. ${getShopPreviousBalance(s.name).toLocaleString()}</td>
+            </tr>
+        `).join('');
+    }
+
+</script>
+
+<script id="ft-finance-engine">
+(function(){
+  let dbInvestments = JSON.parse(localStorage.getItem('ft_investments') || '[]');
+  window.ftFinance = { investments: dbInvestments };
+  function saveInv(){ localStorage.setItem('ft_investments', JSON.stringify(dbInvestments)); }
+  function n(v){ return Number(v)||0; }
+  function money(v){ return 'Rs. ' + Math.round(n(v)).toLocaleString(); }
+  function dateNow(){ return new Date().toISOString().slice(0,10); }
+  function inRange(d,from,to){ return (!from || d>=from) && (!to || d<=to); }
+  function saleRows(from,to){
+    const rows=[];
+    (dbInvoices||[]).filter(i=>inRange(i.date,from,to)).forEach(inv=>{
+      (inv.items||[]).forEach(it=>{
+        const stock=(dbStock||[]).find(s=>String(s.name).toUpperCase()===String(it.name).toUpperCase());
+        const brand=it.category||it.brand||(stock&&stock.category)||'Unassigned';
+        const cost=n(it.costPrice!=null?it.costPrice:(stock&&stock.costPrice));
+        const qty=n(it.pcsQty);
+        const revenue=n(qty*n(it.tradeRate))-n(it.calculatedDisc||0);
+        const cogs=qty*cost;
+        rows.push({date:inv.date,brand,revenue,cogs,gross:revenue-cogs,inv:inv.invNum,shop:inv.shop});
+      });
+    });
+    return rows;
+  }
+  function totals(from,to){
+    const sales=saleRows(from,to); const salesTotal=sales.reduce((a,r)=>a+r.revenue,0); const cogs=sales.reduce((a,r)=>a+r.cogs,0);
+    const recovery=(dbRecoveries||[]).filter(r=>r.status==='Approved'&&inRange(r.date,from,to)).reduce((a,r)=>a+n(r.amount),0);
+    const expenses=(dbExpenses||[]).filter(r=>inRange(r.date,from,to)).reduce((a,r)=>a+n(r.amount),0);
+    const returns=(dbReturns||[]).filter(r=>inRange(r.date,from,to)).reduce((a,r)=>a+n(r.totalRefund),0);
+    const gross=salesTotal-cogs-returns; const net=gross-expenses;
+    return {sales:salesTotal,cogs,returns,recovery,expenses,gross,net};
+  }
+  function allInvestmentCash(){return dbInvestments.filter(x=>x.method==='Cash').reduce((a,x)=>a+n(x.amount),0)}
+  function allInvestmentBank(){return dbInvestments.filter(x=>x.method==='Bank').reduce((a,x)=>a+n(x.amount),0)}
+  function cashState(toDate){
+    let cash=0,bank=0;
+    dbInvestments.filter(x=>!toDate||x.date<=toDate).forEach(x=>x.method==='Bank'?bank+=n(x.amount):cash+=n(x.amount));
+    (dbInvoices||[]).filter(i=>!toDate||i.date<=toDate).forEach(i=>{ const p=n(i.paidAmount); if(i.payType==='Cash') cash+=p; else if(i.payType==='Bank') bank+=p; });
+    (dbRecoveries||[]).filter(r=>r.status==='Approved'&&(!toDate||r.date<=toDate)).forEach(r=>{ if(r.method==='Bank') bank+=n(r.amount); else cash+=n(r.amount); });
+    (dbExpenses||[]).filter(e=>!toDate||e.date<=toDate).forEach(e=>cash-=n(e.amount));
+    (dbPurchaseInvoices||[]).filter(p=>!toDate||p.date<=toDate).forEach(p=>{ const t=n(p.totalAmt); const m=p.paymentType||'Cash'; if(m==='Cash') cash-=t; else if(m==='Bank') bank-=t; });
+    return {cash,bank};
+  }
+  window.ftAddInvestment=function(){
+    const date=document.getElementById('ftInvDate').value||dateNow(), owner=document.getElementById('ftInvOwner').value.trim()||'Owner', amount=n(document.getElementById('ftInvAmount').value), method=document.getElementById('ftInvMethod').value, remarks=document.getElementById('ftInvRemarks').value.trim();
+    if(amount<=0)return alert('Enter a valid investment amount.');
+    dbInvestments.push({id:'INVEST_'+Date.now(),date,owner,amount,method,remarks}); saveInv();
+    document.getElementById('ftInvAmount').value=''; document.getElementById('ftInvRemarks').value=''; ftRenderFinance(); alert('Investment saved successfully.');
+  };
+  window.ftSetPeriod=function(){
+    const p=document.getElementById('ftPeriod').value, d=new Date(), today=dateNow(); let from=today,to=today;
+    if(p==='month'){from=new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10);to=today}
+    if(p==='year'){from=new Date(d.getFullYear(),0,1).toISOString().slice(0,10);to=today}
+    if(p==='custom')return; document.getElementById('ftFromDate').value=from; document.getElementById('ftToDate').value=to; ftRenderFinance();
+  };
+  window.ftRenderFinance=function(){
+    const today=dateNow();
+    const from=document.getElementById('ftFromDate')?.value||today, to=document.getElementById('ftToDate')?.value||today;
+    const t=totals(from,to), cash=cashState(to), invTotal=dbInvestments.filter(x=>inRange(x.date,null,to)).reduce((a,x)=>a+n(x.amount),0);
+    const outstanding=(dbShops||[]).reduce((a,s)=>a+n(getShopPreviousBalance(s.name)),0);
+    const stockValue=(dbStock||[]).reduce((a,s)=>a+n(s.qty)*n(s.costPrice),0);
+    ['ftCashInHand','ftBankBalance','ftTotalInvestment','ftNetSales','ftGrossProfit','ftNetProfit','ftOutstanding','ftStockValue'].forEach((id,i)=>{const vals=[cash.cash,cash.bank,invTotal,t.sales,t.gross,t.net,outstanding,stockValue]; const el=document.getElementById(id);if(el)el.textContent=money(vals[i]);});
+    const margin=t.sales?((t.gross/t.sales)*100):0;
+    document.getElementById('ftPLSummary').innerHTML=`<h4>Profit & Loss — ${from} to ${to}</h4><div class="summary-cards"><div class="bubble-card"><h3>Net Sales</h3><p>${money(t.sales)}</p></div><div class="bubble-card"><h3>COGS</h3><p>${money(t.cogs)}</p></div><div class="bubble-card"><h3>Returns</h3><p>${money(t.returns)}</p></div><div class="bubble-card"><h3>Gross Profit</h3><p>${money(t.gross)}</p></div><div class="bubble-card"><h3>Expenses</h3><p>${money(t.expenses)}</p></div><div class="bubble-card"><h3>Net Profit / Loss</h3><p>${money(t.net)}</p></div><div class="bubble-card"><h3>Gross Margin</h3><p>${margin.toFixed(2)}%</p></div></div>`;
+    const days={};
+    const addDay=(d,k,v)=>{if(!days[d])days[d]={sales:0,cogs:0,recovery:0,expenses:0};days[d][k]+=v};
+    saleRows(from,to).forEach(r=>{addDay(r.date,'sales',r.revenue);addDay(r.date,'cogs',r.cogs)});
+    (dbRecoveries||[]).filter(r=>r.status==='Approved'&&inRange(r.date,from,to)).forEach(r=>addDay(r.date,'recovery',n(r.amount)));
+    (dbExpenses||[]).filter(r=>inRange(r.date,from,to)).forEach(r=>addDay(r.date,'expenses',n(r.amount)));
+    document.getElementById('ftDaywiseTbody').innerHTML=Object.keys(days).sort().map(d=>{const x=days[d], gp=x.sales-x.cogs, np=gp-x.expenses, cs=cashState(d).cash;return `<tr><td>${d}</td><td>${money(x.sales)}</td><td>${money(x.cogs)}</td><td>${money(gp)}</td><td>${money(x.recovery)}</td><td>${money(x.expenses)}</td><td style="font-weight:bold">${money(np)}</td><td>${money(cs)}</td></tr>`}).join('')||'<tr><td colspan="8">No transactions for this period.</td></tr>';
+    const brands={}; saleRows(from,to).forEach(r=>{brands[r.brand]??={sales:0,cogs:0};brands[r.brand].sales+=r.revenue;brands[r.brand].cogs+=r.cogs});
+    document.getElementById('ftBrandTbody').innerHTML=Object.entries(brands).sort((a,b)=>b[1].sales-a[1].sales).map(([b,x])=>{const gp=x.sales-x.cogs;return `<tr><td><strong>${b}</strong></td><td>${money(x.sales)}</td><td>${money(x.cogs)}</td><td>${money(gp)}</td><td>${x.sales?(gp/x.sales*100).toFixed(2):'0.00'}%</td></tr>`}).join('')||'<tr><td colspan="5">No brand sales for this period.</td></tr>';
+    const ledger=[]; dbInvestments.filter(x=>inRange(x.date,from,to)).forEach(x=>ledger.push({date:x.date,tx:'Investment',ref:x.id,ci:x.method==='Cash'?n(x.amount):0,co:0,bi:x.method==='Bank'?n(x.amount):0,bo:0}));
+    (dbInvoices||[]).filter(x=>inRange(x.date,from,to)&&n(x.paidAmount)>0).forEach(x=>ledger.push({date:x.date,tx:'Sale Payment',ref:x.invNum,ci:x.payType==='Cash'?n(x.paidAmount):0,co:0,bi:x.payType==='Bank'?n(x.paidAmount):0,bo:0}));
+    (dbRecoveries||[]).filter(x=>x.status==='Approved'&&inRange(x.date,from,to)).forEach(x=>ledger.push({date:x.date,tx:'Recovery',ref:x.id,ci:x.method==='Bank'?0:n(x.amount),co:0,bi:x.method==='Bank'?n(x.amount):0,bo:0}));
+    (dbExpenses||[]).filter(x=>inRange(x.date,from,to)).forEach(x=>ledger.push({date:x.date,tx:'Expense',ref:x.title,ci:0,co:n(x.amount),bi:0,bo:0}));
+    (dbPurchaseInvoices||[]).filter(x=>inRange(x.date,from,to)).forEach(x=>ledger.push({date:x.date,tx:'Purchase',ref:x.invNo,ci:0,co:(x.paymentType||'Cash')==='Cash'?n(x.totalAmt):0,bi:0,bo:(x.paymentType||'Cash')==='Bank'?n(x.totalAmt):0}));
+    ledger.sort((a,b)=>a.date.localeCompare(b.date)); let run=0; document.getElementById('ftCashLedgerTbody').innerHTML=ledger.map(x=>{run+=x.ci-x.co;return `<tr><td>${x.date}</td><td>${x.tx}</td><td>${x.ref}</td><td>${money(x.ci)}</td><td>${money(x.co)}</td><td>${money(x.bi)}</td><td>${money(x.bo)}</td><td>${money(run)}</td></tr>`}).join('')||'<tr><td colspan="8">No cash transactions for this period.</td></tr>';
+    document.getElementById('ftInvestmentTbody').innerHTML=dbInvestments.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr><td>${x.date}</td><td>${x.owner}</td><td>${x.method}</td><td>${money(x.amount)}</td><td>${x.remarks||''}</td></tr>`).join('')||'<tr><td colspan="5">No investments entered.</td></tr>';
+  };
+  window.ftExportFinanceExcel=function(){
+    const table=document.getElementById('ftBrandTbody')?.closest('table'); if(!table)return; const wb=XLSX.utils.table_to_book(table,{sheet:'Brand Profit'}); XLSX.writeFile(wb,'Profit_Loss_Brand_Report.xlsx');
+  };
+  // Capture cost price at sale time so historical P&L remains stable when stock cost changes later.
+  const _addPosItem=window.addPosItem; window.addPosItem=function(){ const before=currentPosItems.length; _addPosItem(); if(currentPosItems.length>before){const x=currentPosItems[currentPosItems.length-1], st=dbStock.find(s=>String(s.name).toUpperCase()===String(x.name).toUpperCase()); x.costPrice=n(st&&st.costPrice); x.category=(st&&st.category)||x.category||'Unassigned'; }};
+  // Persist purchase payment method; legacy purchases remain treated as cash for backwards compatibility.
+  const _savePurchase=window.saveCompletePurchaseInvoice; window.saveCompletePurchaseInvoice=function(print){ const type=document.getElementById('purPaymentType')?.value||'Cash'; _savePurchase(print); const arr=JSON.parse(localStorage.getItem('ht_purchase_invoices')||'[]'); if(arr.length){arr[arr.length-1].paymentType=type;localStorage.setItem('ht_purchase_invoices',JSON.stringify(arr));} ftRenderFinance(); };
+  const _savePos=window.savePosInvoice; window.savePosInvoice=function(print){ _savePos(print); ftRenderFinance(); };
+  const _saveRec=window.submitRecoveryEntry; window.submitRecoveryEntry=function(){ _saveRec(); ftRenderFinance(); };
+  const _saveExp=window.addExpenseRecord; window.addExpenseRecord=function(){ _saveExp(); ftRenderFinance(); };
+  const _open=window.openTab; window.openTab=function(id,btn){ _open(id,btn); if(id==='financeTab')ftRenderFinance(); };
+  window.renderOwnerDailySummary=function(){
+    const d=document.getElementById('ownerSummaryDate')?.value||dateNow(), t=totals(d,d), c=cashState(d).cash;
+    const a=document.getElementById('sumTotalSales'); if(a)a.textContent=money(t.sales); const r=document.getElementById('sumTotalRecovery');if(r)r.textContent=money(t.recovery); const e=document.getElementById('sumTotalExpenses');if(e)e.textContent=money(t.expenses);
+    const area=document.getElementById('ownerSummaryPrintArea'); if(area) area.innerHTML+=`<p>COGS: <strong>${money(t.cogs)}</strong></p><p>Gross Profit: <strong>${money(t.gross)}</strong></p><p>Net Profit/Loss: <strong>${money(t.net)}</strong></p><p>Actual Cash In Hand: <strong>${money(c)}</strong></p>`;
+  };
+  document.addEventListener('DOMContentLoaded',()=>{const d=dateNow();['ftInvDate','ftFromDate','ftToDate','ownerSummaryDate'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.value)e.value=d}); ftRenderFinance();});
+})();
+</script>
+
+<div id="ftCrudModal" class="ft-crud-modal" aria-hidden="true">
+  <div class="ft-crud-card">
+    <div class="ft-crud-head"><div><span id="ftCrudEyebrow">Record</span><h3 id="ftCrudTitle">Edit Record</h3></div><button type="button" onclick="ftCloseCrud()">✕</button></div>
+    <div id="ftCrudBody"></div>
+  </div>
+</div>
+<style id="ft-crud-style">
+.ft-crud-modal{position:fixed;inset:0;background:rgba(15,23,42,.62);display:none;align-items:center;justify-content:center;z-index:99999;padding:18px}.ft-crud-modal.open{display:flex}.ft-crud-card{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 25px 80px rgba(0,0,0,.25)}.ft-crud-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #e5e7eb}.ft-crud-head h3{margin:3px 0 0;color:#0f172a}.ft-crud-head span{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#64748b}.ft-crud-head button{border:0;background:#f1f5f9;border-radius:10px;width:36px;height:36px;font-size:18px;cursor:pointer}.ft-crud-body{padding:20px}.ft-crud-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.ft-crud-grid .full{grid-column:1/-1}.ft-crud-grid label{display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:6px}.ft-crud-grid input,.ft-crud-grid select,.ft-crud-grid textarea{width:100%;box-sizing:border-box;padding:10px 11px;border:1px solid #dbe3ef;border-radius:9px;background:#f8fafc}.ft-crud-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.ft-action-btn{border:0;border-radius:8px;padding:7px 10px;cursor:pointer;font-weight:700;font-size:12px}.ft-edit{background:#e0f2fe;color:#075985}.ft-delete{background:#fee2e2;color:#991b1b}.ft-view{background:#ecfdf5;color:#166534}.ft-warning{background:#fff7ed;border:1px solid #fed7aa;padding:10px;border-radius:9px;color:#9a3412;font-size:12px;margin-top:10px}.ft-log-pill{display:inline-block;padding:3px 7px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700}.ft-muted{color:#64748b;font-size:12px}@media(max-width:700px){.ft-crud-grid{grid-template-columns:1fr}.ft-crud-grid .full{grid-column:auto}}
+</style>
+<script id="ft-crud-audit">
+(function(){
+  const esc = v => String(v==null?'':v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
+  const nowISO=()=>new Date().toISOString();
+  function audit(action,module,record,reference,details){
+    try{
+      const u=(typeof currentUser!=='undefined'&&currentUser)?currentUser.username:'System';
+      dbAuditLog.push({id:'AUD_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),date:nowISO(),user:u,action,module,record,reference,details});
+      localStorage.setItem('ht_audit_log',JSON.stringify(dbAuditLog));
+    }catch(e){console.warn('Audit log failed',e)}
+  }
+  window.ftAudit=audit;
+  function ownerOnly(){return typeof currentUser!=='undefined' && currentUser && (currentUser.isOwner || currentUser.role==='Admin');}
+  function ensureOwner(){if(!ownerOnly()){alert('Owner / Admin access required for this action.');return false}return true}
+  function openModal(title,eyebrow,body){
+    document.getElementById('ftCrudEyebrow').textContent=eyebrow||'Record';document.getElementById('ftCrudTitle').textContent=title;document.getElementById('ftCrudBody').innerHTML=body;document.getElementById('ftCrudModal').classList.add('open');document.getElementById('ftCrudModal').setAttribute('aria-hidden','false');
+  }
+  window.ftCloseCrud=function(){document.getElementById('ftCrudModal').classList.remove('open');document.getElementById('ftCrudModal').setAttribute('aria-hidden','true');};
+  window.ftEditStock=function(i){
+    if(!ensureOwner())return; const s=dbStock[i]; if(!s)return;
+    openModal('Edit Stock Item','LIVE STOCK',`<div class="ft-crud-grid">
+      <div><label>SKU Code</label><input id="ft_sku" value="${esc(s.sku||'')}"></div><div><label>Category / Brand</label><input id="ft_cat" value="${esc(s.category||'')}"></div>
+      <div class="full"><label>Product Name</label><input id="ft_name" value="${esc(s.name||'')}"></div>
+      <div><label>Pieces per Carton</label><input id="ft_pack" type="number" min="1" value="${s.pcsPerCarton||24}"></div><div><label>Available Pieces</label><input id="ft_qty" type="number" min="0" value="${s.qty||0}"></div>
+      <div><label>Cost Price</label><input id="ft_cost" type="number" step="0.01" value="${s.costPrice||0}"></div><div><label>Trade Price</label><input id="ft_trade" type="number" step="0.01" value="${s.tradePrice||0}"></div>
+      <div><label>Retail Price</label><input id="ft_retail" type="number" step="0.01" value="${s.retailPrice||0}"></div><div><label>List Price</label><input id="ft_list" type="number" step="0.01" value="${s.listPrice||0}"></div>
+    </div><div class="ft-crud-actions"><button class="ft-action-btn" onclick="ftCloseCrud()">Cancel</button><button class="btn-add" onclick="ftSaveStock(${i})">Save Changes</button></div>`);
+  };
+  window.ftSaveStock=function(i){if(!ensureOwner())return;const s=dbStock[i];if(!s)return;const before=JSON.stringify(s);Object.assign(s,{sku:document.getElementById('ft_sku').value.trim(),category:document.getElementById('ft_cat').value.trim(),name:document.getElementById('ft_name').value.trim().toUpperCase(),pcsPerCarton:Number(document.getElementById('ft_pack').value)||24,qty:Number(document.getElementById('ft_qty').value)||0,costPrice:Number(document.getElementById('ft_cost').value)||0,tradePrice:Number(document.getElementById('ft_trade').value)||0,retailPrice:Number(document.getElementById('ft_retail').value)||0,listPrice:Number(document.getElementById('ft_list').value)||0});if(!s.name)return alert('Product name is required.');localStorage.setItem('ht_stock',JSON.stringify(dbStock));audit('Updated','Stock',s.name,s.sku||s.name,`Stock record edited. Before: ${before} After: ${JSON.stringify(s)}`);ftCloseCrud();renderLiveStockInventory();updateStockDatalist();if(typeof renderDashboard==='function')renderDashboard();alert('Stock updated and activity logged.');};
+  window.ftDeleteStock=function(i){if(!ensureOwner())return;const s=dbStock[i];if(!s)return;const usedInvoice=(dbInvoices||[]).some(inv=>(inv.items||[]).some(it=>String(it.name).toUpperCase()===String(s.name).toUpperCase()));const usedPurchase=(typeof dbPurchaseInvoices!=='undefined'&&dbPurchaseInvoices||[]).some(p=>(p.items||[]).some(it=>String(it.name).toUpperCase()===String(s.name).toUpperCase()));if((usedInvoice||usedPurchase)&&!confirm('This product exists in transaction history. Delete anyway? Historical transactions will remain, but the product master will be removed.'))return;if(!confirm(`Delete stock item "${s.name}"?`))return;dbStock.splice(i,1);localStorage.setItem('ht_stock',JSON.stringify(dbStock));audit('Deleted','Stock',s.name,s.sku||s.name,'Stock master record deleted by Owner/Admin. Historical transactions retained.');renderLiveStockInventory();updateStockDatalist();alert('Stock item deleted and activity logged.');};
+  window.ftEditShop=function(i){if(!ensureOwner())return;const s=dbShops[i];if(!s)return;const opts=dbUsers.filter(u=>u.role==='Order Booker'||u.role==='Admin').map(u=>`<option ${u.username===s.booker?'selected':''}>${esc(u.username)}</option>`).join('');openModal('Edit Shop','SHOP MASTER',`<div class="ft-crud-grid"><div class="full"><label>Shop Name</label><input id="ft_sn" value="${esc(s.name||'')}"></div><div><label>Owner Name</label><input id="ft_so" value="${esc(s.owner||'')}"></div><div><label>Contact</label><input id="ft_sc" value="${esc(s.contact||'')}"></div><div><label>Route / Area</label><input id="ft_sr" value="${esc(s.route||'')}"></div><div><label>Credit Limit</label><input id="ft_sl" type="number" value="${s.creditLimit||50000}"></div><div><label>Assigned Booker</label><select id="ft_sb">${opts}</select></div><div class="full"><label>Opening / Verification Note</label><textarea id="ft_snote" rows="3" placeholder="Optional note for audit log"></textarea></div></div><div class="ft-crud-actions"><button class="ft-action-btn" onclick="ftCloseCrud()">Cancel</button><button class="btn-add" onclick="ftSaveShop(${i})">Save Changes</button></div>`)};
+  window.ftSaveShop=function(i){if(!ensureOwner())return;const s=dbShops[i];if(!s)return;const oldName=s.name;const newName=document.getElementById('ft_sn').value.trim().toUpperCase();if(!newName)return alert('Shop name is required.');const duplicate=dbShops.some((x,idx)=>idx!==i&&String(x.name).toUpperCase()===newName);if(duplicate)return alert('Another shop already uses this name.');Object.assign(s,{name:newName,owner:document.getElementById('ft_so').value.trim(),contact:document.getElementById('ft_sc').value.trim(),route:document.getElementById('ft_sr').value.trim(),creditLimit:Number(document.getElementById('ft_sl').value)||0,booker:document.getElementById('ft_sb').value});if(oldName!==newName){dbInvoices.forEach(x=>{if(x.shop===oldName)x.shop=newName});dbRecoveries.forEach(x=>{if(x.shop===oldName)x.shop=newName});dbLedgerAdjustments.forEach(x=>{if(x.shop===oldName)x.shop=newName});localStorage.setItem('ht_invoices',JSON.stringify(dbInvoices));localStorage.setItem('ht_recoveries',JSON.stringify(dbRecoveries));localStorage.setItem('ht_ledger_adjustments',JSON.stringify(dbLedgerAdjustments));}localStorage.setItem('ht_shops',JSON.stringify(dbShops));audit('Updated','Shop',newName,oldName,`Shop master edited. ${oldName} -> ${newName}. Credit limit Rs. ${s.creditLimit}. Booker ${s.booker}.`);ftCloseCrud();renderShops();renderMarketCreditReport();filterPosShopsByBooker();alert('Shop updated and activity logged.');};
+  window.ftDeleteShop=function(i){if(!ensureOwner())return;const s=dbShops[i];if(!s)return;const used=(dbInvoices||[]).some(x=>x.shop===s.name)||(dbRecoveries||[]).some(x=>x.shop===s.name)||(dbLedgerAdjustments||[]).some(x=>x.shop===s.name);if(used){alert('This shop has transaction history. For data safety it cannot be hard-deleted. Use Edit/credit adjustment instead. The attempt can be reviewed in Activity Log.');audit('Delete Blocked','Shop',s.name,s.name,'Hard delete blocked because transaction history exists.');return;}if(!confirm(`Delete shop "${s.name}"?`))return;dbShops.splice(i,1);localStorage.setItem('ht_shops',JSON.stringify(dbShops));audit('Deleted','Shop',s.name,s.name,'Shop master record deleted.');renderShops();renderMarketCreditReport();filterPosShopsByBooker();alert('Shop deleted and activity logged.');};
+  window.ftEditCredit=function(i){if(!ensureOwner())return;const s=dbShops[i];if(!s)return;openModal('Edit Market Credit','MARKET CREDIT',`<div class="ft-crud-grid"><div class="full"><label>Shop</label><input value="${esc(s.name)}" disabled></div><div><label>Credit Limit</label><input id="ft_cl" type="number" value="${s.creditLimit||0}"></div><div><label>Adjustment Type</label><select id="ft_at"><option value="Credit">Credit / Reduce Due</option><option value="Debit">Debit / Increase Due</option></select></div><div><label>Adjustment Amount</label><input id="ft_aa" type="number" min="0" value="0"></div><div><label>Date</label><input id="ft_ad" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="full"><label>Reason / Verification Note</label><textarea id="ft_ar" rows="3" placeholder="Required for audit"></textarea></div></div><div class="ft-warning">Invoice and recovery transactions are not silently deleted from Market Credit. They must be corrected at their source. This screen changes the credit limit and creates a logged ledger adjustment.</div><div class="ft-crud-actions"><button class="ft-action-btn" onclick="ftCloseCrud()">Cancel</button><button class="btn-add" onclick="ftSaveCredit(${i})">Save Credit Changes</button></div>`)};
+  window.ftSaveCredit=function(i){if(!ensureOwner())return;const s=dbShops[i], amount=Number(document.getElementById('ft_aa').value)||0, type=document.getElementById('ft_at').value, reason=document.getElementById('ft_ar').value.trim(), date=document.getElementById('ft_ad').value, oldLimit=s.creditLimit||0,newLimit=Number(document.getElementById('ft_cl').value)||0;if(!reason)return alert('Verification note is required.');s.creditLimit=newLimit;localStorage.setItem('ht_shops',JSON.stringify(dbShops));if(amount>0){const id='ADJ_'+Date.now();dbLedgerAdjustments.push({id,date,type,amount,reason,shop:s.name,createdAt:new Date().toISOString(),createdBy:currentUser.username});localStorage.setItem('ht_ledger_adjustments',JSON.stringify(dbLedgerAdjustments));audit('Created','Market Credit',s.name,id,`${type} adjustment Rs. ${amount} — ${reason}`)}audit('Updated','Market Credit',s.name,s.name,`Credit limit changed Rs. ${oldLimit} -> Rs. ${newLimit}.`);ftCloseCrud();renderShops();renderMarketCreditReport();alert('Market credit updated and logged.');};
+  window.ftDeleteCreditAdjustment=function(ref){if(!ensureOwner())return;const idx=dbLedgerAdjustments.findIndex(a=>a.id===ref);if(idx<0)return;const a=dbLedgerAdjustments[idx];if(!confirm(`Delete this market credit adjustment ${ref}?`))return;dbLedgerAdjustments.splice(idx,1);localStorage.setItem('ht_ledger_adjustments',JSON.stringify(dbLedgerAdjustments));audit('Deleted','Market Credit',a.shop,ref,`Market credit adjustment deleted: ${a.type} Rs. ${a.amount} — ${a.reason}`);renderMarketCreditReport();};
+  window.ftViewCredit=function(name){const el=document.getElementById('creditReportShopFilter');if(el){el.value=name;renderMarketCreditReport();}};
+  const oldStock=window.renderLiveStockInventory;window.renderLiveStockInventory=function(){oldStock();const tb=document.getElementById('liveStockInventoryTbody');if(!tb)return;[...tb.querySelectorAll('tr')].forEach((tr,i)=>{const td=document.createElement('td');td.innerHTML=`<button class="ft-action-btn ft-edit" onclick="ftEditStock(${i})">Edit</button> <button class="ft-action-btn ft-delete" onclick="ftDeleteStock(${i})">Delete</button>`;tr.appendChild(td);});};
+  const oldShops=window.renderShops;window.renderShops=function(){oldShops();const tb=document.getElementById('shopsTable');if(!tb)return;[...tb.querySelectorAll('tr')].forEach((tr,i)=>{if(tr.children.length>=6){const contact=document.createElement('td');const shop=dbShops[i];contact.textContent=shop?.contact||'--';tr.insertBefore(contact,tr.children[2]);}const td=document.createElement('td');td.innerHTML=`<button class="ft-action-btn ft-edit" onclick="ftEditShop(${i})">Edit</button> <button class="ft-action-btn ft-delete" onclick="ftDeleteShop(${i})">Delete</button>`;tr.appendChild(td);});};
+  const oldCredit=window.renderMarketCreditReport;window.renderMarketCreditReport=function(){oldCredit();const tb=document.getElementById('marketCreditReportTbody');if(!tb)return;[...tb.querySelectorAll('tr')].forEach(tr=>{const shopName=tr.children[1]?.textContent?.trim();const i=dbShops.findIndex(s=>s.name===shopName);if(i<0)return;const td=document.createElement('td');td.innerHTML=`<button class="ft-action-btn ft-edit" onclick="ftEditCredit(${i})">Edit</button> <button class="ft-action-btn ft-view" onclick="ftViewCredit('${esc(shopName).replace(/'/g,"\\'")}')">Ledger</button>`;tr.appendChild(td);});};
+  window.renderActivityLog=function(){const from=document.getElementById('activityFrom')?.value||'',to=document.getElementById('activityTo')?.value||'',user=document.getElementById('activityUser')?.value||'ALL',act=document.getElementById('activityAction')?.value||'ALL',q=(document.getElementById('activitySearch')?.value||'').toLowerCase();let rows=(dbAuditLog||[]).filter(x=>{const d=String(x.date||'').slice(0,10);return(!from||d>=from)&&(!to||d<=to)&&(user==='ALL'||x.user===user)&&(act==='ALL'||x.action===act)&&(!q||JSON.stringify(x).toLowerCase().includes(q));}).sort((a,b)=>String(b.date).localeCompare(String(a.date)));document.getElementById('activityLogTbody').innerHTML=rows.map(x=>`<tr><td>${esc(new Date(x.date).toLocaleString())}</td><td><strong>${esc(x.user)}</strong></td><td><span class="ft-log-pill">${esc(x.module||'System')}</span></td><td>${esc(x.action)}</td><td>${esc(x.record||x.shop||'')}</td><td>${esc(x.reference||'')}</td><td>${esc(x.details||'')}</td></tr>`).join('')||'<tr><td colspan="7">No activity found.</td></tr>';};
+  window.exportActivityLog=function(){const table=document.getElementById('activityLogTbody')?.closest('table');if(!table)return;const wb=XLSX.utils.table_to_book(table,{sheet:'Activity Log'});XLSX.writeFile(wb,'System_Activity_Log.xlsx');};
+  function initActivity(){const u=document.getElementById('activityUser'),a=document.getElementById('activityAction');if(u)u.innerHTML='<option value="ALL">All Users</option>'+[...new Set((dbAuditLog||[]).map(x=>x.user).filter(Boolean))].sort().map(x=>`<option>${esc(x)}</option>`).join('');if(a)a.innerHTML='<option value="ALL">All Actions</option>'+[...new Set((dbAuditLog||[]).map(x=>x.action).filter(Boolean))].sort().map(x=>`<option>${esc(x)}</option>`).join('');renderActivityLog();}
+  document.addEventListener('DOMContentLoaded',()=>{initActivity();const al=document.getElementById('activityLogTab');});
+  // Log successful user CRUD and preserve existing handlers by wrapping common functions.
+  ['saveUserRecord','deleteUserRecord'].forEach(fn=>{if(typeof window[fn]==='function'){const orig=window[fn];window[fn]=function(){const r=orig.apply(this,arguments);audit('Action','User Management','User',fn,'User management action executed.');initActivity();return r;};}});
+})();
 </script>
 </body>
 </html>
