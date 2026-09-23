@@ -1644,6 +1644,32 @@ img,svg,video,canvas{max-width:100%;height:auto}
 @media(max-width:380px){.ft-salary-grid{grid-template-columns:1fr}}
 </style>
 
+
+<style id="ft-v24-booker-dashboard-clean">
+.ft-booker-click-kpi{
+  appearance:none;-webkit-appearance:none;border:1px solid rgba(23,105,224,.12);
+  cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+.ft-booker-click-kpi:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(23,105,224,.12);border-color:#4da3ff}
+.ft-booker-click-kpi:active{transform:scale(.985)}
+.ft-booker-click-kpi small{display:block;margin-top:4px;font-size:9px;color:#64748b}
+.ft-booker-detail-panel{
+  margin-top:12px;border-radius:16px;padding:12px;background:#fff;border:1px solid #dce8f2;
+  box-shadow:0 10px 24px rgba(15,35,60,.08)
+}
+.ft-booker-detail-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.ft-booker-detail-head h3{margin:0;color:#1769e0;font-size:17px}
+.ft-booker-detail-head p{margin:3px 0 0;color:#64748b;font-size:10px}
+@media(max-width:900px){
+  .ft-booker-click-kpi{min-height:88px}
+  .ft-booker-detail-panel{padding:9px;border-radius:13px}
+  .ft-booker-detail-head{align-items:flex-start}
+  .ft-booker-detail-head h3{font-size:15px}
+  .ft-booker-detail-head p{font-size:9px}
+}
+</style>
+
 </head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
@@ -1886,15 +1912,25 @@ img,svg,video,canvas{max-width:100%;height:auto}
                 <button type="button" onclick="openTab('posSales')">🛒 New Order</button><button type="button" onclick="openTab('shops')">🏪 New Shop</button><button type="button" onclick="openTab('recoveryEntry')">💰 Recovery</button><button type="button" onclick="renderBookerDashboard()">🔄 Refresh</button>
             </div>
             <div class="summary-cards ft-booker-kpis">
-                <div class="bubble-card"><h3>Total My Shops</h3><p id="bookerKpiShops">0</p></div><div class="bubble-card"><h3>My Total Sales</h3><p id="bookerKpiSales">Rs. 0</p></div><div class="bubble-card"><h3>My Market Credit</h3><p id="bookerKpiCredit">Rs. 0</p></div><div class="bubble-card"><h3>Sales Returns</h3><p id="bookerKpiReturns">Rs. 0</p></div><div class="bubble-card"><h3>Total Discounts</h3><p id="bookerKpiDiscounts">Rs. 0</p></div><div class="bubble-card"><h3>Approved Recovery</h3><p id="bookerKpiRecovery">Rs. 0</p></div><div class="bubble-card"><h3>My Advance / Due</h3><p id="bookerKpiDue">Rs. 0</p><small>Amount currently on my responsibility</small></div><div class="bubble-card"><h3>Invoices</h3><p id="bookerKpiInvoices">0</p></div>
+                <div class="bubble-card"><h3>Total My Shops</h3><p id="bookerKpiShops">0</p></div><div class="bubble-card"><h3>My Total Sales</h3><p id="bookerKpiSales">Rs. 0</p></div><button type="button" class="bubble-card ft-booker-click-kpi" onclick="ftOpenBookerMarketCredit()" aria-label="Open My Market Credit">
+<h3>My Market Credit</h3><p id="bookerKpiCredit">Rs. 0</p><small>Tap to view my credit shops & ledgers</small></button><div class="bubble-card"><h3>Sales Returns</h3><p id="bookerKpiReturns">Rs. 0</p></div><div class="bubble-card"><h3>Total Discounts</h3><p id="bookerKpiDiscounts">Rs. 0</p></div><div class="bubble-card"><h3>Approved Recovery</h3><p id="bookerKpiRecovery">Rs. 0</p></div><button type="button" class="bubble-card ft-booker-click-kpi" onclick="ftOpenBookerOwnLedger()" aria-label="Open My Advance Due">
+<h3>My Advance / Due</h3><p id="bookerKpiDue">Rs. 0</p><small>Tap to view my account ledger</small></button><div class="bubble-card"><h3>Invoices</h3><p id="bookerKpiInvoices">0</p></div>
             </div>
-            <div class="section-box ft-booker-section" id="bookerShopsSection">
-                <div class="ft-booker-section-head"><div><h3>🏪 My Market Credit Shops</h3><p>Tap <strong>Ledger</strong> to see the complete account of that shop.</p></div></div>
-                <div class="table-responsive"><table><thead><tr><th>#</th><th>Shop</th><th>Route</th><th>Invoices</th><th>Sales</th><th>Outstanding</th><th>Ledger</th></tr></thead><tbody id="bookerShopLedgerTbody"></tbody></table></div>
-            </div>
-            <div class="section-box ft-booker-section" id="bookerOwnLedgerSection">
-                <div class="ft-booker-section-head"><div><h3>💼 My Own Account Ledger</h3><p>Advance, responsibility and returned amounts are tracked separately from shop credit.</p></div></div>
-                <div class="table-responsive"><table><thead><tr><th>Date</th><th>Entry</th><th>Reference</th><th>Debit / Due</th><th>Credit / Returned</th><th>Balance</th><th>Note</th></tr></thead><tbody id="bookerOwnLedgerTbody"></tbody></table></div>
+            <div class="ft-booker-detail-panel" id="bookerDashboardDetail" style="display:none;">
+                <div id="bookerMarketCreditDetail" style="display:none;">
+                    <div class="ft-booker-detail-head">
+                        <div><h3>🏪 My Market Credit Shops</h3><p>Only shops assigned to this Booker are shown. Tap Ledger to open a shop account.</p></div>
+                        <button type="button" class="btn-edit" onclick="ftCloseBookerDetail()">← Back</button>
+                    </div>
+                    <div class="table-responsive"><table><thead><tr><th>#</th><th>Shop</th><th>Route</th><th>Invoices</th><th>Sales</th><th>Outstanding</th><th>Ledger</th></tr></thead><tbody id="bookerShopLedgerTbody"></tbody></table></div>
+                </div>
+                <div id="bookerOwnLedgerDetail" style="display:none;">
+                    <div class="ft-booker-detail-head">
+                        <div><h3>💼 My Account Ledger</h3><p>Advance, cash difference, responsibility and returned amounts for your own account.</p></div>
+                        <button type="button" class="btn-edit" onclick="ftCloseBookerDetail()">← Back</button>
+                    </div>
+                    <div class="table-responsive"><table><thead><tr><th>Date</th><th>Entry</th><th>Reference</th><th>Debit / Due</th><th>Credit / Returned</th><th>Balance</th><th>Note</th></tr></thead><tbody id="bookerOwnLedgerTbody"></tbody></table></div>
+                </div>
             </div>
         </div>
 
@@ -5417,8 +5453,8 @@ function isOrderBookerUser(){ return !!(currentUser && String(currentUser.role||
 function getBookerAccountEntries(username){ return (dbBookerAccounts||[]).filter(x=>String(x.booker||'').toLowerCase()===String(username||'').toLowerCase()).sort((a,b)=>String(a.date+' '+(a.createdAt||'')).localeCompare(String(b.date+' '+(b.createdAt||'')))); }
 function addBookerAccountEntry(){ if(!currentUser || !(currentUser.isOwner || currentUser.role==='Admin')) return alert('Admin/Owner access only.'); const booker=document.getElementById('adminBookerLedgerUser')?.value||''; const date=document.getElementById('adminBookerLedgerDate')?.value||new Date().toISOString().slice(0,10); const type=document.getElementById('adminBookerLedgerType')?.value||'Advance Given'; const amount=Number(document.getElementById('adminBookerLedgerAmount')?.value||0); const note=document.getElementById('adminBookerLedgerNote')?.value||''; if(!booker||amount<=0)return alert('Please select a booker and enter a valid amount.'); dbBookerAccounts.push({id:'BACC_'+Date.now(),date,booker,type,amount,note,createdAt:new Date().toISOString(),createdBy:currentUser.username}); localStorage.setItem('ht_booker_accounts',JSON.stringify(dbBookerAccounts)); if(typeof dbAuditLog!=='undefined'){dbAuditLog.push({id:'AUD_'+Date.now(),date:new Date().toISOString(),user:currentUser.username,action:'Booker Account Entry',reference:booker,details:`${type} Rs. ${amount} — ${note}`});localStorage.setItem('ht_audit_log',JSON.stringify(dbAuditLog));} document.getElementById('adminBookerLedgerAmount').value='';document.getElementById('adminBookerLedgerNote').value=''; renderBookerDashboard(); alert('Booker ledger entry saved.'); }
 function populateAdminBookerLedgerUsers(){ const el=document.getElementById('adminBookerLedgerUser');if(!el)return;const names=getBookerNames();el.innerHTML=names.map(n=>`<option value="${String(n).replace(/"/g,'&quot;')}">${n}</option>`).join('')||'<option value="">No booker found</option>';const d=document.getElementById('adminBookerLedgerDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10); }
-function renderBookerDashboard(){ const adminView=document.getElementById('adminDashboardView'),bookerView=document.getElementById('bookerDashboardView');if(!adminView||!bookerView)return;const booker=isOrderBookerUser();adminView.style.display=booker?'none':'';bookerView.style.display=booker?'block':'none';const adminPanel=document.getElementById('adminBookerLedgerPanel');if(adminPanel)adminPanel.style.display=(!booker&&currentUser&&(currentUser.isOwner||currentUser.role==='Admin'))?'block':'none';if(!booker){populateAdminBookerLedgerUsers();return;}const name=currentUser.username;const shops=dbShops.filter(s=>String(s.booker||'').toLowerCase()===String(name).toLowerCase());const shopNames=new Set(shops.map(s=>s.name));const invoices=dbInvoices.filter(i=>shopNames.has(i.shop)&&String(i.booker||name).toLowerCase()===String(name).toLowerCase());const returns=dbReturns.filter(r=>shopNames.has(r.shop));const recoveries=dbRecoveries.filter(r=>String(r.booker||'').toLowerCase()===String(name).toLowerCase()&&r.status==='Approved');const sales=invoices.reduce((a,i)=>a+Number(i.currentBillTotal||0),0);const ret=returns.reduce((a,r)=>a+Number(r.totalRefund||0),0);const disc=invoices.reduce((a,i)=>a+Number(i.itemDiscounts||0),0);const rec=recoveries.reduce((a,r)=>a+Number(r.amount||0),0);const credit=shops.reduce((a,s)=>a+Number(getShopPreviousBalance(s.name)||0),0);const account=getBookerAccountEntries(name);let running=0;account.forEach(x=>{running+=x.type==='Returned / Settled'?-Number(x.amount||0):Number(x.amount||0)});const resp=(dbStaffResponsibilities||[]).filter(x=>String(x.person||'').toLowerCase()===String(name).toLowerCase()&&String(x.status||'Open').toLowerCase()!=='closed').reduce((a,x)=>a+Number(x.amount||0),0);const due=running+resp;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('bookerDashName',name);set('bookerKpiShops',shops.length.toLocaleString());set('bookerKpiSales','Rs. '+sales.toLocaleString());set('bookerKpiCredit','Rs. '+credit.toLocaleString());set('bookerKpiReturns','Rs. '+ret.toLocaleString());set('bookerKpiDiscounts','Rs. '+disc.toLocaleString());set('bookerKpiRecovery','Rs. '+rec.toLocaleString());set('bookerKpiDue','Rs. '+due.toLocaleString());set('bookerKpiInvoices',invoices.length.toLocaleString());const tbody=document.getElementById('bookerShopLedgerTbody');if(tbody)tbody.innerHTML=shops.map((s,i)=>{const si=invoices.filter(x=>x.shop===s.name);const ss=si.reduce((a,x)=>a+Number(x.currentBillTotal||0),0);const bal=getShopPreviousBalance(s.name);return `<tr><td>${i+1}</td><td><strong>${s.name}</strong></td><td>${s.route||'--'}</td><td>${si.length}</td><td>Rs. ${ss.toLocaleString()}</td><td><strong>Rs. ${Number(bal).toLocaleString()}</strong></td><td><button class="btn-print" type="button" onclick="showBookerShopLedger('${String(s.name).replace(/'/g,"\'")}')">View Ledger 📖</button></td></tr>`}).join('')||'<tr><td colspan="7">No shops assigned.</td></tr>';const own=document.getElementById('bookerOwnLedgerTbody');let run=0;const entries=[...account];(dbStaffResponsibilities||[]).filter(x=>String(x.person||'').toLowerCase()===String(name).toLowerCase()).forEach(x=>entries.push({date:x.date||'',type:'Staff Responsibility',id:x.id,amount:Number(x.amount||0),note:x.reason||'',_resp:true}));entries.sort((a,b)=>String(a.date+' '+(a.createdAt||'')).localeCompare(String(b.date+' '+(b.createdAt||''))));if(own)own.innerHTML=entries.map(x=>{const debit=x._resp?Number(x.amount||0):(x.type==='Returned / Settled'?0:Number(x.amount||0));const credit=x._resp?0:(x.type==='Returned / Settled'?Number(x.amount||0):0);run+=debit-credit;return `<tr><td>${x.date||'--'}</td><td>${x.type}</td><td>${x.id||'--'}</td><td>${debit?'Rs. '+debit.toLocaleString():'--'}</td><td>${credit?'Rs. '+credit.toLocaleString():'--'}</td><td><strong>Rs. ${run.toLocaleString()}</strong></td><td>${x.note||'--'}</td></tr>`}).join('')||'<tr><td colspan="7">No advance/responsibility entries.</td></tr>'; }
-function showBookerShopLedger(shopName){ if(!isOrderBookerUser())return;const sec=document.getElementById('bookerShopsSection');if(!sec)return;const shop=dbShops.find(s=>s.name===shopName);const inv=dbInvoices.filter(i=>i.shop===shopName&&String(i.booker||currentUser.username).toLowerCase()===String(currentUser.username).toLowerCase());const rec=dbRecoveries.filter(r=>r.shop===shopName&&r.status==='Approved');let ledger=[];inv.forEach(i=>ledger.push({date:i.date,type:'Sale Invoice',ref:i.invNum,debit:Number(i.currentBillTotal||0),credit:Number(i.paidAmount||0),note:'Invoice'}));rec.forEach(r=>ledger.push({date:r.date,type:'Recovery',ref:r.id,debit:0,credit:Number(r.amount||0),note:r.method||'Approved recovery'}));ledger.sort((a,b)=>String(a.date).localeCompare(String(b.date)));let run=0;const rows=ledger.map(x=>{run+=x.debit-x.credit;return `<tr><td>${x.date}</td><td>${x.type}</td><td>${x.ref}</td><td>${x.debit?'Rs. '+x.debit.toLocaleString():'--'}</td><td>${x.credit?'Rs. '+x.credit.toLocaleString():'--'}</td><td><strong>Rs. ${run.toLocaleString()}</strong></td><td>${x.note||'--'}</td></tr>`}).join('')||'<tr><td colspan="7">No transactions found.</td></tr>';sec.innerHTML=`<div class="ft-booker-section-head"><div><h3>📖 ${shopName} — Shop Ledger</h3><p>Route: ${shop?shop.route||'--':'--'} | Current Outstanding: <strong>Rs. ${Number(getShopPreviousBalance(shopName)||0).toLocaleString()}</strong></p></div><button class="btn-add" type="button" onclick="renderBookerDashboard()">← Back to My Shops</button></div><div class="table-responsive"><table><thead><tr><th>Date</th><th>Transaction</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div>`; }
+function renderBookerDashboard(){ const adminView=document.getElementById('adminDashboardView'),bookerView=document.getElementById('bookerDashboardView');if(!adminView||!bookerView)return;const booker=isOrderBookerUser();adminView.style.display=booker?'none':'';bookerView.style.display=booker?'block':'none';const adminPanel=document.getElementById('adminBookerLedgerPanel');if(adminPanel)adminPanel.style.display=(!booker&&currentUser&&(currentUser.isOwner||currentUser.role==='Admin'))?'block':'none';if(!booker){populateAdminBookerLedgerUsers();return;}const name=currentUser.username;const shops=dbShops.filter(s=>String(s.booker||'').toLowerCase()===String(name).toLowerCase());const shopNames=new Set(shops.map(s=>s.name));const invoices=dbInvoices.filter(i=>shopNames.has(i.shop)&&String(i.booker||name).toLowerCase()===String(name).toLowerCase());const returns=dbReturns.filter(r=>shopNames.has(r.shop));const recoveries=dbRecoveries.filter(r=>String(r.booker||'').toLowerCase()===String(name).toLowerCase()&&r.status==='Approved');const sales=invoices.reduce((a,i)=>a+Number(i.currentBillTotal||0),0);const ret=returns.reduce((a,r)=>a+Number(r.totalRefund||0),0);const disc=invoices.reduce((a,i)=>a+Number(i.itemDiscounts||0),0);const rec=recoveries.reduce((a,r)=>a+Number(r.amount||0),0);const credit=shops.reduce((a,s)=>a+Number(getShopPreviousBalance(s.name)||0),0);const account=getBookerAccountEntries(name);let running=0;account.forEach(x=>{running+=x.type==='Returned / Settled'?-Number(x.amount||0):Number(x.amount||0)});const resp=(dbStaffResponsibilities||[]).filter(x=>String(x.person||'').toLowerCase()===String(name).toLowerCase()&&String(x.status||'Open').toLowerCase()!=='closed').reduce((a,x)=>a+Number(x.amount||0),0);const due=running+resp;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('bookerDashName',name);set('bookerKpiShops',shops.length.toLocaleString());set('bookerKpiSales','Rs. '+sales.toLocaleString());set('bookerKpiCredit','Rs. '+credit.toLocaleString());set('bookerKpiReturns','Rs. '+ret.toLocaleString());set('bookerKpiDiscounts','Rs. '+disc.toLocaleString());set('bookerKpiRecovery','Rs. '+rec.toLocaleString());set('bookerKpiDue','Rs. '+due.toLocaleString());set('bookerKpiInvoices',invoices.length.toLocaleString());const tbody=document.getElementById('bookerShopLedgerTbody');if(tbody)tbody.innerHTML=shops.map((s,i)=>{const si=invoices.filter(x=>x.shop===s.name);const ss=si.reduce((a,x)=>a+Number(x.currentBillTotal||0),0);const bal=getShopPreviousBalance(s.name);return `<tr><td>${i+1}</td><td><strong>${s.name}</strong></td><td>${s.route||'--'}</td><td>${si.length}</td><td>Rs. ${ss.toLocaleString()}</td><td><strong>Rs. ${Number(bal).toLocaleString()}</strong></td><td><button class="btn-print" type="button" onclick="showBookerShopLedger('${String(s.name).replace(/'/g,"\\'")}')">View Ledger 📖</button></td></tr>`}).join('')||'<tr><td colspan="7">No shops assigned.</td></tr>';const own=document.getElementById('bookerOwnLedgerTbody');let run=0;const entries=[...account];(dbStaffResponsibilities||[]).filter(x=>String(x.person||'').toLowerCase()===String(name).toLowerCase()).forEach(x=>entries.push({date:x.date||'',type:'Staff Responsibility',id:x.id,amount:Number(x.amount||0),note:x.reason||'',_resp:true}));entries.sort((a,b)=>String(a.date+' '+(a.createdAt||'')).localeCompare(String(b.date+' '+(b.createdAt||''))));if(own)own.innerHTML=entries.map(x=>{const debit=x._resp?Number(x.amount||0):(x.type==='Returned / Settled'?0:Number(x.amount||0));const credit=x._resp?0:(x.type==='Returned / Settled'?Number(x.amount||0):0);run+=debit-credit;return `<tr><td>${x.date||'--'}</td><td>${x.type}</td><td>${x.id||'--'}</td><td>${debit?'Rs. '+debit.toLocaleString():'--'}</td><td>${credit?'Rs. '+credit.toLocaleString():'--'}</td><td><strong>Rs. ${run.toLocaleString()}</strong></td><td>${x.note||'--'}</td></tr>`}).join('')||'<tr><td colspan="7">No advance/responsibility entries.</td></tr>'; }
+function showBookerShopLedger(shopName){ if(!isOrderBookerUser())return; const panel=document.getElementById('bookerDashboardDetail'), credit=document.getElementById('bookerMarketCreditDetail'); if(!panel||!credit)return; const shop=dbShops.find(s=>s.name===shopName); const inv=dbInvoices.filter(i=>i.shop===shopName&&String(i.booker||currentUser.username).toLowerCase()===String(currentUser.username).toLowerCase()); const rec=dbRecoveries.filter(r=>r.shop===shopName&&r.status==='Approved'); let ledger=[]; inv.forEach(i=>ledger.push({date:i.date,type:'Sale Invoice',ref:i.invNum,debit:Number(i.currentBillTotal||0),credit:Number(i.paidAmount||0),note:'Invoice'})); rec.forEach(r=>ledger.push({date:r.date,type:'Recovery',ref:r.id,debit:0,credit:Number(r.amount||0),note:r.method||'Approved recovery'})); ledger.sort((a,b)=>String(a.date).localeCompare(String(b.date))); let run=0; const rows=ledger.map(x=>{run+=x.debit-x.credit;return `<tr><td>${x.date}</td><td>${x.type}</td><td>${x.ref}</td><td>${x.debit?'Rs. '+x.debit.toLocaleString():'--'}</td><td>${x.credit?'Rs. '+x.credit.toLocaleString():'--'}</td><td><strong>Rs. ${run.toLocaleString()}</strong></td><td>${x.note||'--'}</td></tr>`}).join('')||'<tr><td colspan="7">No transactions found.</td></tr>'; credit.innerHTML=`<div class="ft-booker-detail-head"><div><h3>📖 ${shopName} — Shop Ledger</h3><p>Route: ${shop?shop.route||'--':'--'} | Current Outstanding: <strong>Rs. ${Number(getShopPreviousBalance(shopName)||0).toLocaleString()}</strong></p></div><button class="btn-edit" type="button" onclick="ftOpenBookerMarketCredit()">← Back to My Credit</button></div><div class="table-responsive"><table><thead><tr><th>Date</th><th>Transaction</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div>`; panel.style.display='block'; document.getElementById('bookerOwnLedgerDetail').style.display='none'; credit.style.display='block'; panel.scrollIntoView({behavior:'smooth',block:'start'}); }
 
 function renderDashboard() {
         if(isOrderBookerUser()){ renderBookerDashboard(); return; }
@@ -7783,20 +7819,38 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 </script>
 
 
-<script id="ft-v23-staff-permission-migration">
+<script id="ft-v24-booker-dashboard-actions">
 (function(){
-  try{
-    if(Array.isArray(dbUsers)){
-      let changed=false;
-      dbUsers.forEach(function(u){
-        if(['Order Booker','Supply Man','Custom Role','Manager'].includes(u.role)){
-          u.permissions=Array.isArray(u.permissions)?u.permissions:[];
-          if(!u.permissions.includes('staffAdvanceTab')){u.permissions.push('staffAdvanceTab');changed=true;}
-        }
-      });
-      if(changed)localStorage.setItem('ht_users',JSON.stringify(dbUsers));
-    }
-  }catch(e){}
+  window.ftOpenBookerMarketCredit=function(){
+    if(typeof isOrderBookerUser==='function'&&!isOrderBookerUser())return;
+    const panel=document.getElementById('bookerDashboardDetail'),credit=document.getElementById('bookerMarketCreditDetail'),own=document.getElementById('bookerOwnLedgerDetail');
+    if(!panel||!credit)return;
+    panel.style.display='block';credit.style.display='block';if(own)own.style.display='none';
+    if(typeof renderBookerDashboard==='function')renderBookerDashboard();
+    panel.style.display='block';credit.style.display='block';if(own)own.style.display='none';
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.ftOpenBookerOwnLedger=function(){
+    if(typeof isOrderBookerUser==='function'&&!isOrderBookerUser())return;
+    const panel=document.getElementById('bookerDashboardDetail'),credit=document.getElementById('bookerMarketCreditDetail'),own=document.getElementById('bookerOwnLedgerDetail');
+    if(!panel||!own)return;
+    panel.style.display='block';if(credit)credit.style.display='none';own.style.display='block';
+    if(typeof renderBookerDashboard==='function')renderBookerDashboard();
+    panel.style.display='block';if(credit)credit.style.display='none';own.style.display='block';
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  window.ftCloseBookerDetail=function(){
+    const panel=document.getElementById('bookerDashboardDetail');if(panel)panel.style.display='none';
+  };
+
+  // Hide dashboard items that are not assigned/available to the Booker.
+  function applyBookerDashboardVisibility(){
+    if(typeof currentUser==='undefined'||!currentUser||currentUser.role!=='Order Booker')return;
+    const allowed=new Set(['posSales','shops','recoveryEntry','savedInvoices','deliveryDate','picklistSummary','salesReturns','companyClaims','staffAdvanceTab']);
+    // KPI cards remain only for the Booker dashboard's own business metrics.
+    document.querySelectorAll('#bookerDashboardView .ft-booker-section').forEach(e=>e.style.display='none');
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(applyBookerDashboardVisibility,400));
 })();
 </script>
 
