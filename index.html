@@ -1470,6 +1470,33 @@ img,svg,video,canvas{max-width:100%;height:auto}
 @media(max-width:900px){.ft-booker-hero{padding:15px;align-items:flex-start}.ft-booker-hero h3{font-size:19px}.ft-booker-status{font-size:9px}.ft-booker-actions{grid-template-columns:1fr 1fr}.ft-booker-section{padding:12px!important}.ft-booker-kpis{grid-template-columns:1fr 1fr!important}}
 @media(max-width:380px){.ft-booker-hero{display:block}.ft-booker-status{display:inline-block;margin-top:8px}.ft-booker-kpis{grid-template-columns:1fr!important}}
 </style>
+<style id="ft-v20-mobile-logout-fix">
+@media(max-width:900px){
+  #ftMobileLogoutAction{
+    display:block!important;
+    position:sticky!important;
+    bottom:0!important;
+    z-index:20!important;
+    padding:10px 12px 14px!important;
+    background:linear-gradient(180deg,rgba(11,20,36,.20),#0b1424 28%)!important;
+  }
+  #ftMobileLogoutAction button{
+    width:100%!important;
+    min-height:48px!important;
+    border:1px solid rgba(255,255,255,.14)!important;
+    border-radius:12px!important;
+    background:linear-gradient(135deg,#dc3545,#b42333)!important;
+    color:#fff!important;
+    font-weight:800!important;
+    font-size:15px!important;
+    box-shadow:0 8px 24px rgba(0,0,0,.25)!important;
+    cursor:pointer!important;
+  }
+  #ftMobileLogoutAction button:active{transform:scale(.98)!important}
+}
+@media(min-width:901px){#ftMobileLogoutAction{display:none!important}}
+</style>
+
 </head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
@@ -1500,6 +1527,13 @@ img,svg,video,canvas{max-width:100%;height:auto}
         <button class="login-btn" onclick="attemptLogin()">Sign In</button>
         <div style="margin-top:10px;font-size:10px;color:#94a3b8;">Fatima Tech Owner • Admin • Booker • KPO • Supply Man</div>
     </div>
+</div>
+
+<!-- MOBILE LOGOUT ACTION -->
+<div id="ftMobileLogoutAction" class="ft-mobile-logout-action no-print">
+  <button type="button" onclick="window.ftHardLogout ? window.ftHardLogout() : (typeof logout==='function' ? logout() : location.reload())">
+    <span>🚪</span><span>Logout</span>
+  </button>
 </div>
 
 <!-- SIDEBAR NAVIGATION -->
@@ -1576,7 +1610,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
         <div style="display: flex; align-items: center; gap: 10px;">
             <button class="btn-edit" onclick="toggleTheme()">☀️ / 🌙</button>
             <span id="liveDateTimeLabel" style="color: var(--primary-blue); font-weight:bold;">--</span>
-            <button class="btn-delete" onclick="logout()">Logout 🚪</button>
+            <button class="btn-delete" onclick="window.ftHardLogout ? window.ftHardLogout() : logout()">Logout 🚪</button>
         </div>
     </div>
 
@@ -6974,7 +7008,7 @@ function hardLogout(){closeDrawer();try{localStorage.removeItem('ft_active_sessi
 if(typeof window.openTab==='function'&&!window.__ftOriginalOpenTab){window.__ftOriginalOpenTab=window.openTab;window.openTab=function(tabId,btn){var current=activeTabId();if(isMobile()&&typeof currentUser!=='undefined'&&currentUser&&!goingBack&&current&&current!==tabId){navHistory.push(current);if(navHistory.length>30)navHistory.shift();}var r=window.__ftOriginalOpenTab.apply(this,arguments);closeDrawer();return r;};}
 window.ftHardLogout=hardLogout;window.logout=hardLogout;
 function injectBackButton(){if(document.getElementById('ftMobileBackBtn'))return;var b=document.createElement('button');b.id='ftMobileBackBtn';b.type='button';b.className='ft-mobile-back-btn';b.setAttribute('aria-label','Back');b.title='Back';b.innerHTML='←';b.onclick=function(){window.ftMobileGoBack();};document.body.appendChild(b);}
-document.addEventListener('DOMContentLoaded',function(){injectBackButton();document.querySelectorAll('[onclick="logout()"],[onclick="logout() "]').forEach(function(b){b.onclick=hardLogout;});});
+document.addEventListener('DOMContentLoaded',function(){injectBackButton();document.querySelectorAll('[onclick="window.ftHardLogout ? window.ftHardLogout() : logout()"],[onclick="logout() "]').forEach(function(b){b.onclick=hardLogout;});});
 window.addEventListener('resize',function(){if(!isMobile())closeDrawer();});
 })();
 </script>
