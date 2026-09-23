@@ -1024,6 +1024,339 @@ body.ft-mobile-nav-open .sidebar{display:flex!important;transform:translateX(0)!
 #recDifference{color:#b45309}
 .ft-recovery-adjust-note{font-size:11px;color:#64748b;margin-top:3px}
 </style>
+
+<style id="ft-v15-professional-trading-mobile-fix">
+/* =========================================================
+   FATIMA TECH v15 — PROFESSIONAL FMCG / TRADING VISUAL SYSTEM
+   Mobile layout repair + readable login + animated business atmosphere.
+   ========================================================= */
+
+/* ---------- Global professional English typography ---------- */
+html, body, body.lang-english, body:not(.lang-urdu){
+  font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif !important;
+}
+body:not(.lang-urdu) *:not(script):not(style){
+  font-family: inherit;
+}
+body:not(.lang-urdu) .urdu-title-main{
+  font-family:"Noto Nastaliq Urdu", serif !important;
+}
+
+/* ---------- Animated business atmosphere behind the ERP ---------- */
+body:not(#loginOverlay){
+  background:
+    radial-gradient(circle at 8% 12%, rgba(23,105,224,.10), transparent 26%),
+    radial-gradient(circle at 92% 86%, rgba(6,182,212,.08), transparent 28%),
+    linear-gradient(135deg,#f7faff 0%,#eef4fb 50%,#f8fafc 100%) !important;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.34;
+  background:
+    linear-gradient(90deg, transparent 0 96%, rgba(23,105,224,.07) 96% 96.4%, transparent 96.4%),
+    linear-gradient(0deg, transparent 0 96%, rgba(6,182,212,.055) 96% 96.4%, transparent 96.4%);
+  background-size:72px 72px;
+  animation:ftTradeGrid 22s linear infinite;
+}
+@keyframes ftTradeGrid{
+  from{background-position:0 0,0 0}
+  to{background-position:72px 72px,-72px 72px}
+}
+.main-wrapper,.sidebar,.top-bar,.tab-content{position:relative;z-index:2}
+
+/* ---------- Premium login: FMCG / warehouse / logistics feel ---------- */
+#loginOverlay{
+  background:
+    radial-gradient(circle at 12% 18%,rgba(0,194,255,.18),transparent 22%),
+    radial-gradient(circle at 88% 80%,rgba(37,99,235,.22),transparent 25%),
+    linear-gradient(135deg,#07111f 0%,#0b1930 48%,#06101d 100%) !important;
+  overflow:hidden !important;
+}
+#loginOverlay::before{
+  content:"";
+  position:absolute;
+  inset:-20%;
+  background:
+    linear-gradient(115deg,transparent 0 42%,rgba(34,211,238,.08) 42.2% 42.5%,transparent 42.7% 100%),
+    linear-gradient(25deg,transparent 0 58%,rgba(59,130,246,.08) 58.2% 58.5%,transparent 58.7% 100%);
+  background-size:360px 360px,460px 460px;
+  animation:ftRouteFlow 16s linear infinite;
+  opacity:.8;
+}
+#loginOverlay::after{
+  content:"FMCG  •  SALES  •  DISTRIBUTION  •  STOCK  •  DELIVERY  •  FINANCE";
+  position:absolute;
+  left:0;right:0;bottom:8%;
+  text-align:center;
+  color:rgba(191,219,254,.16);
+  font:700 10px/1.4 Inter,"Segoe UI",sans-serif;
+  letter-spacing:4px;
+  white-space:nowrap;
+  animation:ftTicker 18s linear infinite;
+}
+@keyframes ftRouteFlow{
+  0%{transform:translate3d(-2%,0,0) rotate(0deg)}
+  50%{transform:translate3d(2%,-1%,0) rotate(.5deg)}
+  100%{transform:translate3d(-2%,0,0) rotate(0deg)}
+}
+@keyframes ftTicker{
+  0%{transform:translateX(20px);opacity:.08}
+  50%{transform:translateX(-20px);opacity:.2}
+  100%{transform:translateX(20px);opacity:.08}
+}
+#loginOverlay .bg-glow-1{
+  width:520px;height:520px;
+  background:radial-gradient(circle,rgba(6,182,212,.20),transparent 68%);
+  top:-12%;left:-8%;
+}
+#loginOverlay .bg-glow-2{
+  width:620px;height:620px;
+  background:radial-gradient(circle,rgba(37,99,235,.20),transparent 68%);
+  bottom:-20%;right:-12%;
+}
+#loginOverlay .login-card{
+  width:min(92vw,500px)!important;
+  max-width:500px!important;
+  padding:38px 38px 32px!important;
+  border-radius:24px!important;
+  background:rgba(8,18,33,.90)!important;
+  border:1px solid rgba(148,163,184,.20)!important;
+  box-shadow:0 30px 90px rgba(0,0,0,.50),0 0 60px rgba(23,105,224,.13)!important;
+  backdrop-filter:blur(22px)!important;
+  color:#fff!important;
+}
+#loginOverlay .login-card h2{
+  font-family:Inter,"Segoe UI",Arial,sans-serif!important;
+  color:#fff!important;
+  font-size:27px!important;
+  font-weight:850!important;
+  letter-spacing:-.6px!important;
+  text-shadow:none!important;
+}
+#loginOverlay .login-card .subtitle{
+  color:#9fb2c9!important;
+  font-size:11px!important;
+}
+#loginOverlay .login-card .brand-logo-badge{
+  width:72px!important;height:72px!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,#1769e0,#06b6d4)!important;
+  border:1px solid rgba(255,255,255,.20)!important;
+  box-shadow:0 15px 35px rgba(23,105,224,.35)!important;
+}
+#loginOverlay .login-card .brand-logo-badge span{font-size:32px!important}
+#loginOverlay .fmcg-badge{
+  background:rgba(23,105,224,.14)!important;
+  color:#8bdcff!important;
+  border:1px solid rgba(59,130,246,.35)!important;
+}
+#loginOverlay .login-card label{
+  color:#d6e1ef!important;
+  font-size:11px!important;
+  letter-spacing:.7px;
+}
+#loginOverlay .login-card input,
+#loginOverlay .login-card .login-username-input,
+#loginOverlay #loginPassInput{
+  display:block!important;
+  width:100%!important;
+  height:50px!important;
+  min-height:50px!important;
+  box-sizing:border-box!important;
+  padding:0 14px!important;
+  background:#101d31!important;
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
+  caret-color:#22d3ee!important;
+  border:1px solid #31435d!important;
+  border-radius:11px!important;
+  font-family:Inter,"Segoe UI",Arial,sans-serif!important;
+  font-size:15px!important;
+  font-weight:500!important;
+  opacity:1!important;
+}
+#loginOverlay .login-card input::placeholder{
+  color:#8295ad!important;
+  -webkit-text-fill-color:#8295ad!important;
+  opacity:1!important;
+}
+#loginOverlay .login-card input:focus{
+  border-color:#22d3ee!important;
+  box-shadow:0 0 0 3px rgba(34,211,238,.10),0 8px 24px rgba(0,0,0,.16)!important;
+}
+.ft-login-pass-wrap{position:relative;width:100%}
+.ft-login-pass-wrap #loginPassInput{padding-right:68px!important}
+.ft-pass-toggle{
+  position:absolute!important;
+  right:7px!important;
+  top:7px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0 10px!important;
+  border:1px solid rgba(148,163,184,.20)!important;
+  border-radius:8px!important;
+  background:#1a2b44!important;
+  color:#cfe4f7!important;
+  font:700 11px Inter,"Segoe UI",sans-serif!important;
+  cursor:pointer;
+}
+#loginOverlay .login-btn{
+  height:50px!important;
+  min-height:50px!important;
+  margin-top:4px!important;
+  border-radius:11px!important;
+  background:linear-gradient(135deg,#1769e0,#06b6d4)!important;
+  color:#fff!important;
+  box-shadow:0 12px 30px rgba(23,105,224,.28)!important;
+}
+#loginOverlay .login-btn:hover{transform:translateY(-2px)!important;filter:brightness(1.06)}
+#loginOverlay .login-help-text{color:#7287a0!important}
+
+/* ---------- Fix mobile sidebar: show the actual labels ---------- */
+@media(max-width:900px){
+  .sidebar{
+    width:min(88vw,330px)!important;
+    max-width:330px!important;
+    padding-bottom:20px!important;
+    background:#0b1424!important;
+    border-right:1px solid rgba(255,255,255,.10)!important;
+    overflow-y:auto!important;
+  }
+  .sidebar .nav-text,
+  .sidebar .nav-link .nav-text{
+    display:inline!important;
+    visibility:visible!important;
+    opacity:1!important;
+    color:#e7eef8!important;
+    white-space:normal!important;
+  }
+  .sidebar-brand .urdu-title-main{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  .sidebar-brand{
+    display:block!important;
+    min-height:112px!important;
+    padding:18px 16px!important;
+  }
+  .sidebar .nav-list{padding:10px 8px 30px!important}
+  .sidebar .nav-link{
+    display:flex!important;
+    min-height:48px!important;
+    padding:12px 13px!important;
+    font-size:14px!important;
+    line-height:1.3!important;
+    border-radius:9px!important;
+  }
+  .sidebar .submenu{
+    padding:4px 0 4px 8px!important;
+    background:#09111f!important;
+  }
+  .sidebar .submenu .nav-link{
+    min-height:44px!important;
+    font-size:13px!important;
+    padding:10px 12px 10px 18px!important;
+  }
+  body.ft-mobile-nav-open .sidebar{transform:translateX(0)!important}
+  .ft-mobile-menu-btn{
+    width:50px!important;height:50px!important;
+    top:10px!important;left:10px!important;
+    border-radius:14px!important;
+    background:linear-gradient(135deg,#1769e0,#0b5ed7)!important;
+  }
+
+  /* Mobile top bar: stacked, no overlap with language switcher */
+  .top-bar{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+    align-items:stretch!important;
+    min-height:0!important;
+    padding:10px!important;
+    border-radius:15px!important;
+  }
+  .top-bar #ftLanguageSwitch{
+    order:-1!important;
+    width:100%!important;
+    justify-content:center!important;
+    margin:0!important;
+    padding:4px!important;
+  }
+  .top-bar #ftLanguageSwitch button{
+    flex:1!important;
+    min-height:42px!important;
+    font-size:14px!important;
+  }
+  .top-bar>div{
+    width:100%!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+  .top-bar>div:last-child{
+    display:grid!important;
+    grid-template-columns:auto 1fr auto!important;
+    align-items:center!important;
+    gap:7px!important;
+  }
+  .top-bar>div:last-child #liveDateTimeLabel{
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    font-size:11px!important;
+  }
+
+  .main-wrapper{
+    padding:64px 9px 20px!important;
+  }
+  .tab-content>div:first-child{
+    gap:8px!important;
+  }
+  .tab-content h3{
+    line-height:1.25!important;
+  }
+  .ft-mobile-quick-actions{
+    margin-top:8px!important;
+  }
+  .table-responsive{border-radius:12px!important}
+}
+
+/* ---------- App-level visual polish ---------- */
+body.ft-mobile-ui .main-wrapper::before,
+body.ft-mobile-ui .main-wrapper::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  z-index:-1;
+}
+body.ft-mobile-ui .main-wrapper::before{
+  width:190px;height:190px;right:-70px;top:95px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(23,105,224,.10),transparent 70%);
+  animation:ftFloatOrb 8s ease-in-out infinite alternate;
+}
+body.ft-mobile-ui .main-wrapper::after{
+  width:150px;height:150px;left:-65px;bottom:80px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(6,182,212,.08),transparent 70%);
+  animation:ftFloatOrb 10s ease-in-out infinite alternate-reverse;
+}
+@keyframes ftFloatOrb{
+  from{transform:translateY(0) scale(1)}
+  to{transform:translateY(-18px) scale(1.08)}
+}
+
+/* Respect reduced-motion settings. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
 </head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
@@ -1046,7 +1379,10 @@ body.ft-mobile-nav-open .sidebar{display:flex!important;transform:translateX(0)!
         </div>
         <div class="form-group" style="text-align:left;margin-bottom:18px;">
             <label>Password</label>
-            <input type="password" id="loginPassInput" placeholder="Enter Password" onkeydown="if(event.key==='Enter')attemptLogin()">
+            <div class="ft-login-pass-wrap">
+            <input type="password" id="loginPassInput" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')attemptLogin()">
+            <button type="button" class="ft-pass-toggle" onclick="toggleLoginPassword()" aria-label="Show or hide password">Show</button>
+        </div>
         </div>
         <button class="login-btn" onclick="attemptLogin()">Sign In</button>
         <div style="margin-top:10px;font-size:10px;color:#94a3b8;">Fatima Tech Owner • Admin • Booker • KPO • Supply Man</div>
@@ -2393,13 +2729,22 @@ body.ft-mobile-nav-open .sidebar{display:flex!important;transform:translateX(0)!
     let dbLedgerAdjustments = JSON.parse(localStorage.getItem('ht_ledger_adjustments')) || [];
     let dbAuditLog = JSON.parse(localStorage.getItem('ht_audit_log')) || [];
     let dbUsers = JSON.parse(localStorage.getItem('ht_users')) || [
-        { username: 'admin', pass: '1234', role: 'Admin', permissions: ['ALL'] },
+        { username: 'admin', pass: 'admin', role: 'Admin', permissions: ['ALL'] },
         { username: 'booker', pass: '1234', role: 'Order Booker', permissions: ['dashboard','posSales','invoicesList','shops','recoveryEntry','liveStockTab'] },
         { username: 'kpo', pass: '1234', role: 'KPO', permissions: ['ALL'] },
         { username: 'supplyman', pass: '1234', role: 'Supply Man', permissions: ['dashboard','supplyManTab'] }
     ];
     // Remove legacy demo names from the login list without touching business data.
     dbUsers = dbUsers.filter(u => !['shiraz','aftab'].includes(String(u.username).trim().toLowerCase()));
+    // Keep the built-in demo Admin login consistent on desktop and mobile.
+    // Only migrate the untouched legacy demo password; custom user passwords are not changed.
+    try {
+        const demoAdmin = dbUsers.find(u => String(u.username).trim().toLowerCase() === 'admin');
+        if (demoAdmin && demoAdmin.pass === '1234' && demoAdmin.role === 'Admin') {
+            demoAdmin.pass = 'admin';
+        }
+    } catch(e) {}
+
     localStorage.setItem('ht_users', JSON.stringify(dbUsers));
     let dbGeneratedPicklists = JSON.parse(localStorage.getItem('ht_generated_picklists')) || [];
     let dbCashInHand = parseFloat(localStorage.getItem('ht_cash_in_hand')) || 0;
@@ -2525,6 +2870,15 @@ body.ft-mobile-nav-open .sidebar{display:flex!important;transform:translateX(0)!
         const loggedIn = !!currentUser;
         document.body.classList.toggle('ft-mobile-ui', mobile && loggedIn);
         if(!mobile || !loggedIn) document.body.classList.remove('ft-mobile-nav-open');
+    }
+
+    function toggleLoginPassword(){
+        const input=document.getElementById('loginPassInput');
+        const btn=document.querySelector('.ft-pass-toggle');
+        if(!input) return;
+        const show=input.type==='password';
+        input.type=show?'text':'password';
+        if(btn) btn.textContent=show?'Hide':'Show';
     }
 
     function toggleMobileNav(){ document.body.classList.toggle('ft-mobile-nav-open'); }
