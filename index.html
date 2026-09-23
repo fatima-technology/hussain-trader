@@ -1557,6 +1557,93 @@ img,svg,video,canvas{max-width:100%;height:auto}
 <style id="ft-v21-hide-old-mobile-logout">
 @media(max-width:900px){#ftMobileLogoutAction{display:none!important}}
 </style>
+
+<style id="ft-v22-sidebar-profile-touch-fix">
+.ft-mobile-sidebar-profile{display:none}
+@media(max-width:900px){
+  .sidebar{
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior-y:contain!important;
+    touch-action:pan-y!important;
+    scrollbar-width:thin!important;
+    padding-bottom:18px!important;
+  }
+  .sidebar .nav-list{touch-action:pan-y!important}
+  .sidebar .nav-item,.sidebar .nav-link{touch-action:manipulation!important}
+  .ft-submenu-toggle{
+    position:relative!important;
+    z-index:5!important;
+    user-select:none!important;
+    -webkit-user-select:none!important;
+    -webkit-tap-highlight-color:rgba(23,105,224,.16)!important;
+  }
+  .ft-mobile-sidebar-profile{
+    display:flex!important;
+    position:relative!important;
+    align-items:center!important;
+    gap:9px!important;
+    margin:10px 10px 8px!important;
+    padding:9px!important;
+    border-radius:13px!important;
+    background:linear-gradient(135deg,#132746,#0e3a61)!important;
+    border:1px solid rgba(56,189,248,.18)!important;
+    box-shadow:0 8px 20px rgba(0,0,0,.18)!important;
+    color:#fff!important;
+  }
+  .ft-mobile-sidebar-avatar{
+    width:38px!important;height:38px!important;flex:0 0 38px!important;border-radius:50%!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    background:linear-gradient(135deg,#1769e0,#12bfe5)!important;color:#fff!important;font-weight:900!important;
+  }
+  .ft-mobile-sidebar-profile-info{min-width:0!important;flex:1!important;display:flex!important;flex-direction:column!important}
+  .ft-mobile-sidebar-profile-info strong{font-size:12px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .ft-mobile-sidebar-profile-info small{font-size:9px!important;color:#a8d9ef!important;margin-top:2px!important}
+  .ft-mobile-sidebar-profile-btn{
+    width:38px!important;min-height:38px!important;height:38px!important;padding:0!important;border:0!important;
+    border-radius:9px!important;background:rgba(255,255,255,.08)!important;color:#fff!important;font-size:18px!important;
+  }
+  .ft-mobile-sidebar-profile-menu{
+    display:none;position:absolute!important;left:8px!important;right:8px!important;top:calc(100% + 6px)!important;
+    z-index:10020!important;background:#fff!important;color:#0f2744!important;border-radius:12px!important;
+    padding:7px!important;box-shadow:0 14px 30px rgba(0,0,0,.3)!important;border:1px solid #dbe5ef!important;
+  }
+  .ft-mobile-sidebar-profile-menu.open{display:block!important}
+  .ft-mobile-sidebar-profile-menu button{
+    width:100%!important;min-height:42px!important;border:0!important;border-radius:9px!important;
+    text-align:left!important;padding:8px 10px!important;background:transparent!important;color:#24364b!important;
+  }
+  .ft-mobile-sidebar-profile-menu .ft-profile-logout{background:#dc3545!important;color:#fff!important;margin-top:4px!important}
+  .sidebar-brand{margin-top:2px!important}
+  .sidebar .submenu{display:none!important;visibility:hidden!important;max-height:0!important;overflow:hidden!important}
+  .sidebar .submenu.open{
+    display:block!important;visibility:visible!important;max-height:2000px!important;overflow:visible!important;
+  }
+  .sidebar .submenu .nav-link{display:flex!important;visibility:visible!important;opacity:1!important}
+}
+</style>
+
+
+<style id="ft-v23-staff-payroll-css">
+.ft-module-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.ft-module-head h3{margin:0;color:var(--primary-blue)}.ft-module-head p{margin:4px 0 0;color:#64748b;font-size:12px}
+.section-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ft-note{padding:9px 11px;border-radius:10px;background:#f1f7fb;color:#536b80;font-size:11px;margin:8px 0}
+.ft-attendance-actions{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}
+.ft-salary-preview{margin:10px 0;padding:12px;border-radius:13px;background:linear-gradient(135deg,#f7fbff,#eef8ff);border:1px solid #cde4f7}
+.ft-salary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ft-salary-kpi{padding:10px;border-radius:10px;background:#fff;border:1px solid #e3edf5}.ft-salary-kpi b{display:block;font-size:9px;color:#64748b;text-transform:uppercase}.ft-salary-kpi strong{display:block;font-size:16px;color:#1769e0;margin-top:4px}
+@media(max-width:900px){
+ .ft-module-head{display:block}.ft-module-head h3{font-size:18px}
+ .ft-salary-grid{grid-template-columns:1fr 1fr}
+ .section-toolbar{align-items:stretch}.section-toolbar>div{width:100%}
+ .section-toolbar button{margin-top:4px}
+ #staffAdvanceTab .form-grid,#staffSalaryTab .form-grid,#salaryRecordsTab .form-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:380px){.ft-salary-grid{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
@@ -1598,6 +1685,18 @@ img,svg,video,canvas{max-width:100%;height:auto}
 
 <!-- SIDEBAR NAVIGATION -->
 <div class="sidebar no-print">
+    <div class="ft-mobile-sidebar-profile no-print">
+  <div class="ft-mobile-sidebar-avatar" id="ftMobileSidebarAvatar">A</div>
+  <div class="ft-mobile-sidebar-profile-info">
+    <strong id="ftMobileSidebarName">ADMIN</strong>
+    <small id="ftMobileSidebarRole">Admin</small>
+  </div>
+  <button type="button" class="ft-mobile-sidebar-profile-btn" onclick="toggleUserProfileMenu()" aria-label="Open profile">⌄</button>
+  <div id="ftMobileSidebarProfileMenu" class="ft-mobile-sidebar-profile-menu">
+    <button type="button" onclick="toggleTheme()">☀️ Theme</button>
+    <button type="button" class="ft-profile-logout" onclick="window.ftHardLogout ? window.ftHardLogout() : logout()">🚪 Logout</button>
+  </div>
+</div>
     <div class="sidebar-brand">
         <div class="urdu-title-main">حُسَیْن ٹْرِیَڈَرْزْ</div>
         <div style="font-size: 8px; color: #a0aec0; margin-top:2px;">FMCG Sales & Distribution</div>
@@ -1608,7 +1707,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
         
         <!-- SALES NAVIGATION -->
         <li class="nav-item" data-perm="posSales">
-            <a class="nav-link" onclick="toggleSubmenu('saleSubmenu')">
+            <a href="javascript:void(0)" class="nav-link ft-submenu-toggle" data-submenu-target="saleSubmenu" onclick="event.preventDefault();event.stopPropagation();toggleSubmenu('saleSubmenu');return false;">
                 <span class="nav-text">🏷️ Sales Navigation</span> <span>▼</span>
             </a>
             <ul class="submenu open" id="saleSubmenu">
@@ -1623,7 +1722,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
 
         <!-- PURCHASE NAVIGATION -->
         <li class="nav-item" data-perm="stockPurchaseTab">
-            <a class="nav-link" onclick="toggleSubmenu('purchaseSubmenu')">
+            <a href="javascript:void(0)" class="nav-link ft-submenu-toggle" data-submenu-target="purchaseSubmenu" onclick="event.preventDefault();event.stopPropagation();toggleSubmenu('purchaseSubmenu');return false;">
                 <span class="nav-text">📥 Purchase</span> <span>▼</span>
             </a>
             <ul class="submenu" id="purchaseSubmenu">
@@ -1638,6 +1737,11 @@ img,svg,video,canvas{max-width:100%;height:auto}
         <li class="nav-item" data-perm="expensesEntry"><a class="nav-link" onclick="openTab('expensesEntry', this)"><span class="nav-text">💸 Expense Entry</span></a></li>
         <li class="nav-item" data-perm="shops"><a class="nav-link" onclick="openTab('shops', this)"><span class="nav-text">🏪 Shops Management</span></a></li>
         
+
+        <li class="nav-item" data-perm="staffAdvanceTab"><a class="nav-link" onclick="openTab('staffAdvanceTab', this)"><span class="nav-text">💰 Staff Advance / Loan</span></a></li>
+        <li class="nav-item" data-perm="staffSalaryTab"><a class="nav-link" onclick="openTab('staffSalaryTab', this)"><span class="nav-text">💼 Staff Salary & Attendance</span></a></li>
+        <li class="nav-item" data-perm="salaryRecordsTab"><a class="nav-link" onclick="openTab('salaryRecordsTab', this)"><span class="nav-text">📑 Salary Records</span></a></li>
+
         <!-- SYSTEM REPORTS -->
         <li class="nav-item" data-perm="marketCreditReportTab">
             <a class="nav-link" onclick="toggleSubmenu('reportsSubmenu')">
@@ -1764,11 +1868,6 @@ img,svg,video,canvas{max-width:100%;height:auto}
             </table>
         </div>
     </div>
-        <div class="section-box no-print ft-admin-booker-ledger" id="adminBookerLedgerPanel" style="margin-top:14px;">
-            <div class="ft-booker-section-head"><div><h3>💼 Booker Responsibility / Advance Ledger</h3><p>Admin can record an advance, amount due on a booker, or a returned/settled amount.</p></div></div>
-            <div class="form-grid"><div><label>Booker</label><select id="adminBookerLedgerUser"></select></div><div><label>Date</label><input type="date" id="adminBookerLedgerDate"></div><div><label>Entry Type</label><select id="adminBookerLedgerType"><option value="Advance Given">Advance Given</option><option value="Amount Due">Amount Due / Responsibility</option><option value="Returned / Settled">Returned / Settled</option></select></div><div><label>Amount</label><input type="number" id="adminBookerLedgerAmount" min="0" step="0.01" placeholder="Amount"></div><div style="grid-column:1/-1;"><label>Note</label><input type="text" id="adminBookerLedgerNote" placeholder="Reason / reference"></div></div>
-            <button type="button" class="btn-add" onclick="addBookerAccountEntry()">Save Booker Ledger Entry</button>
-        </div>
         </div>
         <div id="bookerDashboardView" style="display:none;">
             <div id="ftBookerBusinessIdentity" class="ft-dashboard-business-identity ft-booker-business-identity">
@@ -2657,6 +2756,119 @@ img,svg,video,canvas{max-width:100%;height:auto}
         </div>
     </div>
 
+
+<!-- STAFF ADVANCE / LOAN -->
+<div id="staffAdvanceTab" class="tab-content">
+  <div class="ft-module-head">
+    <div><h3>💰 Staff Advance / Loan & Cash Difference</h3><p>Record staff advances, loans and cash differences. Selected deductions are automatically included in salary calculation.</p></div>
+  </div>
+
+  <div class="section-box">
+    <h4>➕ Add Staff Financial Entry</h4>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="ftAdvDate"></div>
+      <div class="form-group"><label>Staff Member</label><select id="ftAdvStaff"></select></div>
+      <div class="form-group"><label>Entry Type</label>
+        <select id="ftAdvType"><option value="Advance">Advance / Loan</option><option value="Cash Difference">Cash Difference</option><option value="Other Deduction">Other Deduction</option></select>
+      </div>
+      <div class="form-group"><label>Amount (Rs.)</label><input type="number" min="0" step="0.01" id="ftAdvAmount" placeholder="0"></div>
+      <div class="form-group"><label>Deduct From Salary Month</label><input type="month" id="ftAdvDeductMonth"></div>
+      <div class="form-group"><label>Remarks</label><input type="text" id="ftAdvRemarks" placeholder="Reason / reference"></div>
+    </div>
+    <div class="ft-note">For a Booker/Staff login, the staff member is locked to their own account. Admin/KPO can select any staff member.</div>
+    <button class="btn-add" onclick="ftSaveStaffAdvance()">Save Staff Entry 💾</button>
+  </div>
+
+  <div class="section-box">
+    <div class="section-toolbar"><h4>Staff Advance / Cash Difference Ledger</h4><div>
+      <button class="btn-excel" onclick="ftExportStaffAdvance()">Excel 📊</button>
+      <button class="btn-print" onclick="ftPrintStaffAdvance()">Print 🖨️</button>
+    </div></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Staff</label><select id="ftAdvFilterStaff" onchange="ftRenderStaffAdvance()"></select></div>
+      <div class="form-group"><label>From</label><input type="date" id="ftAdvFrom" onchange="ftRenderStaffAdvance()"></div>
+      <div class="form-group"><label>To</label><input type="date" id="ftAdvTo" onchange="ftRenderStaffAdvance()"></div>
+      <div class="form-group"><label>Deduction Month</label><input type="month" id="ftAdvFilterMonth" onchange="ftRenderStaffAdvance()"></div>
+    </div>
+    <div class="table-responsive"><table id="ftStaffAdvanceTable">
+      <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Amount</th><th>Deduct Month</th><th>Remarks</th><th class="no-print">Action</th></tr></thead>
+      <tbody id="ftStaffAdvanceTbody"></tbody>
+      <tfoot><tr><th colspan="3">Total</th><th id="ftStaffAdvanceTotal">Rs. 0</th><th colspan="3"></th></tr></tfoot>
+    </table></div>
+  </div>
+</div>
+
+<!-- STAFF SALARY & ATTENDANCE -->
+<div id="staffSalaryTab" class="tab-content">
+  <div class="ft-module-head">
+    <div><h3>💼 Staff Salary & Attendance</h3><p>Set monthly salary, record day-wise attendance and generate the monthly salary automatically.</p></div>
+  </div>
+
+  <div class="section-box">
+    <h4>👤 Salary Setup</h4>
+    <div class="form-grid">
+      <div class="form-group"><label>Staff Member</label><select id="ftSalaryStaff" onchange="ftLoadSalarySetup()"></select></div>
+      <div class="form-group"><label>Monthly Basic Salary (Rs.)</label><input type="number" min="0" id="ftBasicSalary" placeholder="0"></div>
+      <div class="form-group"><label>Effective From</label><input type="date" id="ftSalaryEffectiveFrom"></div>
+      <div class="form-group"><label>Paid Leave Days / Month</label><input type="number" min="0" step="0.5" id="ftPaidLeaveQuota" value="0"></div>
+    </div>
+    <button class="btn-add" onclick="ftSaveSalarySetup()">Save Salary Setup 💾</button>
+  </div>
+
+  <div class="section-box">
+    <h4>📅 Monthly Attendance</h4>
+    <div class="form-grid">
+      <div class="form-group"><label>Staff Member</label><select id="ftAttStaff" onchange="ftRenderAttendance()"></select></div>
+      <div class="form-group"><label>Month</label><input type="month" id="ftAttMonth" onchange="ftRenderAttendance()"></div>
+    </div>
+    <div class="ft-attendance-actions">
+      <button class="btn-edit" onclick="ftMarkAllAttendance('Present')">Mark All Present</button>
+      <button class="btn-edit" onclick="ftMarkAllAttendance('Holiday')">Mark All Holiday</button>
+      <button class="btn-add" onclick="ftSaveAttendance()">Save Attendance 💾</button>
+    </div>
+    <div class="table-responsive"><table>
+      <thead><tr><th>Date</th><th>Day</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody id="ftAttendanceTbody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="section-box">
+    <h4>🧮 Generate Salary</h4>
+    <div class="form-grid">
+      <div class="form-group"><label>Staff Member</label><select id="ftPayStaff" onchange="ftPreviewSalary()"></select></div>
+      <div class="form-group"><label>Salary Month</label><input type="month" id="ftPayMonth" onchange="ftPreviewSalary()"></div>
+    </div>
+    <div id="ftSalaryPreview" class="ft-salary-preview"></div>
+    <button class="btn-add" onclick="ftGenerateSalaryRecord()">Generate & Save Salary Record 💾</button>
+    <button class="btn-print" onclick="ftPrintCurrentSalarySlip()">Print Salary Slip 🖨️</button>
+  </div>
+</div>
+
+<!-- SALARY RECORDS -->
+<div id="salaryRecordsTab" class="tab-content">
+  <div class="ft-module-head">
+    <div><h3>📑 Salary Records</h3><p>Monthly salary history, deductions, attendance and printable salary slips.</p></div>
+  </div>
+  <div class="section-box">
+    <div class="form-grid">
+      <div class="form-group"><label>Staff</label><select id="ftSalaryReportStaff" onchange="ftRenderSalaryRecords()"></select></div>
+      <div class="form-group"><label>From Month</label><input type="month" id="ftSalaryReportFrom" onchange="ftRenderSalaryRecords()"></div>
+      <div class="form-group"><label>To Month</label><input type="month" id="ftSalaryReportTo" onchange="ftRenderSalaryRecords()"></div>
+    </div>
+    <div class="section-toolbar">
+      <div><strong id="ftSalaryReportTotal">Total Payable: Rs. 0</strong></div>
+      <div>
+        <button class="btn-excel" onclick="ftExportSalaryRecords()">Excel 📊</button>
+        <button class="btn-print" onclick="ftPrintSalaryRecords()">Print 🖨️</button>
+      </div>
+    </div>
+    <div class="table-responsive"><table id="ftSalaryRecordsTable">
+      <thead><tr><th>Month</th><th>Staff</th><th>Basic</th><th>Paid Days</th><th>Leave/Absent</th><th>Advance</th><th>Cash Difference</th><th>Other Deduction</th><th>Net Payable</th><th class="no-print">Action</th></tr></thead>
+      <tbody id="ftSalaryRecordsTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
     <!-- REPORTS & USERS -->
     <div id="stockDetailReport" class="tab-content">
         <h3>📦 Stock Detail Report</h3>
@@ -2901,6 +3113,9 @@ img,svg,video,canvas{max-width:100%;height:auto}
                 <label class="perm-item"><input type="checkbox" value="supplyManTab" checked> Supply Man & KPO</label>
                 <label class="perm-item"><input type="checkbox" value="recoveryEntry" checked> Market Recovery</label>
                 <label class="perm-item"><input type="checkbox" value="expensesEntry" checked> Expense Entry</label>
+                <label class="perm-item"><input type="checkbox" value="staffAdvanceTab" checked> Staff Advance / Loan</label>
+                <label class="perm-item"><input type="checkbox" value="staffSalaryTab" checked> Staff Salary & Attendance</label>
+                <label class="perm-item"><input type="checkbox" value="salaryRecordsTab" checked> Salary Records</label>
                 <label class="perm-item"><input type="checkbox" value="shops" checked> Shops Management</label>
                 <label class="perm-item"><input type="checkbox" value="marketCreditReportTab" checked> Market Credit Report</label>
                 <label class="perm-item"><input type="checkbox" value="shopWiseTaxReportTab" checked> Tax Report</label>
@@ -7280,6 +7495,308 @@ window.addEventListener('resize',function(){if(!isMobile())closeDrawer();});
       if(currentUser?.role==='Order Booker')applyBookerAutoAssignment();
     },250);
   });
+})();
+</script>
+
+
+<script id="ft-v22-sidebar-profile-engine">
+(function(){
+  function setSubmenu(id, open){
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.classList.toggle('open', !!open);
+    const trigger=document.querySelector('[data-submenu-target="'+id+'"]');
+    if(trigger){
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const arrow=trigger.querySelector('.ft-submenu-arrow');
+      if(arrow)arrow.textContent=open?'▲':'▼';
+    }
+  }
+  window.ftToggleSubmenu=function(id){
+    const el=document.getElementById(id);
+    if(!el)return;
+    setSubmenu(id,!el.classList.contains('open'));
+  };
+  // Replace the legacy toggle with the touch-safe version.
+  window.toggleSubmenu=window.ftToggleSubmenu;
+
+  function bindSubmenus(){
+    document.querySelectorAll('.ft-submenu-toggle').forEach(function(btn){
+      if(btn.dataset.ftV22Bound==='1')return;
+      btn.dataset.ftV22Bound='1';
+      btn.setAttribute('role','button');
+      btn.setAttribute('aria-expanded', document.getElementById(btn.dataset.submenuTarget)?.classList.contains('open')?'true':'false');
+      btn.addEventListener('click',function(e){
+        e.preventDefault();e.stopPropagation();
+        ftToggleSubmenu(btn.dataset.submenuTarget);
+      },{passive:false});
+      btn.addEventListener('touchend',function(e){
+        e.preventDefault();e.stopPropagation();
+        ftToggleSubmenu(btn.dataset.submenuTarget);
+      },{passive:false});
+    });
+  }
+
+  function syncMobileProfile(){
+    if(typeof currentUser==='undefined'||!currentUser)return;
+    const name=currentUser.username||'ADMIN', role=currentUser.role||'';
+    const initial=String(name).charAt(0).toUpperCase();
+    ['ftMobileSidebarAvatar','ftProfileAvatar','ftMenuAvatar'].forEach(function(id){
+      const e=document.getElementById(id);if(e)e.textContent=initial;
+    });
+    const sn=document.getElementById('ftMobileSidebarName'),sr=document.getElementById('ftMobileSidebarRole');
+    if(sn)sn.textContent=String(name).toUpperCase();
+    if(sr)sr.textContent=role;
+    const mn=document.getElementById('ftMenuUserName'),mr=document.getElementById('ftMenuRole');
+    if(mn)mn.textContent=String(name).toUpperCase();
+    if(mr)mr.textContent=role;
+  }
+  window.ftSyncMobileProfile=syncMobileProfile;
+
+  window.toggleMobileSidebarProfile=function(){
+    document.getElementById('ftMobileSidebarProfileMenu')?.classList.toggle('open');
+  };
+  const profileBtn=document.querySelector('.ft-mobile-sidebar-profile-btn');
+  if(profileBtn)profileBtn.onclick=function(e){e.stopPropagation();toggleMobileSidebarProfile();};
+
+  document.addEventListener('click',function(e){
+    const menu=document.getElementById('ftMobileSidebarProfileMenu');
+    const card=document.querySelector('.ft-mobile-sidebar-profile');
+    if(menu&&card&&!card.contains(e.target))menu.classList.remove('open');
+  });
+
+  document.addEventListener('DOMContentLoaded',function(){
+    bindSubmenus();syncMobileProfile();
+    setTimeout(function(){bindSubmenus();syncMobileProfile()},250);
+  });
+
+  // Keep profile synced after login/access refresh.
+  const oldApply=window.applyUserAccessPermissions;
+  if(typeof oldApply==='function'&&!window.__ftV22ApplyPatched){
+    window.applyUserAccessPermissions=function(){
+      const r=oldApply.apply(this,arguments);
+      setTimeout(syncMobileProfile,0);
+      return r;
+    };
+    window.__ftV22ApplyPatched=true;
+  }
+})();
+</script>
+
+
+<script id="ft-v23-staff-payroll-engine">
+(function(){
+'use strict';
+const KEY_ADV='ft_staff_advances',KEY_SAL='ft_salary_settings',KEY_ATT='ft_staff_attendance',KEY_REC='ft_salary_records';
+const n=v=>Number(v)||0;
+const money=v=>'Rs. '+n(v).toLocaleString(undefined,{maximumFractionDigits:2});
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const read=(k,d=[])=>{try{const v=JSON.parse(localStorage.getItem(k));return Array.isArray(d)?(Array.isArray(v)?v:d):(v||d)}catch(e){return d}};
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const monthStr=()=>todayStr().slice(0,7);
+let ftAdvances=read(KEY_ADV),ftSalarySettings=read(KEY_SAL,{}),ftAttendance=read(KEY_ATT),ftSalaryRecords=read(KEY_REC);
+
+function staffList(){
+  const all=(dbUsers||[]).filter(u=>u.username);
+  // Owner/Admin/KPO/Booker/Supply Man/custom staff can have salary records.
+  return all;
+}
+function isAdminLike(){
+  return !!currentUser && ['Admin','KPO','Fatima Tech Owner'].includes(currentUser.role);
+}
+function allowedStaff(){
+  if(isAdminLike())return staffList();
+  return staffList().filter(u=>u.username===currentUser?.username);
+}
+function fillSelect(id,allOption=false){
+  const el=document.getElementById(id);if(!el)return;
+  const cur=el.value, list=allowedStaff();
+  el.innerHTML=(allOption?'<option value="ALL">All Staff</option>':'')+list.map(u=>`<option value="${esc(u.username)}">${esc(u.username)} — ${esc(u.role)}</option>`).join('');
+  if(cur && [...el.options].some(o=>o.value===cur))el.value=cur; else if(list[0])el.value=list[0].username;
+}
+function fillAllPayrollSelects(){
+  ['ftAdvStaff','ftSalaryStaff','ftAttStaff','ftPayStaff'].forEach(id=>fillSelect(id,false));
+  ['ftAdvFilterStaff','ftSalaryReportStaff'].forEach(id=>fillSelect(id,true));
+}
+function ensureDates(){
+  const d=document.getElementById('ftAdvDate'),m=document.getElementById('ftAdvDeductMonth'),am=document.getElementById('ftAttMonth'),pm=document.getElementById('ftPayMonth');
+  if(d&&!d.value)d.value=todayStr(); if(m&&!m.value)m.value=monthStr(); if(am&&!am.value)am.value=monthStr(); if(pm&&!pm.value)pm.value=monthStr();
+}
+function currentStaffName(id){return document.getElementById(id)?.value||currentUser?.username||''}
+
+window.ftSaveStaffAdvance=function(){
+  const staff=currentStaffName('ftAdvStaff'),amount=n(document.getElementById('ftAdvAmount')?.value);
+  if(!staff)return alert('Please select a staff member.');
+  if(amount<=0)return alert('Please enter a valid amount.');
+  if(!isAdminLike() && staff!==currentUser?.username)return alert('You can only enter your own staff record.');
+  const rec={id:'STA_'+Date.now(),date:document.getElementById('ftAdvDate')?.value||todayStr(),staff,type:document.getElementById('ftAdvType')?.value||'Advance',amount,deductMonth:document.getElementById('ftAdvDeductMonth')?.value||monthStr(),remarks:document.getElementById('ftAdvRemarks')?.value||'',createdBy:currentUser?.username||'System',createdAt:new Date().toISOString(),status:'Open'};
+  ftAdvances.push(rec);save(KEY_ADV,ftAdvances);
+  if(typeof audit2==='function')audit2('CREATE','Staff Advance',rec.id,`${rec.type} ${money(rec.amount)} for ${rec.staff}, salary month ${rec.deductMonth}`);
+  document.getElementById('ftAdvAmount').value='';document.getElementById('ftAdvRemarks').value='';
+  ftRenderStaffAdvance();ftPreviewSalary();alert('Staff financial entry saved.');
+};
+window.ftRenderStaffAdvance=function(){
+  const body=document.getElementById('ftStaffAdvanceTbody');if(!body)return;
+  const staff=document.getElementById('ftAdvFilterStaff')?.value||'ALL',from=document.getElementById('ftAdvFrom')?.value||'',to=document.getElementById('ftAdvTo')?.value||'',dm=document.getElementById('ftAdvFilterMonth')?.value||'';
+  const rows=ftAdvances.filter(r=>(staff==='ALL'||r.staff===staff)&&(!from||r.date>=from)&&(!to||r.date<=to)&&(!dm||r.deductMonth===dm));
+  body.innerHTML=rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.staff)}</td><td>${esc(r.type)}</td><td>${money(r.amount)}</td><td>${esc(r.deductMonth)}</td><td>${esc(r.remarks||'')}</td><td class="no-print"><button class="btn-delete" onclick="ftDeleteStaffAdvance('${esc(r.id)}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="7">No staff financial entries.</td></tr>';
+  document.getElementById('ftStaffAdvanceTotal').textContent=money(rows.reduce((a,r)=>a+n(r.amount),0));
+};
+window.ftDeleteStaffAdvance=function(id){
+  if(!isAdminLike())return alert('Only Admin/KPO can delete staff financial entries.');
+  const r=ftAdvances.find(x=>x.id===id);if(!r)return;
+  if(!confirm(`Delete ${r.type} ${money(r.amount)} for ${r.staff}?`))return;
+  ftAdvances=ftAdvances.filter(x=>x.id!==id);save(KEY_ADV,ftAdvances);ftRenderStaffAdvance();ftPreviewSalary();
+};
+window.ftLoadSalarySetup=function(){
+  const staff=currentStaffName('ftSalaryStaff'),cfg=ftSalarySettings[staff]||{};
+  const bs=document.getElementById('ftBasicSalary'),ef=document.getElementById('ftSalaryEffectiveFrom'),pq=document.getElementById('ftPaidLeaveQuota');
+  if(bs)bs.value=cfg.basicSalary??'';if(ef)ef.value=cfg.effectiveFrom||'';if(pq)pq.value=cfg.paidLeaveQuota??0;
+};
+window.ftSaveSalarySetup=function(){
+  const staff=currentStaffName('ftSalaryStaff'),basic=n(document.getElementById('ftBasicSalary')?.value);
+  if(!staff||basic<0)return alert('Please select staff and enter salary.');
+  if(!isAdminLike())return alert('Only Admin/KPO can set salary.');
+  ftSalarySettings[staff]={basicSalary:basic,effectiveFrom:document.getElementById('ftSalaryEffectiveFrom')?.value||'',paidLeaveQuota:n(document.getElementById('ftPaidLeaveQuota')?.value)};
+  save(KEY_SAL,ftSalarySettings);ftPreviewSalary();alert('Salary setup saved.');
+};
+function daysInMonth(month){const [y,m]=month.split('-').map(Number);return new Date(y,m,0).getDate()}
+function dateList(month){const days=daysInMonth(month),a=[];for(let d=1;d<=days;d++){const dt=`${month}-${String(d).padStart(2,'0')}`,day=new Date(dt+'T00:00:00');a.push({date:dt,day:day.toLocaleDateString(undefined,{weekday:'short'})})}return a}
+function attKey(staff,date){return staff+'|'+date}
+window.ftRenderAttendance=function(){
+  const body=document.getElementById('ftAttendanceTbody');if(!body)return;
+  const staff=currentStaffName('ftAttStaff'),month=document.getElementById('ftAttMonth')?.value||monthStr();if(!staff)return;
+  const rows=dateList(month);
+  body.innerHTML=rows.map(r=>{const x=ftAttendance.find(a=>a.staff===staff&&a.date===r.date)||{status:'Present',note:''};return `<tr><td>${r.date}</td><td>${r.day}</td><td><select class="ft-att-status" data-date="${r.date}"><option ${x.status==='Present'?'selected':''}>Present</option><option ${x.status==='Absent'?'selected':''}>Absent</option><option ${x.status==='Paid Leave'?'selected':''}>Paid Leave</option><option ${x.status==='Unpaid Leave'?'selected':''}>Unpaid Leave</option><option ${x.status==='Half Day'?'selected':''}>Half Day</option><option ${x.status==='Holiday'?'selected':''}>Holiday</option></select></td><td><input class="ft-att-note" data-date="${r.date}" value="${esc(x.note||'')}" placeholder="Optional note"></td></tr>`}).join('');
+};
+window.ftMarkAllAttendance=function(status){
+  document.querySelectorAll('.ft-att-status').forEach(e=>e.value=status);
+};
+window.ftSaveAttendance=function(){
+  const staff=currentStaffName('ftAttStaff'),month=document.getElementById('ftAttMonth')?.value||monthStr();if(!staff)return;
+  if(!isAdminLike()&&staff!==currentUser?.username)return alert('You can only edit your own attendance.');
+  ftAttendance=ftAttendance.filter(a=>!(a.staff===staff&&a.date.startsWith(month+'-')));
+  document.querySelectorAll('.ft-att-status').forEach(sel=>{const date=sel.dataset.date,note=document.querySelector(`.ft-att-note[data-date="${date}"]`)?.value||'';ftAttendance.push({staff,date,status:sel.value,note,updatedBy:currentUser?.username||'System'})});
+  save(KEY_ATT,ftAttendance);ftPreviewSalary();alert('Attendance saved.');
+};
+function salaryCalc(staff,month){
+  const cfg=ftSalarySettings[staff]||{basicSalary:0,paidLeaveQuota:0},basic=n(cfg.basicSalary),days=daysInMonth(month);
+  const rows=dateList(month).map(r=>ftAttendance.find(a=>a.staff===staff&&a.date===r.date)||{...r,status:'Present',note:''});
+  const paidLeave=rows.filter(r=>r.status==='Paid Leave').length;
+  const unpaidLeave=rows.filter(r=>r.status==='Unpaid Leave').length;
+  const absent=rows.filter(r=>r.status==='Absent').length;
+  const half=rows.filter(r=>r.status==='Half Day').length;
+  const holidays=rows.filter(r=>r.status==='Holiday').length;
+  const present=rows.filter(r=>r.status==='Present').length;
+  const paidDays=present+paidLeave+holidays+(half*0.5);
+  const attendanceDeduction=basic/days*(absent+unpaidLeave+(half*0.5));
+  const dues=ftAdvances.filter(r=>r.staff===staff&&r.deductMonth===month&&r.status!=='Settled');
+  const advance=dues.filter(r=>r.type==='Advance').reduce((a,r)=>a+n(r.amount),0);
+  const cashDiff=dues.filter(r=>r.type==='Cash Difference').reduce((a,r)=>a+n(r.amount),0);
+  const other=dues.filter(r=>r.type==='Other Deduction').reduce((a,r)=>a+n(r.amount),0);
+  const totalDed=attendanceDeduction+advance+cashDiff+other;
+  const net=Math.max(0,basic-totalDed),carry=Math.max(0,totalDed-basic);
+  return {staff,month,basic,days,present,paidLeave,unpaidLeave,absent,half,holidays,paidDays,attendanceDeduction,advance,cashDiff,other,totalDed,net,carry,rows,dues,paidLeaveQuota:n(cfg.paidLeaveQuota)};
+}
+window.ftPreviewSalary=function(){
+  const box=document.getElementById('ftSalaryPreview');if(!box)return;
+  const staff=currentStaffName('ftPayStaff'),month=document.getElementById('ftPayMonth')?.value||monthStr();if(!staff)return;
+  const x=salaryCalc(staff,month);
+  box.innerHTML=`<div class="ft-salary-grid">
+    <div class="ft-salary-kpi"><b>Basic Salary</b><strong>${money(x.basic)}</strong></div>
+    <div class="ft-salary-kpi"><b>Paid Days</b><strong>${x.paidDays}</strong></div>
+    <div class="ft-salary-kpi"><b>Leave / Absent</b><strong>${x.paidLeave+x.unpaidLeave+x.absent}</strong></div>
+    <div class="ft-salary-kpi"><b>Attendance Deduction</b><strong>${money(x.attendanceDeduction)}</strong></div>
+    <div class="ft-salary-kpi"><b>Advance / Loan</b><strong>${money(x.advance)}</strong></div>
+    <div class="ft-salary-kpi"><b>Cash Difference</b><strong>${money(x.cashDiff)}</strong></div>
+    <div class="ft-salary-kpi"><b>Other Deduction</b><strong>${money(x.other)}</strong></div>
+    <div class="ft-salary-kpi"><b>Net Payable</b><strong>${money(x.net)}</strong></div>
+  </div>${x.carry?`<div class="ft-note">Deductions exceed this month's salary by ${money(x.carry)}. This amount is shown as Carry Forward and is not lost.</div>`:''}`;
+  return x;
+};
+window.ftGenerateSalaryRecord=function(){
+  const staff=currentStaffName('ftPayStaff'),month=document.getElementById('ftPayMonth')?.value||monthStr();if(!staff)return;
+  if(!isAdminLike())return alert('Only Admin/KPO can generate the official salary record.');
+  const x=salaryCalc(staff,month),existing=ftSalaryRecords.find(r=>r.staff===staff&&r.month===month);
+  if(existing&&!confirm('A salary record already exists for this staff/month. Replace it with the current calculation?'))return;
+  const rec={id:existing?.id||'SAL_'+Date.now(),createdAt:new Date().toISOString(),generatedBy:currentUser?.username||'System',...x};
+  if(existing)ftSalaryRecords=ftSalaryRecords.map(r=>r.id===existing.id?rec:r);else ftSalaryRecords.push(rec);
+  save(KEY_REC,ftSalaryRecords);ftRenderSalaryRecords();ftPreviewSalary();alert('Salary record generated.');
+};
+function salarySlipHtml(x){
+  const biz=(()=>{try{return JSON.parse(localStorage.getItem('fatimaTechOwnerSettings')||'{}')}catch(e){return {}}})();
+  const name=biz.companyName||'FATIMA TECH';const rows=x.rows.map(r=>`<tr><td>${r.date}</td><td>${r.day||new Date(r.date).toLocaleDateString(undefined,{weekday:'short'})}</td><td>${r.status}</td><td>${esc(r.note||'')}</td></tr>`).join('');
+  return `<div class="slip-head"><h1>${esc(name)}</h1><div>Staff Salary Slip</div><div>Salary Month: ${esc(x.month)}</div></div>
+  <div class="slip-meta"><b>Staff:</b> ${esc(x.staff)} &nbsp; <b>Basic Salary:</b> ${money(x.basic)} &nbsp; <b>Generated:</b> ${todayStr()}</div>
+  <table><thead><tr><th>Date</th><th>Day</th><th>Attendance</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="summary"><div><b>Present:</b> ${x.present}</div><div><b>Paid Leave:</b> ${x.paidLeave}</div><div><b>Unpaid Leave:</b> ${x.unpaidLeave}</div><div><b>Absent:</b> ${x.absent}</div><div><b>Half Day:</b> ${x.half}</div><div><b>Holiday:</b> ${x.holidays}</div></div>
+  <table class="money"><tr><td>Basic Salary</td><td>${money(x.basic)}</td></tr><tr><td>Attendance Deduction</td><td>- ${money(x.attendanceDeduction)}</td></tr><tr><td>Advance / Loan</td><td>- ${money(x.advance)}</td></tr><tr><td>Cash Difference</td><td>- ${money(x.cashDiff)}</td></tr><tr><td>Other Deduction</td><td>- ${money(x.other)}</td></tr><tr class="net"><td>NET SALARY PAYABLE</td><td>${money(x.net)}</td></tr>${x.carry?`<tr><td>Carry Forward Deduction</td><td>${money(x.carry)}</td></tr>`:''}</table>
+  <div class="sign"><span>Employee Signature __________________</span><span>Authorized Signature __________________</span></div>`;
+}
+function printHtml(title,body){
+  const w=window.open('','_blank','width=1000,height=800');if(!w)return;
+  w.document.write(`<!doctype html><html><head><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#111}h1{margin:0;font-size:22px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #999;padding:5px;font-size:11px}th{background:#eef2f7}.slip-head{text-align:center;margin-bottom:12px}.slip-meta{padding:8px;border:1px solid #bbb}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.money{max-width:520px;margin-left:auto}.money td:last-child{text-align:right}.money .net{font-size:14px;font-weight:bold;background:#eaf8ef}.sign{display:flex;justify-content:space-between;margin-top:40px}@media print{button{display:none}}</style></head><body>${body}</body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),250);
+}
+window.ftPrintCurrentSalarySlip=function(){
+  const staff=currentStaffName('ftPayStaff'),month=document.getElementById('ftPayMonth')?.value||monthStr();if(!staff)return;
+  const rec=ftSalaryRecords.find(r=>r.staff===staff&&r.month===month)||salaryCalc(staff,month);
+  printHtml('Salary Slip - '+staff,salarySlipHtml(rec));
+};
+window.ftRenderSalaryRecords=function(){
+  const body=document.getElementById('ftSalaryRecordsTbody');if(!body)return;
+  const staff=document.getElementById('ftSalaryReportStaff')?.value||'ALL',from=document.getElementById('ftSalaryReportFrom')?.value||'',to=document.getElementById('ftSalaryReportTo')?.value||'';
+  const rows=ftSalaryRecords.filter(r=>(staff==='ALL'||r.staff===staff)&&(!from||r.month>=from)&&(!to||r.month<=to)).sort((a,b)=>String(b.month).localeCompare(String(a.month)));
+  body.innerHTML=rows.map(r=>`<tr><td>${esc(r.month)}</td><td>${esc(r.staff)}</td><td>${money(r.basic)}</td><td>${r.paidDays}</td><td>${r.unpaidLeave+r.absent}</td><td>${money(r.advance)}</td><td>${money(r.cashDiff)}</td><td>${money(r.other)}</td><td><strong>${money(r.net)}</strong></td><td class="no-print"><button class="btn-print" onclick="ftPrintSavedSalary('${esc(r.id)}')">Slip</button></td></tr>`).join('')||'<tr><td colspan="10">No salary records.</td></tr>';
+  document.getElementById('ftSalaryReportTotal').textContent='Total Payable: '+money(rows.reduce((a,r)=>a+n(r.net),0));
+};
+window.ftPrintSavedSalary=function(id){const r=ftSalaryRecords.find(x=>x.id===id);if(r)printHtml('Salary Slip - '+r.staff,salarySlipHtml(r));};
+window.ftExportSalaryRecords=function(){
+  const rows=ftSalaryRecords.map(r=>({Month:r.month,Staff:r.staff,Basic:r.basic,PaidDays:r.paidDays,UnpaidLeave:r.unpaidLeave,Absent:r.absent,Advance:r.advance,CashDifference:r.cashDiff,OtherDeduction:r.other,NetPayable:r.net}));
+  if(window.XLSX){const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Salary Records');XLSX.writeFile(wb,'Fatima_Tech_Salary_Records.xlsx');}
+};
+window.ftExportStaffAdvance=function(){
+  const rows=ftAdvances.map(r=>({Date:r.date,Staff:r.staff,Type:r.type,Amount:r.amount,DeductMonth:r.deductMonth,Remarks:r.remarks,CreatedBy:r.createdBy}));
+  if(window.XLSX){const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Staff Ledger');XLSX.writeFile(wb,'Fatima_Tech_Staff_Advance_Ledger.xlsx');}
+};
+window.ftPrintStaffAdvance=function(){
+  const rows=ftAdvances.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.staff)}</td><td>${esc(r.type)}</td><td>${money(r.amount)}</td><td>${esc(r.deductMonth)}</td><td>${esc(r.remarks||'')}</td></tr>`).join('');
+  printHtml('Staff Advance Ledger',`<h1>Staff Advance / Cash Difference Ledger</h1><table><thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Amount</th><th>Deduct Month</th><th>Remarks</th></tr></thead><tbody>${rows||'<tr><td colspan="6">No records.</td></tr>'}</tbody></table>`);
+};
+function init(){
+  fillAllPayrollSelects();ensureDates();
+  ['ftAdvFrom','ftAdvTo'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.value)e.value=id==='ftAdvTo'?todayStr():todayStr().slice(0,8)+'01'});
+  ftLoadSalarySetup();ftRenderAttendance();ftRenderStaffAdvance();ftPreviewSalary();ftRenderSalaryRecords();
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(init,350));
+const oldOpen=window.openTab;
+if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
+  window.openTab=function(tabId,btn){
+    const r=oldOpen.apply(this,arguments);
+    if(['staffAdvanceTab','staffSalaryTab','salaryRecordsTab'].includes(tabId)){fillAllPayrollSelects();ensureDates();ftLoadSalarySetup();ftRenderAttendance();ftRenderStaffAdvance();ftPreviewSalary();ftRenderSalaryRecords();}
+    return r;
+  };
+  window.__ftV23OpenPatched=true;
+}
+})();
+</script>
+
+
+<script id="ft-v23-staff-permission-migration">
+(function(){
+  try{
+    if(Array.isArray(dbUsers)){
+      let changed=false;
+      dbUsers.forEach(function(u){
+        if(['Order Booker','Supply Man','Custom Role','Manager'].includes(u.role)){
+          u.permissions=Array.isArray(u.permissions)?u.permissions:[];
+          if(!u.permissions.includes('staffAdvanceTab')){u.permissions.push('staffAdvanceTab');changed=true;}
+        }
+      });
+      if(changed)localStorage.setItem('ht_users',JSON.stringify(dbUsers));
+    }
+  }catch(e){}
 })();
 </script>
 
