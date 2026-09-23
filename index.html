@@ -2618,7 +2618,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
             </div>
             <div class="form-grid">
                 <div class="form-group"><label>Invoice Date *:</label><input type="date" id="purInvDate"></div>
-                <div class="form-group"><label>Category *:</label><select id="purCategory"><option value="Shahi Foods">Shahi Foods</option><option value="General">General</option></select></div>
+                <div class="form-group"><label>Category *:</label><select id="purCategory"><option value="General">General</option></select></div>
                 <div class="form-group"><label>Supplier Name *:</label><input type="text" id="purSupplierName" placeholder="e.g. Shahi Foods"></div>
                 <div class="form-group"><label>Purchase Invoice No *:</label><input type="text" id="purInvoiceNo" placeholder="INV-8890"></div>
                 <div class="form-group"><label>Purchase Payment:</label><select id="purPaymentType"><option value="Cash">Cash Paid</option><option value="Bank">Bank Paid</option><option value="Credit">Credit Purchase</option></select></div>
@@ -2637,7 +2637,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
                 <div class="form-group"><label>List Price (Cost) *:</label><input type="number" id="purPieceCost" placeholder="List Price"></div>
                 <div class="form-group"><label>Trade Price / Pcs:</label><input type="number" id="purTradePricePiece" placeholder="TP Price"></div>
                 <div class="form-group"><label>Retail Price / Pcs:</label><input type="number" id="purRetailPricePiece" placeholder="Retail Price"></div>
-                <div style="display:flex; align-items:flex-end;"><button class="btn-add" style="width:100%; height:28px;" onclick="addPurchaseRowItem()">+ Add Product</button></div>
+                <div style="display:flex; align-items:flex-end;"><button class="btn-add" style="width:100%; height:28px;" onclick="ftAddPurchaseProduct()">+ Add Product</button></div>
             </div>
 
             <div class="table-responsive" style="margin-top: 10px;">
@@ -3268,14 +3268,8 @@ img,svg,video,canvas{max-width:100%;height:auto}
     // DATABASES INITIALIZATION
     let dbInvoices = JSON.parse(localStorage.getItem('ht_invoices')) || [];
     let dbPurchaseInvoices = JSON.parse(localStorage.getItem('ht_purchase_invoices')) || [];
-    let dbShops = JSON.parse(localStorage.getItem('ht_shops')) || [
-        { name: 'AL-MADINA STORE', owner: 'Ali', contact: '03347218606', route: 'Bannu Road Area', booker: 'Huzaifa', creditLimit: 50000 }
-    ];
-    let dbStock = JSON.parse(localStorage.getItem('ht_stock')) || [
-        { id: 'STK_1', sku: 'SKU-GEN-1001', category: 'General', name: 'JUICE 200ML', pcsPerCarton: 24, qty: 240, costPrice: 30, tradePrice: 40, retailPrice: 45 },
-        { id: 'STK_2', sku: 'SKU-SHAHI-1002', category: 'Shahi Foods', name: 'SHAHI NMT KACHORI', pcsPerCarton: 24, qty: 120, costPrice: 15, tradePrice: 20, retailPrice: 25 },
-        { id: 'STK_3', sku: 'SKU-SHAHI-1003', category: 'Shahi Foods', name: 'SHAHI DAHI BHALAY', pcsPerCarton: 24, qty: 120, costPrice: 25, tradePrice: 35, retailPrice: 40 }
-    ];
+    let dbShops = JSON.parse(localStorage.getItem('ht_shops')) || [];
+    let dbStock = JSON.parse(localStorage.getItem('ht_stock')) || [];
     let dbRecoveries = JSON.parse(localStorage.getItem('ht_recoveries')) || [];
     let dbRecoveryAdjustments = JSON.parse(localStorage.getItem('ht_recovery_adjustments')) || [];
     let dbStaffResponsibilities = JSON.parse(localStorage.getItem('ht_staff_responsibilities')) || [];
@@ -8187,6 +8181,116 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   window.closeMobileNav=function(){setSidebar(false);};
   window.toggleSubmenu=function(id){const sm=document.getElementById(id);if(!sm)return false;const open=!sm.classList.contains('open');sm.classList.toggle('open',open);sm.style.display=open?'block':'none';sm.style.maxHeight=open?'2000px':'0';const a=document.querySelector('[data-submenu-target="'+id+'"]');if(a){a.setAttribute('aria-expanded',open?'true':'false');const ar=a.querySelector('.ft-submenu-arrow');if(ar)ar.textContent=open?'▲':'▼';}return false;};
   document.addEventListener('DOMContentLoaded',function(){setTimeout(closeAllSubmenus,120);});
+})();
+</script>
+
+
+<script id="ft-v28-purchase-product-fix">
+(function(){
+  function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c})}
+  window.ftAddPurchaseProduct=function(){
+    try{
+      const name=(document.getElementById('purItemName')?.value||'').trim().toUpperCase();
+      const brand=(document.getElementById('purBrand')?.value||'').trim();
+      const pcs=n(document.getElementById('purPcsPerCarton')?.value)||24;
+      const cartons=n(document.getElementById('purCartonQty')?.value);
+      const cost=n(document.getElementById('purPieceCost')?.value);
+      const trade=n(document.getElementById('purTradePricePiece')?.value)||cost;
+      const retail=n(document.getElementById('purRetailPricePiece')?.value)||trade;
+      const category=document.getElementById('purCategory')?.value||'General';
+      if(!name){alert('Please enter Product Name.');document.getElementById('purItemName')?.focus();return false}
+      if(cartons<=0){alert('Please enter Cartons Quantity.');document.getElementById('purCartonQty')?.focus();return false}
+      if(cost<=0){alert('Please enter List Price / Cost.');document.getElementById('purPieceCost')?.focus();return false}
+      const totalPcs=cartons*pcs, subtotal=totalPcs*cost;
+      let imageData='';
+      const img=document.getElementById('purProductImage')?.files?.[0];
+      const push=(data)=>{
+        currentPurInvoiceItems.push({
+          sku:'SKU-'+Date.now().toString().slice(-6),
+          brand,category,name,pcsPerCarton:pcs,cartonQty:cartons,totalPcs,
+          pieceCost:cost,tradePrice:trade,retailPrice:retail,subtotal,imageData:data||''
+        });
+        if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+        else{
+          const tb=document.getElementById('purInvoiceItemsTbody');
+          if(tb)tb.innerHTML=currentPurInvoiceItems.map((x,i)=>`<tr><td>📦</td><td>${esc(x.sku)}</td><td>${esc(x.brand||'General')}</td><td>${esc(x.category)}</td><td><b>${esc(x.name)}</b></td><td>${x.pcsPerCarton} Pcs</td><td>${x.cartonQty} Ctn</td><td>${x.totalPcs} Pcs</td><td>Rs. ${x.pieceCost}</td><td>Rs. ${x.tradePrice}</td><td>Rs. ${x.retailPrice}</td><td>Rs. ${x.subtotal.toLocaleString()}</td><td><button type="button" onclick="currentPurInvoiceItems.splice(${i},1);ftAddPurchaseProduct.render()">X</button></td></tr>`).join('');
+        }
+        ['purItemName','purBrand','purCartonQty','purPieceCost','purTradePricePiece','purRetailPricePiece'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+        const sum=document.getElementById('purPaymentSummary');
+        if(sum)sum.textContent='Invoice Total: Rs. '+currentPurInvoiceItems.reduce((a,x)=>a+n(x.subtotal),0).toLocaleString();
+        return true;
+      };
+      if(img){
+        const reader=new FileReader();
+        reader.onload=e=>push(e.target.result);
+        reader.onerror=()=>{alert('Product image could not be read. Product will be added without image.');push('')};
+        reader.readAsDataURL(img);
+      }else push('');
+    }catch(err){
+      console.error('Purchase product add error:',err);
+      alert('Product add failed: '+(err?.message||err));
+    }
+    return false;
+  };
+})();
+</script>
+
+
+<script id="ft-v28-clean-slate-reset">
+(function(){
+  const KEYS=[
+    'ht_invoices','ht_purchase_invoices','ht_shops','ht_stock','ht_recoveries',
+    'ht_recovery_adjustments','ht_staff_responsibilities','ht_booker_accounts',
+    'ht_kpo_logs','ht_expenses','ht_returns','ht_company_claims','ht_ledger_adjustments',
+    'ht_generated_picklists','ht_cash_in_hand','ht_audit_log','ht_day_end_log',
+    'ft_investments','ft_investors','ft_investor_txns','ft_profit_distributions',
+    'ft_staff_advances','ft_salary_records','ft_salary_settings','ft_staff_attendance',
+    'ht_supplier_payments','ht_supplier_dues','ht_purchase_payments',
+    'ht_capital_entries','ht_cash_ledger','ht_finance_transactions'
+  ];
+  window.ftStartCompletelyFresh=function(){
+    if(typeof currentUser==='undefined'||!currentUser||!['Admin','Owner'].includes(String(currentUser.role)))return alert('Only Admin/Owner can start a new business file.');
+    if(!confirm('START COMPLETELY FRESH?\n\nThis will permanently remove ALL demo/business transactions, stock, shops, invoices, investments, investors, expenses, recoveries, salary records and financial history.\n\nUsers, roles and company/application settings will remain.\n\nContinue?'))return;
+    KEYS.forEach(k=>localStorage.removeItem(k));
+    // Reset in-memory arrays too.
+    if(typeof dbInvoices!=='undefined')dbInvoices=[];
+    if(typeof dbPurchaseInvoices!=='undefined')dbPurchaseInvoices=[];
+    if(typeof dbShops!=='undefined')dbShops=[];
+    if(typeof dbStock!=='undefined')dbStock=[];
+    if(typeof dbRecoveries!=='undefined')dbRecoveries=[];
+    if(typeof dbRecoveryAdjustments!=='undefined')dbRecoveryAdjustments=[];
+    if(typeof dbStaffResponsibilities!=='undefined')dbStaffResponsibilities=[];
+    if(typeof dbBookerAccounts!=='undefined')dbBookerAccounts=[];
+    if(typeof dbKpoLogs!=='undefined')dbKpoLogs=[];
+    if(typeof dbExpenses!=='undefined')dbExpenses=[];
+    if(typeof dbReturns!=='undefined')dbReturns=[];
+    if(typeof dbCompanyClaims!=='undefined')dbCompanyClaims=[];
+    if(typeof dbLedgerAdjustments!=='undefined')dbLedgerAdjustments=[];
+    if(typeof dbGeneratedPicklists!=='undefined')dbGeneratedPicklists=[];
+    if(typeof dbAuditLog!=='undefined')dbAuditLog=[];
+    if(typeof currentPosItems!=='undefined')currentPosItems=[];
+    if(typeof currentPurInvoiceItems!=='undefined')currentPurInvoiceItems=[];
+    try{if(window.ftFinance)window.ftFinance.investments=[]}catch(e){}
+    location.reload();
+  };
+})();
+</script>
+
+
+<script id="ft-v28-purchase-tab-init">
+(function(){
+  function initPurchaseTab(){
+    const tb=document.getElementById('purInvoiceItemsTbody');
+    if(tb && typeof currentPurInvoiceItems!=='undefined') {
+      // Always show the actual current draft, never a stale demo row.
+      if(currentPurInvoiceItems.length===0)tb.innerHTML='';
+      if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+      if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+      if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
+    }
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(initPurchaseTab,300));
 })();
 </script>
 
