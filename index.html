@@ -1497,6 +1497,66 @@ img,svg,video,canvas{max-width:100%;height:auto}
 @media(min-width:901px){#ftMobileLogoutAction{display:none!important}}
 </style>
 
+
+<style id="ft-v21-mobile-pos-profile">
+.ft-dashboard-business-identity{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;margin:0 0 12px;
+  border-radius:16px;background:linear-gradient(135deg,#0b1730,#12365d 62%,#0e7490);
+  color:#fff;box-shadow:0 10px 26px rgba(8,35,70,.14);border:1px solid rgba(255,255,255,.12)
+}
+.ft-dashboard-brand-mark{
+  width:52px;height:52px;flex:0 0 52px;border-radius:15px;display:flex;align-items:center;justify-content:center;
+  font-size:19px;font-weight:900;letter-spacing:.5px;color:#fff;
+  background:linear-gradient(135deg,#1769e0,#08b9d8);box-shadow:0 8px 20px rgba(8,185,216,.25)
+}
+.ft-dashboard-business-copy{min-width:0}
+.ft-dashboard-business-name{font-size:18px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-dashboard-business-copy>div:nth-child(2){font-size:10px;letter-spacing:1.3px;color:#8ee7ff;text-transform:uppercase;margin-top:3px}
+.ft-dashboard-business-copy>div:nth-child(3){font-size:11px;color:#d9e9f8;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft-auto-assignment-notice{
+  display:flex;align-items:center;gap:9px;margin:8px 0 10px;padding:10px 12px;border-radius:12px;
+  background:linear-gradient(135deg,#ecf7ff,#f3fbff);border:1px solid #b9def7;color:#164e73
+}
+.ft-auto-assignment-notice>span{font-size:20px}.ft-auto-assignment-notice strong{display:block;font-size:12px}.ft-auto-assignment-notice small{display:block;font-size:10px;margin-top:2px;color:#557086}
+.ft-top-user-area{position:relative;display:flex!important;align-items:center;gap:8px!important}
+.ft-profile-button{
+  display:flex;align-items:center;gap:8px;border:1px solid #dbe5ef;background:#fff;border-radius:13px;padding:6px 9px;
+  cursor:pointer;color:#0f2744;box-shadow:0 4px 12px rgba(15,23,42,.05)
+}
+.ft-profile-avatar{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:900;background:linear-gradient(135deg,#1769e0,#08a8d8)}
+.ft-profile-avatar.big{width:38px;height:38px}
+.ft-profile-label{display:flex;flex-direction:column;text-align:left;line-height:1.05}.ft-profile-label strong{font-size:12px}.ft-profile-label small{font-size:9px;color:#64748b;margin-top:3px}.ft-profile-chevron{font-size:15px;color:#64748b}
+.ft-user-profile-menu{
+  display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:210px;padding:8px;border-radius:14px;background:#fff;
+  border:1px solid #dbe5ef;box-shadow:0 16px 36px rgba(15,23,42,.18);z-index:10050
+}
+.ft-user-profile-menu.open{display:block}
+.ft-profile-menu-head{display:flex;gap:9px;align-items:center;padding:8px 7px 10px;border-bottom:1px solid #edf2f7;margin-bottom:5px}
+.ft-profile-menu-head div{display:flex;flex-direction:column}.ft-profile-menu-head strong{font-size:12px}.ft-profile-menu-head small{font-size:10px;color:#64748b;margin-top:3px}
+.ft-user-profile-menu>button:not(.ft-profile-logout){width:100%;text-align:left;border:0;background:transparent;padding:10px 9px;border-radius:9px;cursor:pointer;color:#334155}
+.ft-user-profile-menu>button:hover{background:#f1f6fb}.ft-profile-logout{width:100%;border:0;border-radius:9px;padding:10px;background:#dc3545;color:#fff;font-weight:800;cursor:pointer}
+.ft-mobile-top-brand{display:none}
+@media(max-width:900px){
+  .top-bar{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:7px!important;padding:8px!important}
+  .ft-mobile-top-brand{display:flex;flex-direction:column;min-width:0}.ft-mobile-top-brand strong{font-size:12px}.ft-mobile-top-brand span{font-size:8px;color:#64748b;letter-spacing:.6px}
+  .ft-top-user-area{margin-left:auto;min-width:0}.ft-profile-label{display:none}.ft-profile-button{padding:6px 7px}.ft-profile-chevron{display:none}.ft-live-time{display:none!important}
+  .ft-user-profile-menu{position:fixed;right:10px;top:62px;min-width:220px}
+  #posProductEntryGrid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;align-items:stretch!important}
+  #posProductEntryGrid .form-group{min-width:0!important}
+  #posProductEntryGrid .form-group:first-child{grid-column:1 / -1!important}
+  #posProductEntryGrid .form-group:last-child{grid-column:1 / -1!important}
+  #posProductEntryGrid input,#posProductEntryGrid select{width:100%!important;min-width:0!important;box-sizing:border-box!important}
+  #posBookerGroup,#posSupplyManSelect{ }
+  #posBookerGroup.ft-auto-hidden,#posSupplyManSelect.ft-auto-hidden{display:none!important}
+  .ft-dashboard-business-identity{padding:11px 12px;margin-bottom:10px}
+  .ft-dashboard-brand-mark{width:44px;height:44px;flex-basis:44px;border-radius:13px;font-size:16px}
+  .ft-dashboard-business-name{font-size:15px}.ft-dashboard-business-copy>div:nth-child(2){font-size:8px}.ft-dashboard-business-copy>div:nth-child(3){font-size:9px}
+}
+</style>
+
+<style id="ft-v21-hide-old-mobile-logout">
+@media(max-width:900px){#ftMobileLogoutAction{display:none!important}}
+</style>
 </head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
@@ -1606,17 +1666,33 @@ img,svg,video,canvas{max-width:100%;height:auto}
 <!-- MAIN WORKSPACE -->
 <div class="main-wrapper">
     <div class="top-bar no-print">
-        <div>👤 User: <strong id="loggedUsername">ADMIN</strong> (<span id="userRoleBadge">Admin</span>)</div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="btn-edit" onclick="toggleTheme()">☀️ / 🌙</button>
-            <span id="liveDateTimeLabel" style="color: var(--primary-blue); font-weight:bold;">--</span>
-            <button class="btn-delete" onclick="window.ftHardLogout ? window.ftHardLogout() : logout()">Logout 🚪</button>
+        <div class="ft-mobile-top-brand"><strong id="ftTopBusinessName">FATIMA TECH</strong><span>Distribution ERP</span></div>
+        <div class="ft-top-user-area">
+            <button type="button" id="ftProfileButton" class="ft-profile-button" onclick="toggleUserProfileMenu()">
+                <span class="ft-profile-avatar" id="ftProfileAvatar">A</span>
+                <span class="ft-profile-label"><strong id="loggedUsername">ADMIN</strong><small id="userRoleBadge">Admin</small></span>
+                <span class="ft-profile-chevron">⌄</span>
+            </button>
+            <div id="ftUserProfileMenu" class="ft-user-profile-menu">
+                <div class="ft-profile-menu-head"><span class="ft-profile-avatar big" id="ftMenuAvatar">A</span><div><strong id="ftMenuUserName">ADMIN</strong><small id="ftMenuRole">Admin</small></div></div>
+                <button type="button" onclick="toggleTheme()">☀️ Theme</button>
+                <button type="button" class="ft-profile-logout" onclick="window.ftHardLogout ? window.ftHardLogout() : logout()">🚪 Logout</button>
+            </div>
+            <span id="liveDateTimeLabel" class="ft-live-time">--</span>
         </div>
     </div>
 
     <!-- DASHBOARD OVERVIEW -->
     <div id="dashboard" class="tab-content active">
         <div id="adminDashboardView">
+        <div id="ftDashboardBusinessIdentity" class="ft-dashboard-business-identity">
+  <div class="ft-dashboard-brand-mark" id="ftDashboardBrandMark">FT</div>
+  <div class="ft-dashboard-business-copy">
+    <div class="ft-dashboard-business-name" id="ftDashboardBusinessName">Your Distribution</div>
+    <div id="ftDashboardBusinessMeta">FMCG Sales & Distribution</div>
+    <div id="ftDashboardBusinessContact">--</div>
+  </div>
+</div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h3 style="color:var(--primary-blue);">🚀 FMCG Business Dashboard Overview</h3>
             <div style="display:flex; gap:6px;">
@@ -1695,6 +1771,14 @@ img,svg,video,canvas{max-width:100%;height:auto}
         </div>
         </div>
         <div id="bookerDashboardView" style="display:none;">
+            <div id="ftBookerBusinessIdentity" class="ft-dashboard-business-identity ft-booker-business-identity">
+              <div class="ft-dashboard-brand-mark" id="ftBookerBrandMark">FT</div>
+              <div class="ft-dashboard-business-copy">
+                <div class="ft-dashboard-business-name" id="ftBookerBusinessName">Your Distribution</div>
+                <div id="ftBookerBusinessMeta">FMCG Sales & Distribution</div>
+                <div id="ftBookerBusinessContact">--</div>
+              </div>
+            </div>
             <div class="ft-booker-hero">
                 <div><div class="ft-booker-kicker">MY BUSINESS DASHBOARD</div><h3>👤 <span id="bookerDashName">Booker</span></h3><p>Only your shops, sales, recovery, returns, discounts and market credit are shown here.</p></div>
                 <div class="ft-booker-status">FIELD BOOKER</div>
@@ -1754,10 +1838,14 @@ img,svg,video,canvas{max-width:100%;height:auto}
                         <select id="posShopSelect" onchange="updatePrevShopName()"></select>
                     </div>
                 </div>
+                <div id="ftBookerAutoAssignmentNotice" class="ft-auto-assignment-notice" style="display:none;">
+                    <span>🔒</span>
+                    <div><strong>Automatic Assignment</strong><small>Booker and Supply Man are linked to your login. They will be added automatically to every invoice.</small></div>
+                </div>
 
                 <h4 style="color: var(--primary-blue); margin: 10px 0 6px 0;">Add Products</h4>
                 
-                <div style="display: grid; grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 1fr auto; gap: 4px; margin-bottom: 6px; align-items: flex-end;">
+                <div id="posProductEntryGrid" style="display: grid; grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 1fr auto; gap: 4px; margin-bottom: 6px; align-items: flex-end;">
                     <div class="form-group">
                         <label>Search/Select Product:</label>
                         <input type="text" id="posStockInput" list="stockDatalist" placeholder="🔍 Type/Select Product..." onchange="autoFillItemDetails()">
@@ -2788,6 +2876,13 @@ img,svg,video,canvas{max-width:100%;height:auto}
                     <option value="Supply Man">Supply Man</option>
                     <option value="Custom">Custom Role</option>
                 </select>
+                <div id="newAssignedBookerWrap" class="form-group" style="display:none;">
+                    <label>Assigned Booker for this Supply Man</label>
+                    <select id="newAssignedBooker">
+                        <option value="">Select Booker</option>
+                    </select>
+                    <small style="color:#64748b;">This Supply Man will be permanently linked to the selected Booker.</small>
+                </div>
             </div>
             
             <h5 style="margin-top:10px; color:var(--primary-blue);">Module Permissions (Custom Access):</h5>
@@ -2825,7 +2920,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
 
         <div class="table-responsive">
             <table>
-                <thead><tr><th>Username</th><th>Role</th><th>Allowed Access Modules</th><th>Action</th></tr></thead>
+                <thead><tr><th>Username</th><th>Role</th><th>Assigned Booker</th><th>Allowed Access Modules</th><th>Action</th></tr></thead>
                 <tbody id="usersTable"></tbody>
             </table>
         </div>
@@ -3160,7 +3255,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
     }
 
     function populateSupplyManDropdowns() {
-        const supplyMen = dbUsers.filter(u => u.role === 'Supply Man' || u.role === 'Admin').map(u => u.username);
+        const supplyMen = dbUsers.filter(u => u.role === 'Supply Man' || u.role === 'Admin').filter(u => currentUser && currentUser.role === 'Order Booker' ? (u.role === 'Supply Man' && String(u.assignedBooker||'').toLowerCase() === String(currentUser.username).toLowerCase()) : true).map(u => u.username);
         let sOpts = supplyMen.map(s => `<option value="${s}">${s}</option>`).join('');
         if(document.getElementById('posSupplyManSelect')) document.getElementById('posSupplyManSelect').innerHTML = sOpts;
         if(document.getElementById('kpoSupplyManSelect')) document.getElementById('kpoSupplyManSelect').innerHTML = sOpts;
@@ -4724,14 +4819,14 @@ function addNewUser() {
         }
 
         if(editIdx >= 0 && editIdx < dbUsers.length) {
-            dbUsers[editIdx] = { username, pass, role, permissions: perms };
+            dbUsers[editIdx] = { username, pass, role, permissions: perms, assignedBooker: role === 'Supply Man' ? (document.getElementById('newAssignedBooker')?.value || '') : '' };
             alert('یوزر کی معلومات کامیابی سے تبدیل ہو گئی ہیں!');
         } else {
             let existingIdx = dbUsers.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
             if(existingIdx >= 0) {
-                dbUsers[existingIdx] = { username, pass, role, permissions: perms };
+                dbUsers[existingIdx] = { username, pass, role, permissions: perms, assignedBooker: role === 'Supply Man' ? (document.getElementById('newAssignedBooker')?.value || '') : '' };
             } else {
-                dbUsers.push({ username, pass, role, permissions: perms });
+                dbUsers.push({ username, pass, role, permissions: perms, assignedBooker: role === 'Supply Man' ? (document.getElementById('newAssignedBooker')?.value || '') : '' });
             }
             alert('نیا یوزر کامیابی سے شامل ہو گیا!');
         }
@@ -4780,6 +4875,7 @@ function renderUsersTable() {
             <tr>
                 <td><strong>${u.username}</strong></td>
                 <td>${u.role}</td>
+                <td>${u.role === 'Supply Man' ? (u.assignedBooker || '<span style="color:#dc3545;">Not Assigned</span>') : '—'}</td>
                 <td>${u.permissions.includes('ALL') ? '<strong style="color:#38ef7d;">Full Access (Admin)</strong>' : u.permissions.length + ' Modules Allowed'}</td>
                 <td>
                     <button class="btn-edit" onclick="editUserRecord(${i})">Edit ✏️</button>
@@ -6766,7 +6862,7 @@ document.addEventListener('DOMContentLoaded',function(){
   const txns=()=>get(TKEY);
   const dists=()=>get(DKEY);
   function ensureOwner(){
-    const role=String(window.currentUser?.role||'Admin');
+    const role=String(currentUser?.role||'Admin');
     if(role!=='Admin' && role!=='Owner') { alert('Only Admin/Owner can manage investors.'); return false; }
     return true;
   }
@@ -7012,5 +7108,180 @@ document.addEventListener('DOMContentLoaded',function(){injectBackButton();docum
 window.addEventListener('resize',function(){if(!isMobile())closeDrawer();});
 })();
 </script>
+<script id="ft-v21-auto-assignment-profile">
+(function(){
+  function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
+  function bookerNames(){
+    return (dbUsers||[]).filter(u=>u.role==='Order Booker').map(u=>u.username);
+  }
+  function refreshAssignedBookerOptions(selected){
+    const el=document.getElementById('newAssignedBooker'); if(!el)return;
+    const names=bookerNames();
+    el.innerHTML='<option value="">Select Booker</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    if(selected && names.includes(selected))el.value=selected;
+  }
+  function syncAssignedField(){
+    const role=document.getElementById('newUserRole')?.value;
+    const wrap=document.getElementById('newAssignedBookerWrap');
+    if(wrap)wrap.style.display=role==='Supply Man'?'block':'none';
+    if(role==='Supply Man')refreshAssignedBookerOptions(document.getElementById('newAssignedBooker')?.value||'');
+  }
+  window.ftRefreshAssignedBookerOptions=refreshAssignedBookerOptions;
+  window.ftSyncAssignedField=syncAssignedField;
+
+  const role=document.getElementById('newUserRole');
+  if(role)role.addEventListener('change',syncAssignedField);
+  document.addEventListener('DOMContentLoaded',syncAssignedField);
+
+  if(typeof window.editUserRecord==='function' && !window.__ftV21EditUserPatched){
+    const oldEdit=window.editUserRecord;
+    window.editUserRecord=function(index){
+      oldEdit.apply(this,arguments);
+      const u=dbUsers?.[index];
+      refreshAssignedBookerOptions(u?.assignedBooker||'');
+      syncAssignedField();
+    };
+    window.__ftV21EditUserPatched=true;
+  }
+  if(typeof window.resetUserForm==='function' && !window.__ftV21ResetUserPatched){
+    const oldReset=window.resetUserForm;
+    window.resetUserForm=function(){
+      oldReset.apply(this,arguments);
+      refreshAssignedBookerOptions('');
+      syncAssignedField();
+    };
+    window.__ftV21ResetUserPatched=true;
+  }
+
+  function applyBookerAutoAssignment(){
+    if(!currentUser)return;
+    if(currentUser.role!=='Order Booker'){
+      const bg=document.getElementById('posBookerGroup'); if(bg)bg.style.display='';
+      const sg=document.getElementById('posSupplyManSelect')?.closest('.form-group'); if(sg)sg.style.display='';
+      const n=document.getElementById('ftBookerAutoAssignmentNotice'); if(n)n.style.display='none';
+      return;
+    }
+    const booker=currentUser.username;
+    const bookerEl=document.getElementById('posBookerSelect');
+    const recBooker=document.getElementById('recBookerSelect');
+    const shopBooker=document.getElementById('newShopBooker');
+    if(bookerEl){bookerEl.value=booker;bookerEl.disabled=true}
+    if(recBooker){recBooker.value=booker;recBooker.disabled=true}
+    if(shopBooker){shopBooker.value=booker;shopBooker.disabled=true}
+    const bookerGroup=document.getElementById('posBookerGroup');
+    if(bookerGroup)bookerGroup.style.display='none';
+
+    const supply=(dbUsers||[]).find(u=>u.role==='Supply Man' && String(u.assignedBooker||'').toLowerCase()===String(booker).toLowerCase());
+    const sel=document.getElementById('posSupplyManSelect');
+    const supplyGroup=sel?.closest('.form-group');
+    if(supplyGroup)supplyGroup.style.display='none';
+    if(sel){
+      sel.innerHTML=supply?`<option value="${esc(supply.username)}">${esc(supply.username)}</option>`:'<option value="">No Supply Man Assigned</option>';
+      sel.value=supply?supply.username:'';
+      sel.disabled=true;
+    }
+    const notice=document.getElementById('ftBookerAutoAssignmentNotice');
+    if(notice){
+      notice.style.display='flex';
+      const small=notice.querySelector('small');
+      if(small)small.textContent=supply
+        ? `Booker: ${booker} • Supply Man: ${supply.username}. Both will be added automatically to every invoice.`
+        : `Booker: ${booker}. No Supply Man is assigned yet; Admin must assign one in User Roles.`;
+    }
+  }
+  window.ftApplyBookerAutoAssignment=applyBookerAutoAssignment;
+
+  const oldPopulateSupply=window.populateSupplyManDropdowns;
+  if(typeof oldPopulateSupply==='function'){
+    window.populateSupplyManDropdowns=function(){
+      oldPopulateSupply.apply(this,arguments);
+      if(currentUser?.role==='Order Booker')applyBookerAutoAssignment();
+    };
+  }
+
+  const oldFilter=window.filterPosShopsByBooker;
+  if(typeof oldFilter==='function'){
+    window.filterPosShopsByBooker=function(){
+      const r=oldFilter.apply(this,arguments);
+      if(currentUser?.role==='Order Booker')applyBookerAutoAssignment();
+      return r;
+    };
+  }
+
+  const oldApply=window.applyUserAccessPermissions;
+  if(typeof oldApply==='function'&&!window.__ftV21ApplyPatched){
+    window.applyUserAccessPermissions=function(){
+      const r=oldApply.apply(this,arguments);
+      if(currentUser?.role==='Order Booker')applyBookerAutoAssignment();
+      const roleEl=document.getElementById('userRoleBadge');
+      if(roleEl)roleEl.textContent=currentUser?.role||'';
+      const name=currentUser?.username||'A';
+      const av=document.getElementById('ftProfileAvatar'), mav=document.getElementById('ftMenuAvatar');
+      if(av)av.textContent=String(name).charAt(0).toUpperCase();
+      if(mav)mav.textContent=String(name).charAt(0).toUpperCase();
+      const mn=document.getElementById('ftMenuUserName'), mr=document.getElementById('ftMenuRole');
+      if(mn)mn.textContent=name.toUpperCase();
+      if(mr)mr.textContent=currentUser?.role||'';
+      refreshAssignedBookerOptions('');
+      return r;
+    };
+    window.__ftV21ApplyPatched=true;
+  }
+
+  const oldSave=window.savePosInvoice;
+  if(typeof oldSave==='function'&&!window.__ftV21SavePosPatched){
+    window.savePosInvoice=function(print){
+      if(currentUser?.role==='Order Booker'){
+        applyBookerAutoAssignment();
+        const b=document.getElementById('posBookerSelect'), s=document.getElementById('posSupplyManSelect');
+        if(b)b.value=currentUser.username;
+        if(s && !s.value)return alert('No Supply Man is assigned to this Booker. Admin must assign one in User Roles.');
+      }
+      return oldSave.apply(this,arguments);
+    };
+    window.__ftV21SavePosPatched=true;
+  }
+
+  window.toggleUserProfileMenu=function(){
+    document.getElementById('ftUserProfileMenu')?.classList.toggle('open');
+  };
+  document.addEventListener('click',function(e){
+    const btn=document.getElementById('ftProfileButton'),menu=document.getElementById('ftUserProfileMenu');
+    if(menu && !menu.contains(e.target) && btn && !btn.contains(e.target))menu.classList.remove('open');
+  });
+
+  function renderBusinessIdentity(){
+    let st={};try{st=JSON.parse(localStorage.getItem('fatimaTechOwnerSettings')||'{}')}catch(e){}
+    const name=st.companyName||'YOUR DISTRIBUTION';
+    const meta='FMCG SALES & DISTRIBUTION';
+    const contact=[st.address,st.phone,st.tax?('NTN/STRN: '+st.tax):''].filter(Boolean).join(' • ')||'Professional Distribution ERP';
+    ['ftDashboardBusinessName','ftBookerBusinessName','ftTopBusinessName'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=name});
+    ['ftDashboardBusinessMeta','ftBookerBusinessMeta'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=meta});
+    ['ftDashboardBusinessContact','ftBookerBusinessContact'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=contact});
+    const mark=(name.replace(/[^A-Za-z]/g,'').slice(0,2)||'FT').toUpperCase();
+    ['ftDashboardBrandMark','ftBookerBrandMark'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mark});
+  }
+  window.ftRenderBusinessIdentity=renderBusinessIdentity;
+
+  const oldRenderDash=window.renderDashboard;
+  if(typeof oldRenderDash==='function'&&!window.__ftV21DashPatched){
+    window.renderDashboard=function(){
+      renderBusinessIdentity();
+      const r=oldRenderDash.apply(this,arguments);
+      if(currentUser?.role==='Order Booker'&&typeof window.renderBookerDashboard==='function')window.renderBookerDashboard();
+      return r;
+    };
+    window.__ftV21DashPatched=true;
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      renderBusinessIdentity();
+      syncAssignedField();
+      if(currentUser?.role==='Order Booker')applyBookerAutoAssignment();
+    },250);
+  });
+})();
+</script>
+
 </body>
 </html>
