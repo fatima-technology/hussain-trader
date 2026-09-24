@@ -9661,7 +9661,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     const a=invs();
     body.innerHTML=a.map((p,i)=>{
       const id=esc45(p.id||i);
-      return '<tr><td><input type="checkbox" value="'+id+'"></td><td><strong>'+esc45(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+esc45(p.date||'')+'</td><td>'+esc45(p.supplier||'--')+'</td><td>'+esc45(p.category||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+money45(p.totalAmt)+'</td><td>'+money45(p.paidNow)+'</td><td><strong>'+money45(p.dueAmount)+'</strong></td><td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice('+JSON.stringify(p.id||i)+')">✏️ Edit</button> <button type="button" class="btn-delete" onclick="ftDeletePurchaseInvoice('+JSON.stringify(p.id||i)+')">🗑 Delete</button></td></tr>';
+      return '<tr><td><input type="checkbox" value="'+id+'"></td><td><strong>'+esc45(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+esc45(p.date||'')+'</td><td>'+esc45(p.supplier||'--')+'</td><td>'+esc45(p.category||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+money45(p.totalAmt)+'</td><td>'+money45(p.paidNow)+'</td><td><strong>'+money45(p.dueAmount)+'</strong></td><td style="white-space:nowrap"><button type="button" class="btn-edit" data-purchase-id="'+id+'" onclick="ftEditPurchaseInvoice(this.dataset.purchaseId)">✏️ Edit</button> <button type="button" class="btn-delete" data-purchase-id="'+id+'" onclick="ftDeletePurchaseInvoice(this.dataset.purchaseId)">🗑 Delete</button></td></tr>';
     }).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
   }
   window.renderPurchaseInvoicesList=renderList45;
@@ -9669,7 +9669,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   function renderAction45(){
     const body=document.getElementById('ftPurchaseInvoiceActionsTbody'); if(!body)return;
     const a=invs();
-    body.innerHTML=a.map((p,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc45(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+esc45(p.date||'')+'</td><td>'+esc45(p.supplier||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+money45(p.totalAmt)+'</td><td>'+money45(p.paidNow)+'</td><td><strong>'+money45(p.dueAmount)+'</strong></td><td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice('+JSON.stringify(p.id||i)+')">✏️ Edit</button> <button type="button" class="btn-delete" onclick="ftDeletePurchaseInvoiceFromStockReport('+JSON.stringify(p.id||i)+')">🗑 Delete</button></td></tr>').join('')||'<tr><td colspan="9">No purchase invoices found.</td></tr>';
+    body.innerHTML=a.map((p,i)=>{const id=esc45(p.id||i);return '<tr><td>'+(i+1)+'</td><td><strong>'+esc45(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+esc45(p.date||'')+'</td><td>'+esc45(p.supplier||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+money45(p.totalAmt)+'</td><td>'+money45(p.paidNow)+'</td><td><strong>'+money45(p.dueAmount)+'</strong></td><td style="white-space:nowrap"><button type="button" class="btn-edit" data-purchase-id="'+id+'" onclick="ftEditPurchaseInvoice(this.dataset.purchaseId)">✏️ Edit</button> <button type="button" class="btn-delete" data-purchase-id="'+id+'" onclick="ftDeletePurchaseInvoiceFromStockReport(this.dataset.purchaseId)">🗑 Delete</button></td></tr>';}).join('')||'<tr><td colspan="9">No purchase invoices found.</td></tr>';
   }
   window.ftRenderPurchaseInvoiceActions=renderAction45;
   window.renderPurchaseInvoiceActionTable=renderAction45;
@@ -9688,5 +9688,32 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   }
   document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{renderList45();renderAction45();},800);setTimeout(()=>{renderList45();renderAction45();},1600);});
   setTimeout(()=>{renderList45();renderAction45();},1800);
+})();
+</script>
+
+<script id="ft-v49-purchase-crud-click-fix">
+(function(){
+  'use strict';
+  function resolveId(v){ return v==null?'':String(v); }
+  const oldEdit=window.ftEditPurchaseInvoice;
+  if(typeof oldEdit==='function'){
+    window.ftEditPurchaseInvoice=function(id){ return oldEdit.call(this,resolveId(id)); };
+  }
+  const oldDelete=window.ftDeletePurchaseInvoice;
+  if(typeof oldDelete==='function'){
+    window.ftDeletePurchaseInvoice=function(id){ return oldDelete.call(this,resolveId(id)); };
+  }
+  const oldDeleteReport=window.ftDeletePurchaseInvoiceFromStockReport;
+  if(typeof oldDeleteReport==='function'){
+    window.ftDeletePurchaseInvoiceFromStockReport=function(id){ return oldDelete.call(this,resolveId(id)); };
+  }
+  function rerender(){
+    try{ if(typeof window.renderPurchaseInvoicesList==='function')window.renderPurchaseInvoicesList(); }catch(e){}
+    try{ if(typeof window.ftRenderPurchaseInvoiceActions==='function')window.ftRenderPurchaseInvoiceActions(); }catch(e){}
+    try{ if(typeof window.renderPurchaseStockReport==='function')window.renderPurchaseStockReport(); }catch(e){}
+    try{ if(typeof window.renderLiveStockInventory==='function')window.renderLiveStockInventory(); }catch(e){}
+  }
+  window.ftRefreshPurchaseCrud=rerender;
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(rerender,500));
 })();
 </script>
