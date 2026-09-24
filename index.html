@@ -9438,3 +9438,131 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 
+
+<!-- FATIMA TECH v45 — AUTHORITATIVE PURCHASE INVOICE CRUD + VIEW SYNC -->
+<script id="ft-v45-purchase-crud-final">
+(function(){
+  'use strict';
+  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+  const esc45=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const qty45=it=>num(it&&it.totalPcs!=null?it.totalPcs:(num(it&&it.cartonQty)*num(it&&it.pcsPerCarton||24)+num(it&&it.pieceQty||it&&it.pcsQty)));
+  const invs=()=>Array.isArray(window.dbPurchaseInvoices)?window.dbPurchaseInvoices:[];
+  const stock=()=>Array.isArray(window.dbStock)?window.dbStock:[];
+  const key=v=>String(v||'').trim().toUpperCase();
+  const money45=v=>'Rs. '+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  function persist45(){
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(invs()));
+    localStorage.setItem('ht_stock',JSON.stringify(stock()));
+  }
+  function refresh45(){
+    persist45();
+    try{ if(typeof window.refresh==='function') window.refresh(); }catch(e){}
+    try{ if(typeof window.renderPurchaseInvoicesList==='function') window.renderPurchaseInvoicesList(); }catch(e){}
+    try{ if(typeof window.renderPurchaseStockReport==='function') window.renderPurchaseStockReport(); }catch(e){}
+    try{ if(typeof window.renderSupplierDueReport==='function') window.renderSupplierDueReport(); }catch(e){}
+    try{ if(typeof window.renderLiveStockInventory==='function') window.renderLiveStockInventory(); }catch(e){}
+    try{ if(typeof window.ftRenderFinance==='function') window.ftRenderFinance(); }catch(e){}
+    try{ if(typeof window.ftRenderPurchaseInvoiceActions==='function') window.ftRenderPurchaseInvoiceActions(); }catch(e){}
+    try{ if(typeof window.renderPurchaseInvoiceActionTable==='function') window.renderPurchaseInvoiceActionTable(); }catch(e){}
+  }
+  window.ftRefreshPurchaseViews=refresh45;
+
+  function findIndexById(id){
+    const a=invs(); let i=a.findIndex(p=>String(p.id||'')===String(id||''));
+    if(i<0 && typeof id==='number' && a[id]) i=id;
+    return i;
+  }
+  function canReverse45(p){
+    for(const it of (p.items||[])){
+      const st=stock().find(x=>key(x.name)===key(it.name));
+      if(!st || num(st.qty)+1e-8<qty45(it)) return false;
+    }
+    return true;
+  }
+  function reverseStock45(p){
+    (p.items||[]).forEach(it=>{
+      const st=stock().find(x=>key(x.name)===key(it.name));
+      if(st) st.qty=Math.max(0,num(st.qty)-qty45(it));
+    });
+  }
+
+  window.ftDeletePurchaseInvoice=function(id){
+    const a=invs(), i=findIndexById(id), p=i>=0?a[i]:null;
+    if(!p)return alert('Purchase invoice not found. Please refresh the page and try again.');
+    const label=p.invNo||p.invoiceNo||p.id||String(i);
+    const safe=canReverse45(p);
+    const msg=safe
+      ? 'Delete Purchase Invoice '+label+'?\n\nThis will delete the purchase record, reverse its remaining stock, remove its paid/due effect from the purchase history, and refresh Stock/Finance.'
+      : 'Delete Purchase Invoice '+label+'?\n\nSome of its stock is already sold/used/missing. The purchase record will be deleted, but unavailable stock will NOT be recreated or made negative.\n\nContinue?';
+    if(!confirm(msg))return;
+    if(safe) reverseStock45(p);
+    a.splice(i,1);
+    persist45();
+    try{if(typeof window.audit2==='function')window.audit2('DELETE','Purchase Invoice',label,safe?'Deleted purchase and reversed remaining stock.':'Deleted purchase record; consumed/missing stock left unchanged.');}catch(e){}
+    refresh45();
+    alert(safe?'Purchase invoice '+label+' deleted and remaining stock reversed.':'Purchase invoice '+label+' deleted. Consumed/missing stock was left unchanged.');
+  };
+  window.deletePurchaseInvoice=function(id){ window.ftDeletePurchaseInvoice(id); };
+  window.ftDeletePurchaseInvoiceFromStockReport=function(id){ window.ftDeletePurchaseInvoice(id); };
+
+  window.ftEditPurchaseInvoice=function(id){
+    const a=invs(), i=findIndexById(id), p=i>=0?a[i]:null;
+    if(!p)return alert('Purchase invoice not found. Please refresh the page and try again.');
+    if(!canReverse45(p))return alert('This purchase cannot be edited safely because some of its stock has already been sold/used or is missing. Delete/adjust the affected stock first.');
+    const label=p.invNo||p.invoiceNo||p.id||String(i);
+    if(!confirm('Edit Purchase Invoice '+label+'?\n\nThe current purchase will be reversed and loaded into Purchase Entry. Nothing will be finally deleted until you save the corrected invoice.'))return;
+    reverseStock45(p);
+    a.splice(i,1);
+    persist45();
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v==null?'':v;};
+    set('purInvDate',p.date||'');
+    set('purSupplierName',p.supplier||'');
+    set('purInvoiceNo',p.invNo||p.invoiceNo||'');
+    set('purCategory',p.category||'General');
+    set('purPaymentType',p.requestedPaymentType||String(p.paymentType||'Credit').replace(' + Due',''));
+    if(Array.isArray(window.currentPurInvoiceItems)){
+      window.currentPurInvoiceItems.length=0;
+      (p.items||[]).forEach(it=>window.currentPurInvoiceItems.push({...it}));
+    }
+    try{if(typeof window.renderPurInvoiceItemsTable==='function')window.renderPurInvoiceItemsTable();}catch(e){}
+    try{if(typeof window.updatePurchasePaymentSummary==='function')window.updatePurchasePaymentSummary();}catch(e){}
+    try{if(typeof window.openTab==='function')window.openTab('stockPurchaseTab');}catch(e){}
+    refresh45();
+    alert('Purchase invoice '+label+' loaded into Purchase Entry. Correct it and press Save Purchase Invoice.');
+  };
+
+  function renderList45(){
+    const body=document.getElementById('purInvoicesListTbody'); if(!body)return;
+    const a=invs();
+    body.innerHTML=a.map((p,i)=>{
+      const id=esc45(p.id||i);
+      return '<tr><td><input type="checkbox" value="'+id+'"></td><td><strong>'+esc45(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+esc45(p.date||'')+'</td><td>'+esc45(p.supplier||'--')+'</td><td>'+esc45(p.category||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+money45(p.totalAmt)+'</td><td>'+money45(p.paidNow)+'</td><td><strong>'+money45(p.dueAmount)+'</strong></td><td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice('+JSON.stringify(p.id||i)+')">✏️ Edit</button> <button type="button" class="btn-delete" onclick="ftDeletePurchaseInvoice('+JSON.stringify(p.id||i)+')">🗑 Delete</button></td></tr>';
+    }).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderList45;
+
+  function renderAction45(){
+    const body=document.getElementById('ftPurchaseInvoiceActionsTbody'); if(!body)return;
+    const a=invs();
+    body.innerHTML=a.map((p,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc45(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+esc45(p.date||'')+'</td><td>'+esc45(p.supplier||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+money45(p.totalAmt)+'</td><td>'+money45(p.paidNow)+'</td><td><strong>'+money45(p.dueAmount)+'</strong></td><td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice('+JSON.stringify(p.id||i)+')">✏️ Edit</button> <button type="button" class="btn-delete" onclick="ftDeletePurchaseInvoiceFromStockReport('+JSON.stringify(p.id||i)+')">🗑 Delete</button></td></tr>').join('')||'<tr><td colspan="9">No purchase invoices found.</td></tr>';
+  }
+  window.ftRenderPurchaseInvoiceActions=renderAction45;
+  window.renderPurchaseInvoiceActionTable=renderAction45;
+
+  function syncAfterTab45(){
+    setTimeout(()=>{renderList45();renderAction45();},50);
+    setTimeout(()=>{renderList45();renderAction45();},350);
+  }
+  const oldOpen45=window.openTab;
+  if(typeof oldOpen45==='function'){
+    window.openTab=function(id,btn){
+      const r=oldOpen45.apply(this,arguments);
+      if(['purchaseInvoiceListTab','purchaseStockReportTab','supplierDueTab','liveStockTab'].includes(id))syncAfterTab45();
+      return r;
+    };
+  }
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{renderList45();renderAction45();},800);setTimeout(()=>{renderList45();renderAction45();},1600);});
+  setTimeout(()=>{renderList45();renderAction45();},1800);
+})();
+</script>
