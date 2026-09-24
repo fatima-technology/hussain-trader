@@ -8562,6 +8562,98 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   try{localStorage.setItem('ht_stock',JSON.stringify(window.dbStock||[]));}catch(e){}
 })();
 </script>
+
+<style id="ft-v39-pos-layout-fix">
+/* =========================================================
+   FATIMA TECH V39 — POS DESKTOP/MOBILE LAYOUT FIX
+   Keep desktop POS two-column; keep mobile single-column.
+   The previous desktop media rule accidentally forced every
+   .pos-container to 1fr. This layer intentionally overrides it.
+   ========================================================= */
+@media (min-width: 901px){
+  .pos-container{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.35fr) minmax(360px,.9fr)!important;
+    gap:12px!important;
+    align-items:start!important;
+    width:100%!important;
+  }
+  .pos-container>.pos-card{
+    min-width:0!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+  #posProductEntryGrid{
+    display:grid!important;
+    grid-template-columns:minmax(170px,2fr) repeat(5,minmax(72px,1fr))!important;
+    gap:6px!important;
+    align-items:end!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+  #posProductEntryGrid .form-group{min-width:0!important;width:auto!important;}
+  #posProductEntryGrid .form-group:first-child{grid-column:span 2!important;}
+  #posProductEntryGrid .btn-add{
+    grid-column:6!important;
+    width:100%!important;
+    min-width:0!important;
+    height:36px!important;
+  }
+  #posProductEntryGrid label{
+    display:block!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+    min-height:23px!important;
+  }
+  #posProductEntryGrid input,#posProductEntryGrid select{
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  #livePreviewBox{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    font-size:9px!important;
+  }
+  #livePreviewBox .snd-table{table-layout:fixed!important;width:100%!important;}
+  #livePreviewBox .snd-table th:first-child,#livePreviewBox .snd-table td:first-child{width:34%!important;}
+  #livePreviewBox .snd-table th:nth-child(2),#livePreviewBox .snd-table td:nth-child(2){width:16%!important;}
+  #livePreviewBox .snd-table th:nth-child(3),#livePreviewBox .snd-table td:nth-child(3){width:18%!important;}
+  #livePreviewBox .snd-table th:nth-child(4),#livePreviewBox .snd-table td:nth-child(4){width:12%!important;}
+  #livePreviewBox .snd-table th:nth-child(5),#livePreviewBox .snd-table td:nth-child(5){width:20%!important;}
+  #livePreviewBox .snd-table th,#livePreviewBox .snd-table td{
+    overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px){
+  .pos-container{grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr)!important;}
+  #posProductEntryGrid{grid-template-columns:minmax(150px,2fr) repeat(5,minmax(62px,1fr))!important;gap:5px!important;}
+  #posProductEntryGrid label{font-size:9px!important;}
+}
+
+@media (max-width: 900px){
+  .pos-container{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  #posProductEntryGrid{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    align-items:end!important;
+  }
+  #posProductEntryGrid .form-group:first-child{grid-column:1/-1!important;}
+  #posProductEntryGrid .btn-add{grid-column:1/-1!important;width:100%!important;height:46px!important;}
+  #posProductEntryGrid label{font-size:11px!important;line-height:1.2!important;min-height:22px!important;}
+  #livePreviewBox{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important;}
+}
+</style>
 </body>
 
 <script id="ft-v29-purchase-render-fix">
