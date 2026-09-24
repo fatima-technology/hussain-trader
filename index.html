@@ -2838,6 +2838,20 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         </div>
     </div>
 
+    <!-- PURCHASE INVOICE ACTIONS FROM STOCK REPORT -->
+    <div id="ftPurchaseInvoiceActionsPanel" class="section-box" style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+            <h4 style="margin:0;color:var(--primary-blue);">🧾 Purchase Invoices — Edit / Delete</h4>
+            <span style="font-size:12px;font-weight:700;opacity:.8;">Delete the exact purchase invoice here. Stock and Finance will recalculate.</span>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead><tr><th>#</th><th>Invoice No.</th><th>Date</th><th>Supplier</th><th>Products</th><th>Total</th><th>Paid Now</th><th>Due</th><th>Actions</th></tr></thead>
+                <tbody id="ftPurchaseInvoiceActionsTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- SUPPLIER DUE REPORT -->
     <div id="supplierDueTab" class="tab-content">
         <h3>📒 Supplier Due / Purchase Payables</h3>
@@ -8782,6 +8796,79 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 
+
+<script id="ft-v43-purchase-invoice-actions-stock-report">
+(function(){
+  'use strict';
+  function num(v){var n=Number(v);return Number.isFinite(n)?n:0;}
+  function money(v){return 'Rs. '+Math.round(num(v)).toLocaleString();}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m;});}
+  function invoices(){return Array.isArray(window.dbPurchaseInvoices)?window.dbPurchaseInvoices:[];}
+  function render(){
+    var body=document.getElementById('ftPurchaseInvoiceActionsTbody');
+    if(!body)return;
+    var arr=invoices();
+    body.innerHTML=arr.map(function(p,i){
+      return '<tr>'+
+        '<td>'+(i+1)+'</td>'+
+        '<td><strong>'+esc(p.invNo||p.invoiceNo||'--')+'</strong></td>'+
+        '<td>'+esc(p.date||'')+'</td>'+
+        '<td>'+esc(p.supplier||'--')+'</td>'+
+        '<td>'+((p.items||[]).length)+'</td>'+
+        '<td>'+money(p.totalAmt||0)+'</td>'+
+        '<td>'+money(p.paidNow||0)+'</td>'+
+        '<td><strong>'+money(p.dueAmount||0)+'</strong></td>'+
+        '<td style="white-space:nowrap">'+
+          '<button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice('+i+')">✏️ Edit</button> '+
+          '<button type="button" class="btn-delete" onclick="ftDeletePurchaseInvoiceFromStockReport('+i+')">🗑 Delete</button>'+
+        '</td></tr>';
+    }).join('') || '<tr><td colspan="9">No purchase invoices found.</td></tr>';
+  }
+  window.ftDeletePurchaseInvoiceFromStockReport=function(index){
+    var arr=invoices(), p=arr[index];
+    if(!p)return alert('Purchase invoice not found.');
+    var label=p.invNo||p.invoiceNo||String(index+1);
+    var items=Array.isArray(p.items)?p.items:[];
+    var canReverse=true;
+    for(var i=0;i<items.length;i++){
+      var it=items[i];
+      var st=(window.dbStock||[]).find(function(x){return String(x.name||'').trim().toUpperCase()===String(it.name||'').trim().toUpperCase();});
+      var qty=num(it.totalPcs); if(!qty) qty=num(it.cartonQty)*num(it.pcsPerCarton||24)+num(it.pieceQty||it.pieces||0);
+      if(!st || num(st.qty)+0.000001<qty){canReverse=false;break;}
+    }
+    var message=canReverse
+      ? 'Delete Purchase Invoice '+label+'?\n\nThis will remove this purchase record, reverse its remaining stock, remove its supplier due/payment effect, and recalculate Finance.'
+      : 'Delete Purchase Invoice '+label+'?\n\nSome stock from this invoice is already missing/used. The invoice will be deleted, but consumed/missing stock will NOT be restored or made negative. Finance and supplier due will recalculate.';
+    if(!confirm(message))return;
+    if(canReverse){
+      items.forEach(function(it){
+        var st=(window.dbStock||[]).find(function(x){return String(x.name||'').trim().toUpperCase()===String(it.name||'').trim().toUpperCase();});
+        if(st){var qty=num(it.totalPcs);if(!qty)qty=num(it.cartonQty)*num(it.pcsPerCarton||24)+num(it.pieceQty||it.pieces||0);st.qty=Math.max(0,num(st.qty)-qty);}
+      });
+    }
+    arr.splice(index,1);
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(arr));
+    localStorage.setItem('ht_stock',JSON.stringify(window.dbStock||[]));
+    try{if(typeof window.audit2==='function')window.audit2('DELETE','Purchase Invoice',label,canReverse?'Deleted from Stock Report; stock reversed.':'Deleted from Stock Report; consumed/missing stock left unchanged.');}catch(e){}
+    if(typeof window.refresh==='function')window.refresh();
+    if(typeof window.renderPurchaseInvoicesList==='function')window.renderPurchaseInvoicesList();
+    if(typeof window.renderPurchaseStockReport==='function')window.renderPurchaseStockReport();
+    if(typeof window.renderSupplierDueReport==='function')window.renderSupplierDueReport();
+    if(typeof window.renderLiveStockInventory==='function')window.renderLiveStockInventory();
+    if(typeof window.ftRenderFinance==='function')window.ftRenderFinance();
+    render();
+    alert(canReverse?'Purchase invoice '+label+' deleted. Stock and Finance recalculated.':'Purchase invoice '+label+' deleted. Existing consumed/missing stock was left unchanged; Finance recalculated.');
+  };
+  var oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV43PurchaseStockReportHook){
+    window.openTab=function(id,btn){var r=oldOpen.apply(this,arguments);if(id==='purchaseStockReportTab')setTimeout(render,25);return r;};
+    window.__ftV43PurchaseStockReportHook=true;
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(render,700);});
+  setTimeout(render,1200);
+})();
+</script>
+
 </body>
 
 <script id="ft-v29-purchase-render-fix">
@@ -9296,3 +9383,4 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,900)); setTimeout(boot,1400);
 })();
 </script>
+
