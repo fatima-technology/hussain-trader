@@ -9952,4 +9952,103 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshAll,700));
 })();
 </script>
+
+<!-- FATIMA TECH v52 — AUTHORITATIVE PURCHASE SAVE / STOCK COMMIT FIX -->
+<script id="ft-v52-purchase-save-authoritative">
+(function(){
+  'use strict';
+  const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+  const KEY=v=>String(v==null?'':v).trim().toUpperCase();
+  function read(key){try{const a=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+  function write(){
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(window.dbPurchaseInvoices||[]));
+    localStorage.setItem('ht_stock',JSON.stringify(window.dbStock||[]));
+  }
+  function refreshAll(){
+    const fns=['renderPurchaseInvoicesList','renderPurchaseStockReport','renderSupplierDueReport','renderLiveStockInventory','ftRenderFinance','renderDashboard','updateStockDatalist','updatePurchasePaymentSummary'];
+    fns.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}});
+    setTimeout(()=>fns.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}}),120);
+    setTimeout(()=>fns.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}}),500);
+  }
+  window.ftSavePurchaseAuthoritative=function(print){
+    try{
+      const items=Array.isArray(window.currentPurInvoiceItems)?window.currentPurInvoiceItems:[];
+      if(!items.length)return alert('Purchase invoice is empty.');
+      const date=document.getElementById('purInvDate')?.value||new Date().toISOString().slice(0,10);
+      const supplier=(document.getElementById('purSupplierName')?.value||'').trim();
+      const invNo=(document.getElementById('purInvoiceNo')?.value||'').trim();
+      const category=document.getElementById('purCategory')?.value||'General';
+      const requested=(document.getElementById('purPaymentType')?.value||'Cash').trim();
+      if(!supplier||!invNo)return alert('Supplier Name and Purchase Invoice No are required.');
+      const invoices=read('ht_purchase_invoices');
+      if(invoices.some(p=>String(p.invNo||p.invoiceNo||'').trim().toUpperCase()===invNo.toUpperCase()))return alert('This Purchase Invoice No already exists. Use a different invoice number.');
+      const snapshot=items.map((x,i)=>{
+        const pack=Math.max(1,N(x.pcsPerCarton)||24);
+        const ctn=Math.max(0,N(x.cartonQty));
+        const pcs=Math.max(0,N(x.pieceQty!=null?x.pieceQty:(x.pcsQty!=null?x.pcsQty:0)));
+        const totalPcs=ctn*pack+pcs;
+        const cartonCost=N(x.cartonCost!=null?x.cartonCost:N(x.pieceCost)*pack);
+        const pieceCost=cartonCost/pack;
+        const tradePiece=N(x.tradePricePiece!=null?x.tradePricePiece:x.tradePrice);
+        const retailPiece=N(x.retailPricePiece!=null?x.retailPricePiece:x.retailPrice);
+        const subtotal=N(x.subtotal)>0?N(x.subtotal):(ctn*cartonCost+pcs*pieceCost);
+        return {...x,sku:x.sku||('SKU-'+Date.now().toString().slice(-6)+'-'+i),name:String(x.name||'').trim().toUpperCase(),category:x.category||category,pcsPerCarton:pack,cartonQty:ctn,pieceQty:pcs,totalPcs,cartonCost,pieceCost,tradePrice:tradePiece,tradePricePiece:tradePiece,tradePriceCarton:N(x.tradePriceCarton)||tradePiece*pack,retailPrice:retailPiece,retailPricePiece:retailPiece,retailPriceCarton:N(x.retailPriceCarton)||retailPiece*pack,subtotal};
+      });
+      const total=snapshot.reduce((a,x)=>a+N(x.subtotal),0);
+      if(total<=0)return alert('Purchase invoice total must be greater than zero.');
+      // Re-read finance state at save time. Capital/investment remains untouched.
+      const state=typeof window.cashState==='function'?window.cashState(date):{cash:0,bank:0};
+      let paid=0,due=total;
+      if(requested!=='Credit'){
+        const available=Math.max(0,N(requested==='Bank'?state.bank:state.cash));
+        paid=Math.min(total,available); due=total-paid;
+      }
+      const purchase={id:'PUR_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),invNo,date,supplier,category,paymentType:requested==='Credit'?'Credit':(due>0?requested+' + Due':requested),requestedPaymentType:requested,totalAmt:total,paidNow:paid,dueAmount:due,items:snapshot,status:due>0?'Due':'Paid'};
+      const stock=read('ht_stock');
+      // Commit invoice + stock together in memory first.
+      snapshot.forEach(item=>{
+        let st=stock.find(x=>KEY(x.name)===KEY(item.name));
+        if(!st){
+          st={id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:item.sku,brand:item.brand||'',category:item.category||category,name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton,qty:0,costPrice:item.pieceCost,tradePrice:item.tradePricePiece,tradePricePiece:item.tradePricePiece,tradePriceCarton:item.tradePriceCarton,retailPrice:item.retailPricePiece,retailPricePiece:item.retailPricePiece,retailPriceCarton:item.retailPriceCarton};
+          stock.push(st);
+        }
+        st.qty=N(st.qty)+N(item.totalPcs);
+        st.pcsPerCarton=item.pcsPerCarton;
+        st.costPrice=item.pieceCost;
+        st.tradePrice=item.tradePricePiece;st.tradePricePiece=item.tradePricePiece;st.tradePriceCarton=item.tradePriceCarton;
+        st.retailPrice=item.retailPricePiece;st.retailPricePiece=item.retailPricePiece;st.retailPriceCarton=item.retailPriceCarton;
+        if(item.brand)st.brand=item.brand;if(item.category)st.category=item.category;if(item.imageData)st.imageData=item.imageData;
+        st.lastPurchaseDate=date;
+      });
+      invoices.push(purchase);
+      window.dbPurchaseInvoices=invoices;
+      window.dbStock=stock;
+      // Also update lexical globals used by legacy functions when they exist.
+      try{if(typeof dbPurchaseInvoices!=='undefined')dbPurchaseInvoices=invoices}catch(e){}
+      try{if(typeof dbStock!=='undefined')dbStock=stock}catch(e){}
+      write();
+      // Verify persistence before showing success.
+      const verifyInv=read('ht_purchase_invoices').some(p=>String(p.id)===String(purchase.id));
+      const verifyStock=read('ht_stock').some(st=>snapshot.some(it=>KEY(it.name)===KEY(st.name)&&N(st.qty)>=N(it.totalPcs)));
+      if(!verifyInv||!verifyStock)throw new Error('Purchase transaction was not persisted correctly.');
+      try{if(typeof window.audit2==='function')window.audit2('CREATE','Purchase Invoice',purchase.id,'Purchase '+invNo+' saved with '+snapshot.length+' product(s); stock committed.');}catch(e){}
+      // Clear current entry only after persistence succeeds.
+      window.currentPurInvoiceItems=[];
+      try{if(typeof currentPurInvoiceItems!=='undefined')currentPurInvoiceItems=[]}catch(e){}
+      try{if(typeof window.renderPurInvoiceItemsTable==='function')window.renderPurInvoiceItemsTable()}catch(e){}
+      refreshAll();
+      alert('Purchase invoice saved successfully.\n\nInvoice: '+invNo+'\nProducts: '+snapshot.length+'\nStock: '+snapshot.reduce((a,x)=>a+N(x.totalPcs),0).toLocaleString()+' pcs\nTotal: Rs. '+total.toLocaleString()+'\nPaid Now: Rs. '+paid.toLocaleString()+'\nSupplier Due: Rs. '+due.toLocaleString());
+      if(print&&typeof window.printPurchaseInvoice==='function')try{window.printPurchaseInvoice(purchase.id)}catch(e){}
+      return true;
+    }catch(err){alert('Purchase save failed: '+(err&&err.message?err.message:err));return false;}
+  };
+  // This is the final handler. The earlier layered wrappers are intentionally bypassed.
+  window.saveCompletePurchaseInvoice=window.ftSavePurchaseAuthoritative;
+  // Repair the save button so it always reaches the authoritative handler.
+  document.addEventListener('DOMContentLoaded',function(){
+    const btn=[...document.querySelectorAll('button')].find(b=>/Save Purchase Invoice/i.test(b.textContent||''));
+    if(btn){btn.onclick=function(e){e.preventDefault();return window.ftSavePurchaseAuthoritative(false)}}
+  });
+})();
+</script>
 </html>
