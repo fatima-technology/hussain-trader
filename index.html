@@ -8869,6 +8869,60 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 
+
+<script id="ft-v44-purchase-delete-sync-fix">
+(function(){
+  'use strict';
+  function refreshPurchaseViews(){
+    try{ if(typeof window.renderPurchaseInvoicesList==='function') window.renderPurchaseInvoicesList(); }catch(e){}
+    try{ if(typeof window.renderPurchaseStockReport==='function') window.renderPurchaseStockReport(); }catch(e){}
+    try{ if(typeof window.renderSupplierDueReport==='function') window.renderSupplierDueReport(); }catch(e){}
+    try{ if(typeof window.renderLiveStockInventory==='function') window.renderLiveStockInventory(); }catch(e){}
+    try{ if(typeof window.ftRenderFinance==='function') window.ftRenderFinance(); }catch(e){}
+    var panel=document.getElementById('ftPurchaseInvoiceActionsTbody');
+    if(panel && typeof window.ftRenderPurchaseInvoiceActions==='function'){
+      try{ window.ftRenderPurchaseInvoiceActions(); }catch(e){}
+    }
+  }
+  function renderActions(){
+    var body=document.getElementById('ftPurchaseInvoiceActionsTbody');
+    if(!body)return;
+    var arr=Array.isArray(window.dbPurchaseInvoices)?window.dbPurchaseInvoices:[];
+    function n(v){var x=Number(v);return Number.isFinite(x)?x:0;}
+    function m(v){return 'Rs. '+Math.round(n(v)).toLocaleString();}
+    function e(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c;});}
+    body.innerHTML=arr.map(function(p,i){
+      return '<tr><td>'+(i+1)+'</td><td><strong>'+e(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+e(p.date||'')+'</td><td>'+e(p.supplier||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+m(p.totalAmt)+'</td><td>'+m(p.paidNow)+'</td><td><strong>'+m(p.dueAmount)+'</strong></td><td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice('+i+')">✏️ Edit</button> <button type="button" class="btn-delete" onclick="ftDeletePurchaseInvoiceFromStockReport('+i+')">🗑 Delete</button></td></tr>';
+    }).join('') || '<tr><td colspan="9">No purchase invoices found.</td></tr>';
+  }
+  window.ftRenderPurchaseInvoiceActions=renderActions;
+  var originalDelete=window.deletePurchaseInvoice;
+  if(typeof originalDelete==='function' && !window.__ftV44DeleteSync){
+    window.deletePurchaseInvoice=function(index){
+      var before=Array.isArray(window.dbPurchaseInvoices)?window.dbPurchaseInvoices.length:0;
+      var result=originalDelete.apply(this,arguments);
+      setTimeout(function(){
+        var after=Array.isArray(window.dbPurchaseInvoices)?window.dbPurchaseInvoices.length:0;
+        renderActions();
+        if(after!==before) refreshPurchaseViews();
+      },40);
+      return result;
+    };
+    window.__ftV44DeleteSync=true;
+  }
+  var originalStockDelete=window.ftDeletePurchaseInvoiceFromStockReport;
+  if(typeof originalStockDelete==='function' && !window.__ftV44StockDeleteSync){
+    window.ftDeletePurchaseInvoiceFromStockReport=function(index){
+      var result=originalStockDelete.apply(this,arguments);
+      setTimeout(function(){renderActions();refreshPurchaseViews();},40);
+      return result;
+    };
+    window.__ftV44StockDeleteSync=true;
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(renderActions,500);setTimeout(renderActions,1200);});
+  setTimeout(renderActions,1500);
+})();
+</script>
 </body>
 
 <script id="ft-v29-purchase-render-fix">
@@ -9383,4 +9437,3 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,900)); setTimeout(boot,1400);
 })();
 </script>
-
