@@ -2623,6 +2623,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
                 <div class="form-group"><label>Purchase Invoice No *:</label><input type="text" id="purInvoiceNo" placeholder="INV-8890"></div>
                 <div class="form-group"><label>Purchase Payment:</label><select id="purPaymentType"><option value="Cash">Cash Paid</option><option value="Bank">Bank Paid</option><option value="Credit">Credit Purchase</option></select></div>
                 <div class="form-group"><label>Payment Now / Auto Due:</label><div id="purPaymentSummary" class="ft-purchase-payment-summary">Add products to calculate.</div></div>
+                <div class="form-group"><label>Payment Now / Auto Due:</label><div id="purPaymentSummary" class="ft-purchase-payment-summary">Add products to calculate.</div></div>
                 <div class="form-group"><label>Attach Invoice:</label><input type="file" id="purInvoiceAttachment" accept="image/*,.pdf,.xlsx,.xls"></div>
             </div>
 
@@ -2631,9 +2632,9 @@ img,svg,video,canvas{max-width:100%;height:auto}
                 <div class="form-group"><label>Product Name *:</label><input type="text" id="purItemName" placeholder="Product Name"></div>
                 <div class="form-group"><label>Brand *:</label><input type="text" id="purBrand" placeholder="e.g. Coca-Cola / Colgate"></div>
                 <div class="form-group"><label>Product Image:</label><input type="file" id="purProductImage" accept="image/*"></div>
-                <div class="form-group"><label>Carton Packing (Pcs) *:</label><input type="number" id="purPcsPerCarton" placeholder="e.g. 24" value="24"></div>
+                <div class="form-group"><label>Cotton Packing (Pcs) *:</label><input type="number" id="purPcsPerCarton" placeholder="e.g. 24" value="24"></div>
                 <div class="form-group"><label>Cartons Quantity *:</label><input type="number" id="purCartonQty" placeholder="Cartons"></div>
-                <div class="form-group"><label>Cost Price / Piece *:</label><input type="number" id="purPieceCost" placeholder="Cost per Piece"></div>
+                <div class="form-group"><label>List Price (Cost) *:</label><input type="number" id="purPieceCost" placeholder="List Price"></div>
                 <div class="form-group"><label>Trade Price / Pcs:</label><input type="number" id="purTradePricePiece" placeholder="TP Price"></div>
                 <div class="form-group"><label>Retail Price / Pcs:</label><input type="number" id="purRetailPricePiece" placeholder="Retail Price"></div>
                 <div style="display:flex; align-items:flex-end;"><button class="btn-add" style="width:100%; height:28px;" onclick="ftAddPurchaseProduct()">+ Add Product</button></div>
@@ -2651,10 +2652,10 @@ img,svg,video,canvas{max-width:100%;height:auto}
                             <th>Packing (Carton)</th>
                             <th>Cartons Qty</th>
                             <th>Total Pieces</th>
-                            <th>Cost / Pcs</th>
-                            <th>Trade / Pcs</th>
-                            <th>Retail / Pcs</th>
-                            <th>Purchase Total</th>
+                            <th>List Price</th>
+                            <th>Trade Price</th>
+                            <th>Retail Price</th>
+                            <th>Subtotal</th>
                             <th>X</th>
                         </tr>
                     </thead>
@@ -2748,7 +2749,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
         <div class="table-responsive">
             <table>
                 <thead>
-                    <tr><th>Image</th><th>SKU Code</th><th>Brand</th><th>Category</th><th>Product Name</th><th>Carton Packing</th><th>Carton Qty</th><th>Total Pieces</th><th>Cost / Pcs</th><th>Trade / Pcs</th><th>Retail / Pcs</th><th>Purchase / Stock Value</th><th>Actions</th></tr>
+                    <tr><th>Image</th><th>SKU Code</th><th>Brand</th><th>Category</th><th>Product Name</th><th>Packing</th><th>List Price</th><th>Trade Price</th><th>Retail Price</th><th>Available Stock</th><th>Total Pieces</th><th>Actions</th></tr>
                 </thead>
                 <tbody id="liveStockInventoryTbody"></tbody>
             </table>
@@ -3123,8 +3124,6 @@ img,svg,video,canvas{max-width:100%;height:auto}
         <div class="bubble-card"><h3>Net Profit / Loss</h3><p id="ftNetProfit">Rs. 0</p></div>
         <div class="bubble-card"><h3>Outstanding</h3><p id="ftOutstanding">Rs. 0</p></div>
         <div class="bubble-card"><h3>Stock Value</h3><p id="ftStockValue">Rs. 0</p></div>
-        <div class="bubble-card"><h3>Total Purchases</h3><p id="ftTotalPurchases">Rs. 0</p></div>
-        <div class="bubble-card"><h3>Supplier Due</h3><p id="ftSupplierDue">Rs. 0</p></div>
       </div>
 
       <div class="section-box">
@@ -5966,152 +5965,7 @@ function renderShops() {
     if(!w)return alert('Please allow pop-ups for report printing.');
     const css='@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111;margin:0}.ft-report-print-area{padding:4mm}.ft-report-print-area table{width:100%;border-collapse:collapse}.ft-report-print-area th,.ft-report-print-area td{border:1px solid #999;padding:5px;font-size:9px}.ft-report-print-area th{background:#e5e7eb}.report-meta{font-size:10px;color:#555;margin-bottom:8px}h1{font-size:18px;margin:0}h2{font-size:14px}';
     w.document.open();
-    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body>
-<script id="ft-v30-purchase-finance-layout-fix">
-(function(){
-  'use strict';
-  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
-  const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
-  const E=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
-
-  // --- Purchase Stock Report: correct columns + clear totals ---
-  window.renderPurchaseStockReport=function(){
-    const body=document.getElementById('purStockReportTbody');
-    if(!body)return;
-    const map={};
-    (dbPurchaseInvoices||[]).forEach(p=>(p.items||[]).forEach(it=>{
-      const key=String(it.sku||it.name||'').toUpperCase();
-      if(!map[key])map[key]={sku:it.sku||'',category:it.category||'General',name:it.name||'',packing:N(it.pcsPerCarton)||24,ctn:0,pcs:0,amount:0};
-      map[key].ctn+=N(it.cartonQty);
-      map[key].pcs+=N(it.totalPcs);
-      map[key].amount+=N(it.subtotal);
-    }));
-    const rows=Object.values(map);
-    body.innerHTML=rows.map((r,i)=>`<tr>
-      <td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td>
-      <td>${r.packing} Pcs/Carton</td><td>${r.ctn}</td><td>${r.pcs}</td><td>${M(r.amount)}</td>
-    </tr>`).join('')||'<tr><td colspan="8">No purchase stock records found.</td></tr>';
-
-    const totalCtn=rows.reduce((a,r)=>a+r.ctn,0), totalPcs=rows.reduce((a,r)=>a+r.pcs,0), totalAmt=rows.reduce((a,r)=>a+r.amount,0);
-    const paid=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.paidNow!=null?p.paidNow:0),0);
-    const due=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.dueAmount),0);
-    let box=document.getElementById('ftPurchaseStockSummary');
-    if(!box){
-      const tab=document.getElementById('purchaseStockReportTab');
-      if(tab){
-        box=document.createElement('div'); box.id='ftPurchaseStockSummary'; box.className='summary-cards';
-        box.style.margin='10px 0';
-        tab.insertBefore(box,tab.querySelector('.table-responsive'));
-      }
-    }
-    if(box)box.innerHTML=`
-      <div class="bubble-card"><h3>Purchase Total</h3><p>${M(totalAmt)}</p></div>
-      <div class="bubble-card"><h3>Paid from Cash/Bank</h3><p>${M(paid)}</p></div>
-      <div class="bubble-card"><h3>Supplier Due</h3><p>${M(due)}</p></div>
-      <div class="bubble-card"><h3>Total Cartons</h3><p>${totalCtn.toLocaleString()}</p></div>
-      <div class="bubble-card"><h3>Total Pieces</h3><p>${totalPcs.toLocaleString()}</p></div>`;
-  };
-
-  // --- Supplier Due: make outstanding payable impossible to miss ---
-  window.renderSupplierDueReport=function(){
-    const body=document.getElementById('supplierDueTbody'); if(!body)return;
-    const supplier=document.getElementById('supplierDueFilter')?.value||'ALL';
-    const from=document.getElementById('supplierDueFrom')?.value||'';
-    const to=document.getElementById('supplierDueTo')?.value||'';
-    const rows=(dbPurchaseInvoices||[]).filter(p=>N(p.dueAmount)>0 && (supplier==='ALL'||p.supplier===supplier) && (!from||p.date>=from) && (!to||p.date<=to));
-    body.innerHTML=rows.map(p=>`<tr><td>${E(p.date)}</td><td>${E(p.invNo)}</td><td>${E(p.supplier)}</td><td>${M(p.totalAmt)}</td><td>${M(p.paidNow||0)}</td><td><strong>${M(p.dueAmount)}</strong></td><td>${E(p.paymentType||p.requestedPaymentType||'Credit')}</td></tr>`).join('')||'<tr><td colspan="7">No supplier dues.</td></tr>';
-    const total=rows.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el=document.getElementById('supplierDueTotal'); if(el)el.textContent=M(total);
-    let note=document.getElementById('ftSupplierDueBanner');
-    if(!note){const tab=document.getElementById('supplierDueTab'); if(tab){note=document.createElement('div');note.id='ftSupplierDueBanner';note.className='section-box';note.style.cssText='margin-bottom:10px;border-left:5px solid #dc2626;background:#fff7ed;';tab.insertBefore(note,tab.querySelector('.section-box'));}}
-    if(note)note.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>📒 Total Supplier Outstanding</strong><strong style="font-size:20px;color:#b91c1c">${M(total)}</strong></div><small>یہ وہ رقم ہے جو ابھی suppliers کو ادا کرنی باقی ہے۔</small>`;
-  };
-
-  // --- Finance: purchases and supplier due are visible as first-class numbers ---
-  const baseFinance=window.ftRenderFinance;
-  window.ftRenderFinance=function(){
-    if(typeof baseFinance==='function')baseFinance();
-    const today=dateNow();
-    const to=document.getElementById('ftToDate')?.value||today;
-    const purchases=(dbPurchaseInvoices||[]).filter(p=>!to||p.date<=to);
-    const purchaseTotal=purchases.reduce((a,p)=>a+N(p.totalAmt),0);
-    const supplierDue=purchases.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el1=document.getElementById('ftTotalPurchases'); if(el1)el1.textContent=M(purchaseTotal);
-    const el2=document.getElementById('ftSupplierDue'); if(el2)el2.textContent=M(supplierDue);
-    const recon=document.getElementById('ftCashReconciliation');
-    if(recon){
-      const cashInv=dbInvestments.filter(x=>String(x.method||'Cash')==='Cash'&&(!to||x.date<=to)).reduce((a,x)=>a+N(x.amount),0);
-      const cashPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'Cash').toLowerCase().startsWith('cash')).reduce((a,p)=>a+N(p.paidNow),0);
-      const bankPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,p)=>a+N(p.paidNow),0);
-      recon.innerHTML=`<strong>💵 Capital & Purchase Reconciliation through ${E(to)}</strong><div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px"><span>Cash Investment: <b>${M(cashInv)}</b></span><span>Purchase Total: <b>${M(purchaseTotal)}</b></span><span>Cash/Bank Paid: <b>${M(cashPurch+bankPurch)}</b></span><span>Supplier Due: <b style="color:#b91c1c">${M(supplierDue)}</b></span><span style="color:#0f766e">Actual Cash: <b>${M(cashState(to).cash)}</b></span></div>`;
-    }
-  };
-
-  // --- Purchase save: cash/bank pays what is actually available; remainder becomes Supplier Due ---
-  // This replaces older wrappers so paymentType is never overwritten incorrectly.
-  window.saveCompletePurchaseInvoice=function(print){
-    if(!Array.isArray(currentPurInvoiceItems)||currentPurInvoiceItems.length===0)return alert('Purchase invoice is empty.');
-    const date=document.getElementById('purInvDate')?.value||dateNow();
-    const supplier=(document.getElementById('purSupplierName')?.value||'').trim();
-    const invNo=(document.getElementById('purInvoiceNo')?.value||'').trim();
-    const category=document.getElementById('purCategory')?.value||'General';
-    const requestedType=document.getElementById('purPaymentType')?.value||'Cash';
-    const totalAmt=currentPurInvoiceItems.reduce((a,b)=>a+N(b.subtotal),0);
-    if(!supplier||!invNo)return alert('Supplier Name and Purchase Invoice No are required.');
-    if(totalAmt<=0)return alert('Purchase invoice total must be greater than zero.');
-    const state=typeof cashState==='function'?cashState(date):{cash:0,bank:0};
-    const available=requestedType==='Bank'?Math.max(0,N(state.bank)):Math.max(0,N(state.cash));
-    const paidNow=requestedType==='Credit'?0:Math.min(totalAmt,available);
-    const dueAmount=totalAmt-paidNow;
-    const actualType=requestedType==='Credit'?'Credit':(dueAmount>0?requestedType+' + Due':requestedType);
-    const itemSnapshot=currentPurInvoiceItems.map(x=>({...x}));
-    const purchase={id:'PUR_'+Date.now(),invNo,date,supplier,category,paymentType:actualType,requestedPaymentType:requestedType,totalAmt,paidNow,dueAmount,items:itemSnapshot,status:dueAmount>0?'Due':'Paid'};
-    dbPurchaseInvoices.push(purchase);
-    itemSnapshot.forEach(item=>{
-      let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());
-      if(found){found.qty=N(found.qty)+N(item.totalPcs);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=N(item.pieceCost);found.tradePrice=N(item.tradePrice);found.retailPrice=N(item.retailPrice);if(item.imageData)found.imageData=item.imageData;}
-      else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'General',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:N(item.totalPcs),costPrice:N(item.pieceCost),tradePrice:N(item.tradePrice),retailPrice:N(item.retailPrice)});
-    });
-    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
-    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
-    if(typeof audit2==='function')audit2('CREATE','Purchase Invoice',purchase.id,`Purchase ${invNo}: Total Rs.${totalAmt}, Paid Rs.${paidNow}, Due Rs.${dueAmount}`);
-    alert(`Purchase invoice saved.\n\nPurchase Total: Rs. ${totalAmt.toLocaleString()}\nPaid Now: Rs. ${paidNow.toLocaleString()}\nSupplier Due: Rs. ${dueAmount.toLocaleString()}\n\n${dueAmount>0?'The unpaid amount is now visible in Purchase → Supplier Due.':'The purchase was fully paid.'}`);
-    currentPurInvoiceItems=[];
-    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
-    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
-    if(typeof updateStockDatalist==='function')updateStockDatalist();
-    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
-    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
-    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
-    if(typeof ftRenderFinance==='function')ftRenderFinance();
-  };
-
-  // Correct the payment summary wording and update it immediately.
-  window.updatePurchasePaymentSummary=function(){
-    const el=document.getElementById('purPaymentSummary'); if(!el)return;
-    const total=(currentPurInvoiceItems||[]).reduce((a,b)=>a+N(b.subtotal),0);
-    const type=document.getElementById('purPaymentType')?.value||'Cash';
-    if(total<=0){el.innerHTML='<span>Add products to calculate Purchase Total, Paid Now and Supplier Due.</span>';return;}
-    const state=typeof cashState==='function'?cashState(document.getElementById('purInvDate')?.value||dateNow()):{cash:0,bank:0};
-    const avail=type==='Bank'?N(state.bank):N(state.cash);
-    const paid=type==='Credit'?0:Math.min(total,Math.max(0,avail));
-    const due=total-paid;
-    el.innerHTML=`<b>Purchase Total:</b> ${M(total)} &nbsp; | &nbsp; <b>Available ${E(type==='Bank'?'Bank':'Cash')}:</b> ${M(avail)} &nbsp; | &nbsp; <b>Paid Now:</b> ${M(paid)} &nbsp; | &nbsp; <b style="color:#b91c1c">Supplier Due:</b> ${M(due)}`;
-  };
-
-  function boot(){
-    const pt=document.getElementById('purPaymentType');
-    if(pt&&!pt.__ftV30){pt.addEventListener('change',window.updatePurchasePaymentSummary);pt.__ftV30=true;}
-    window.updatePurchasePaymentSummary();
-    window.renderPurchaseStockReport();
-    window.renderSupplierDueReport();
-    window.ftRenderFinance();
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500));
-})();
-</script>
-
-</html>');
+    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body></html>');
     w.document.close();
     w.focus();
     setTimeout(()=>w.print(),250);
@@ -6395,152 +6249,7 @@ function renderShops() {
   window.printShopLedger=function(shopName){
     const data=buildShopLedgerData(shopName),s=ledgerSummary(shopName),w=window.open('','_blank','width=1200,height=800');if(!w)return alert('Please allow pop-ups for printing.');
     const rows=data.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(e.date)}</td><td>${esc(e.type)}</td><td>${esc(e.ref)}</td><td>${e.items}</td><td>${e.debit?'Rs. '+e.debit.toLocaleString():'—'}</td><td>${e.credit?'Rs. '+e.credit.toLocaleString():'—'}</td><td>${esc(e.note)}</td></tr>`).join('');
-    w.document.write(`<!doctype html><html><head><title>${esc(shopName)} Ledger</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111}h1{margin:0 0 4px}h2{margin:0 0 8px;font-size:16px}.summary{margin:8px 0;font-size:11px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:5px;font-size:8px;vertical-align:top}th{background:#e9edf3}</style></head><body><h1>Fatima Tech — Distribution ERP</h1><h2>Shop Ledger: ${esc(shopName)}</h2><div class="summary">Bills: <b>${s.bills}</b> | Total Sales: <b>Rs. ${s.sales.toLocaleString()}</b> | Invoice Cash: <b>Rs. ${s.invoiceCash.toLocaleString()}</b> | Recovery: <b>Rs. ${s.recovery.toLocaleString()}</b> | Outstanding: <b>Rs. ${s.outstanding.toLocaleString()}</b></div><table><thead><tr><th>#</th><th>Date</th><th>Transaction</th><th>Reference</th><th>Products / Quantity</th><th>Debit</th><th>Credit</th><th>Status / Note</th></tr></thead><tbody>${rows||'<tr><td colspan="8">No transactions</td></tr>'}</tbody></table></body>
-<script id="ft-v30-purchase-finance-layout-fix">
-(function(){
-  'use strict';
-  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
-  const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
-  const E=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
-
-  // --- Purchase Stock Report: correct columns + clear totals ---
-  window.renderPurchaseStockReport=function(){
-    const body=document.getElementById('purStockReportTbody');
-    if(!body)return;
-    const map={};
-    (dbPurchaseInvoices||[]).forEach(p=>(p.items||[]).forEach(it=>{
-      const key=String(it.sku||it.name||'').toUpperCase();
-      if(!map[key])map[key]={sku:it.sku||'',category:it.category||'General',name:it.name||'',packing:N(it.pcsPerCarton)||24,ctn:0,pcs:0,amount:0};
-      map[key].ctn+=N(it.cartonQty);
-      map[key].pcs+=N(it.totalPcs);
-      map[key].amount+=N(it.subtotal);
-    }));
-    const rows=Object.values(map);
-    body.innerHTML=rows.map((r,i)=>`<tr>
-      <td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td>
-      <td>${r.packing} Pcs/Carton</td><td>${r.ctn}</td><td>${r.pcs}</td><td>${M(r.amount)}</td>
-    </tr>`).join('')||'<tr><td colspan="8">No purchase stock records found.</td></tr>';
-
-    const totalCtn=rows.reduce((a,r)=>a+r.ctn,0), totalPcs=rows.reduce((a,r)=>a+r.pcs,0), totalAmt=rows.reduce((a,r)=>a+r.amount,0);
-    const paid=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.paidNow!=null?p.paidNow:0),0);
-    const due=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.dueAmount),0);
-    let box=document.getElementById('ftPurchaseStockSummary');
-    if(!box){
-      const tab=document.getElementById('purchaseStockReportTab');
-      if(tab){
-        box=document.createElement('div'); box.id='ftPurchaseStockSummary'; box.className='summary-cards';
-        box.style.margin='10px 0';
-        tab.insertBefore(box,tab.querySelector('.table-responsive'));
-      }
-    }
-    if(box)box.innerHTML=`
-      <div class="bubble-card"><h3>Purchase Total</h3><p>${M(totalAmt)}</p></div>
-      <div class="bubble-card"><h3>Paid from Cash/Bank</h3><p>${M(paid)}</p></div>
-      <div class="bubble-card"><h3>Supplier Due</h3><p>${M(due)}</p></div>
-      <div class="bubble-card"><h3>Total Cartons</h3><p>${totalCtn.toLocaleString()}</p></div>
-      <div class="bubble-card"><h3>Total Pieces</h3><p>${totalPcs.toLocaleString()}</p></div>`;
-  };
-
-  // --- Supplier Due: make outstanding payable impossible to miss ---
-  window.renderSupplierDueReport=function(){
-    const body=document.getElementById('supplierDueTbody'); if(!body)return;
-    const supplier=document.getElementById('supplierDueFilter')?.value||'ALL';
-    const from=document.getElementById('supplierDueFrom')?.value||'';
-    const to=document.getElementById('supplierDueTo')?.value||'';
-    const rows=(dbPurchaseInvoices||[]).filter(p=>N(p.dueAmount)>0 && (supplier==='ALL'||p.supplier===supplier) && (!from||p.date>=from) && (!to||p.date<=to));
-    body.innerHTML=rows.map(p=>`<tr><td>${E(p.date)}</td><td>${E(p.invNo)}</td><td>${E(p.supplier)}</td><td>${M(p.totalAmt)}</td><td>${M(p.paidNow||0)}</td><td><strong>${M(p.dueAmount)}</strong></td><td>${E(p.paymentType||p.requestedPaymentType||'Credit')}</td></tr>`).join('')||'<tr><td colspan="7">No supplier dues.</td></tr>';
-    const total=rows.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el=document.getElementById('supplierDueTotal'); if(el)el.textContent=M(total);
-    let note=document.getElementById('ftSupplierDueBanner');
-    if(!note){const tab=document.getElementById('supplierDueTab'); if(tab){note=document.createElement('div');note.id='ftSupplierDueBanner';note.className='section-box';note.style.cssText='margin-bottom:10px;border-left:5px solid #dc2626;background:#fff7ed;';tab.insertBefore(note,tab.querySelector('.section-box'));}}
-    if(note)note.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>📒 Total Supplier Outstanding</strong><strong style="font-size:20px;color:#b91c1c">${M(total)}</strong></div><small>یہ وہ رقم ہے جو ابھی suppliers کو ادا کرنی باقی ہے۔</small>`;
-  };
-
-  // --- Finance: purchases and supplier due are visible as first-class numbers ---
-  const baseFinance=window.ftRenderFinance;
-  window.ftRenderFinance=function(){
-    if(typeof baseFinance==='function')baseFinance();
-    const today=dateNow();
-    const to=document.getElementById('ftToDate')?.value||today;
-    const purchases=(dbPurchaseInvoices||[]).filter(p=>!to||p.date<=to);
-    const purchaseTotal=purchases.reduce((a,p)=>a+N(p.totalAmt),0);
-    const supplierDue=purchases.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el1=document.getElementById('ftTotalPurchases'); if(el1)el1.textContent=M(purchaseTotal);
-    const el2=document.getElementById('ftSupplierDue'); if(el2)el2.textContent=M(supplierDue);
-    const recon=document.getElementById('ftCashReconciliation');
-    if(recon){
-      const cashInv=dbInvestments.filter(x=>String(x.method||'Cash')==='Cash'&&(!to||x.date<=to)).reduce((a,x)=>a+N(x.amount),0);
-      const cashPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'Cash').toLowerCase().startsWith('cash')).reduce((a,p)=>a+N(p.paidNow),0);
-      const bankPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,p)=>a+N(p.paidNow),0);
-      recon.innerHTML=`<strong>💵 Capital & Purchase Reconciliation through ${E(to)}</strong><div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px"><span>Cash Investment: <b>${M(cashInv)}</b></span><span>Purchase Total: <b>${M(purchaseTotal)}</b></span><span>Cash/Bank Paid: <b>${M(cashPurch+bankPurch)}</b></span><span>Supplier Due: <b style="color:#b91c1c">${M(supplierDue)}</b></span><span style="color:#0f766e">Actual Cash: <b>${M(cashState(to).cash)}</b></span></div>`;
-    }
-  };
-
-  // --- Purchase save: cash/bank pays what is actually available; remainder becomes Supplier Due ---
-  // This replaces older wrappers so paymentType is never overwritten incorrectly.
-  window.saveCompletePurchaseInvoice=function(print){
-    if(!Array.isArray(currentPurInvoiceItems)||currentPurInvoiceItems.length===0)return alert('Purchase invoice is empty.');
-    const date=document.getElementById('purInvDate')?.value||dateNow();
-    const supplier=(document.getElementById('purSupplierName')?.value||'').trim();
-    const invNo=(document.getElementById('purInvoiceNo')?.value||'').trim();
-    const category=document.getElementById('purCategory')?.value||'General';
-    const requestedType=document.getElementById('purPaymentType')?.value||'Cash';
-    const totalAmt=currentPurInvoiceItems.reduce((a,b)=>a+N(b.subtotal),0);
-    if(!supplier||!invNo)return alert('Supplier Name and Purchase Invoice No are required.');
-    if(totalAmt<=0)return alert('Purchase invoice total must be greater than zero.');
-    const state=typeof cashState==='function'?cashState(date):{cash:0,bank:0};
-    const available=requestedType==='Bank'?Math.max(0,N(state.bank)):Math.max(0,N(state.cash));
-    const paidNow=requestedType==='Credit'?0:Math.min(totalAmt,available);
-    const dueAmount=totalAmt-paidNow;
-    const actualType=requestedType==='Credit'?'Credit':(dueAmount>0?requestedType+' + Due':requestedType);
-    const itemSnapshot=currentPurInvoiceItems.map(x=>({...x}));
-    const purchase={id:'PUR_'+Date.now(),invNo,date,supplier,category,paymentType:actualType,requestedPaymentType:requestedType,totalAmt,paidNow,dueAmount,items:itemSnapshot,status:dueAmount>0?'Due':'Paid'};
-    dbPurchaseInvoices.push(purchase);
-    itemSnapshot.forEach(item=>{
-      let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());
-      if(found){found.qty=N(found.qty)+N(item.totalPcs);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=N(item.pieceCost);found.tradePrice=N(item.tradePrice);found.retailPrice=N(item.retailPrice);if(item.imageData)found.imageData=item.imageData;}
-      else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'General',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:N(item.totalPcs),costPrice:N(item.pieceCost),tradePrice:N(item.tradePrice),retailPrice:N(item.retailPrice)});
-    });
-    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
-    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
-    if(typeof audit2==='function')audit2('CREATE','Purchase Invoice',purchase.id,`Purchase ${invNo}: Total Rs.${totalAmt}, Paid Rs.${paidNow}, Due Rs.${dueAmount}`);
-    alert(`Purchase invoice saved.\n\nPurchase Total: Rs. ${totalAmt.toLocaleString()}\nPaid Now: Rs. ${paidNow.toLocaleString()}\nSupplier Due: Rs. ${dueAmount.toLocaleString()}\n\n${dueAmount>0?'The unpaid amount is now visible in Purchase → Supplier Due.':'The purchase was fully paid.'}`);
-    currentPurInvoiceItems=[];
-    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
-    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
-    if(typeof updateStockDatalist==='function')updateStockDatalist();
-    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
-    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
-    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
-    if(typeof ftRenderFinance==='function')ftRenderFinance();
-  };
-
-  // Correct the payment summary wording and update it immediately.
-  window.updatePurchasePaymentSummary=function(){
-    const el=document.getElementById('purPaymentSummary'); if(!el)return;
-    const total=(currentPurInvoiceItems||[]).reduce((a,b)=>a+N(b.subtotal),0);
-    const type=document.getElementById('purPaymentType')?.value||'Cash';
-    if(total<=0){el.innerHTML='<span>Add products to calculate Purchase Total, Paid Now and Supplier Due.</span>';return;}
-    const state=typeof cashState==='function'?cashState(document.getElementById('purInvDate')?.value||dateNow()):{cash:0,bank:0};
-    const avail=type==='Bank'?N(state.bank):N(state.cash);
-    const paid=type==='Credit'?0:Math.min(total,Math.max(0,avail));
-    const due=total-paid;
-    el.innerHTML=`<b>Purchase Total:</b> ${M(total)} &nbsp; | &nbsp; <b>Available ${E(type==='Bank'?'Bank':'Cash')}:</b> ${M(avail)} &nbsp; | &nbsp; <b>Paid Now:</b> ${M(paid)} &nbsp; | &nbsp; <b style="color:#b91c1c">Supplier Due:</b> ${M(due)}`;
-  };
-
-  function boot(){
-    const pt=document.getElementById('purPaymentType');
-    if(pt&&!pt.__ftV30){pt.addEventListener('change',window.updatePurchasePaymentSummary);pt.__ftV30=true;}
-    window.updatePurchasePaymentSummary();
-    window.renderPurchaseStockReport();
-    window.renderSupplierDueReport();
-    window.ftRenderFinance();
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500));
-})();
-</script>
-
-</html>`);w.document.close();setTimeout(()=>{w.focus();w.print();},250);
+    w.document.write(`<!doctype html><html><head><title>${esc(shopName)} Ledger</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111}h1{margin:0 0 4px}h2{margin:0 0 8px;font-size:16px}.summary{margin:8px 0;font-size:11px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:5px;font-size:8px;vertical-align:top}th{background:#e9edf3}</style></head><body><h1>Fatima Tech — Distribution ERP</h1><h2>Shop Ledger: ${esc(shopName)}</h2><div class="summary">Bills: <b>${s.bills}</b> | Total Sales: <b>Rs. ${s.sales.toLocaleString()}</b> | Invoice Cash: <b>Rs. ${s.invoiceCash.toLocaleString()}</b> | Recovery: <b>Rs. ${s.recovery.toLocaleString()}</b> | Outstanding: <b>Rs. ${s.outstanding.toLocaleString()}</b></div><table><thead><tr><th>#</th><th>Date</th><th>Transaction</th><th>Reference</th><th>Products / Quantity</th><th>Debit</th><th>Credit</th><th>Status / Note</th></tr></thead><tbody>${rows||'<tr><td colspan="8">No transactions</td></tr>'}</tbody></table></body></html>`);w.document.close();setTimeout(()=>{w.focus();w.print();},250);
   };
   window.pdfShopLedger=function(shopName){
     const data=buildShopLedgerData(shopName);if(!window.jspdf?.jsPDF)return alert('PDF library is not loaded.');const{jsPDF}=window.jspdf,doc=new jsPDF('landscape','mm','a4'),s=ledgerSummary(shopName);doc.setFontSize(16);doc.text('Fatima Tech — Distribution ERP',14,12);doc.setFontSize(12);doc.text('Shop Ledger: '+String(shopName),14,19);doc.setFontSize(8);doc.text(`Bills: ${s.bills} | Sales: Rs. ${s.sales.toLocaleString()} | Recovery: Rs. ${s.recovery.toLocaleString()} | Outstanding: Rs. ${s.outstanding.toLocaleString()}`,14,25);const body=data.map(e=>[e.date,e.type,e.ref,String(e.items).replace(/<br>/g,' | ').replace(/<[^>]+>/g,''),e.debit?`Rs. ${e.debit.toLocaleString()}`:'—',e.credit?`Rs. ${e.credit.toLocaleString()}`:'—',e.note]);doc.autoTable({head:[['Date','Transaction','Reference','Products / Quantity','Debit','Credit','Note']],body,startY:30,theme:'grid',styles:{fontSize:6,cellPadding:1.5}});doc.save('Shop_Ledger_'+String(shopName).replace(/[^a-z0-9]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
@@ -6896,152 +6605,7 @@ window.renderExpenseReport=function(){
 };
 function reportWindow(title,html){
   const w=window.open('','_blank','width=1200,height=850');if(!w)return alert('Please allow pop-ups for reports.');
-  w.document.write(`<!doctype html><html><head><title>${ftesc(title)}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#172033;margin:0}.wrap{padding:4mm}h1{font-size:20px;text-align:center;margin:0 0 4px}h2{font-size:14px;text-align:center;margin:0 0 12px;color:#214c86}.meta{text-align:center;font-size:10px;color:#64748b;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}.card{border:1px solid #cbd5e1;border-radius:7px;padding:7px;text-align:center}.card small{display:block;color:#64748b}.card b{font-size:15px}.section{margin-top:10px}.section h3{font-size:12px;margin:5px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aab4c3;padding:5px;font-size:9px}th{background:#e9eef6}tfoot th{background:#f2f4f8}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:10px}@media print{.wrap{padding:0}}</style></head><body><div class="wrap"><h1>Fatima Tech — Distribution ERP</h1><h2>${ftesc(title)}</h2>${html}</div></body>
-<script id="ft-v30-purchase-finance-layout-fix">
-(function(){
-  'use strict';
-  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
-  const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
-  const E=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
-
-  // --- Purchase Stock Report: correct columns + clear totals ---
-  window.renderPurchaseStockReport=function(){
-    const body=document.getElementById('purStockReportTbody');
-    if(!body)return;
-    const map={};
-    (dbPurchaseInvoices||[]).forEach(p=>(p.items||[]).forEach(it=>{
-      const key=String(it.sku||it.name||'').toUpperCase();
-      if(!map[key])map[key]={sku:it.sku||'',category:it.category||'General',name:it.name||'',packing:N(it.pcsPerCarton)||24,ctn:0,pcs:0,amount:0};
-      map[key].ctn+=N(it.cartonQty);
-      map[key].pcs+=N(it.totalPcs);
-      map[key].amount+=N(it.subtotal);
-    }));
-    const rows=Object.values(map);
-    body.innerHTML=rows.map((r,i)=>`<tr>
-      <td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td>
-      <td>${r.packing} Pcs/Carton</td><td>${r.ctn}</td><td>${r.pcs}</td><td>${M(r.amount)}</td>
-    </tr>`).join('')||'<tr><td colspan="8">No purchase stock records found.</td></tr>';
-
-    const totalCtn=rows.reduce((a,r)=>a+r.ctn,0), totalPcs=rows.reduce((a,r)=>a+r.pcs,0), totalAmt=rows.reduce((a,r)=>a+r.amount,0);
-    const paid=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.paidNow!=null?p.paidNow:0),0);
-    const due=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.dueAmount),0);
-    let box=document.getElementById('ftPurchaseStockSummary');
-    if(!box){
-      const tab=document.getElementById('purchaseStockReportTab');
-      if(tab){
-        box=document.createElement('div'); box.id='ftPurchaseStockSummary'; box.className='summary-cards';
-        box.style.margin='10px 0';
-        tab.insertBefore(box,tab.querySelector('.table-responsive'));
-      }
-    }
-    if(box)box.innerHTML=`
-      <div class="bubble-card"><h3>Purchase Total</h3><p>${M(totalAmt)}</p></div>
-      <div class="bubble-card"><h3>Paid from Cash/Bank</h3><p>${M(paid)}</p></div>
-      <div class="bubble-card"><h3>Supplier Due</h3><p>${M(due)}</p></div>
-      <div class="bubble-card"><h3>Total Cartons</h3><p>${totalCtn.toLocaleString()}</p></div>
-      <div class="bubble-card"><h3>Total Pieces</h3><p>${totalPcs.toLocaleString()}</p></div>`;
-  };
-
-  // --- Supplier Due: make outstanding payable impossible to miss ---
-  window.renderSupplierDueReport=function(){
-    const body=document.getElementById('supplierDueTbody'); if(!body)return;
-    const supplier=document.getElementById('supplierDueFilter')?.value||'ALL';
-    const from=document.getElementById('supplierDueFrom')?.value||'';
-    const to=document.getElementById('supplierDueTo')?.value||'';
-    const rows=(dbPurchaseInvoices||[]).filter(p=>N(p.dueAmount)>0 && (supplier==='ALL'||p.supplier===supplier) && (!from||p.date>=from) && (!to||p.date<=to));
-    body.innerHTML=rows.map(p=>`<tr><td>${E(p.date)}</td><td>${E(p.invNo)}</td><td>${E(p.supplier)}</td><td>${M(p.totalAmt)}</td><td>${M(p.paidNow||0)}</td><td><strong>${M(p.dueAmount)}</strong></td><td>${E(p.paymentType||p.requestedPaymentType||'Credit')}</td></tr>`).join('')||'<tr><td colspan="7">No supplier dues.</td></tr>';
-    const total=rows.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el=document.getElementById('supplierDueTotal'); if(el)el.textContent=M(total);
-    let note=document.getElementById('ftSupplierDueBanner');
-    if(!note){const tab=document.getElementById('supplierDueTab'); if(tab){note=document.createElement('div');note.id='ftSupplierDueBanner';note.className='section-box';note.style.cssText='margin-bottom:10px;border-left:5px solid #dc2626;background:#fff7ed;';tab.insertBefore(note,tab.querySelector('.section-box'));}}
-    if(note)note.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>📒 Total Supplier Outstanding</strong><strong style="font-size:20px;color:#b91c1c">${M(total)}</strong></div><small>یہ وہ رقم ہے جو ابھی suppliers کو ادا کرنی باقی ہے۔</small>`;
-  };
-
-  // --- Finance: purchases and supplier due are visible as first-class numbers ---
-  const baseFinance=window.ftRenderFinance;
-  window.ftRenderFinance=function(){
-    if(typeof baseFinance==='function')baseFinance();
-    const today=dateNow();
-    const to=document.getElementById('ftToDate')?.value||today;
-    const purchases=(dbPurchaseInvoices||[]).filter(p=>!to||p.date<=to);
-    const purchaseTotal=purchases.reduce((a,p)=>a+N(p.totalAmt),0);
-    const supplierDue=purchases.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el1=document.getElementById('ftTotalPurchases'); if(el1)el1.textContent=M(purchaseTotal);
-    const el2=document.getElementById('ftSupplierDue'); if(el2)el2.textContent=M(supplierDue);
-    const recon=document.getElementById('ftCashReconciliation');
-    if(recon){
-      const cashInv=dbInvestments.filter(x=>String(x.method||'Cash')==='Cash'&&(!to||x.date<=to)).reduce((a,x)=>a+N(x.amount),0);
-      const cashPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'Cash').toLowerCase().startsWith('cash')).reduce((a,p)=>a+N(p.paidNow),0);
-      const bankPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,p)=>a+N(p.paidNow),0);
-      recon.innerHTML=`<strong>💵 Capital & Purchase Reconciliation through ${E(to)}</strong><div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px"><span>Cash Investment: <b>${M(cashInv)}</b></span><span>Purchase Total: <b>${M(purchaseTotal)}</b></span><span>Cash/Bank Paid: <b>${M(cashPurch+bankPurch)}</b></span><span>Supplier Due: <b style="color:#b91c1c">${M(supplierDue)}</b></span><span style="color:#0f766e">Actual Cash: <b>${M(cashState(to).cash)}</b></span></div>`;
-    }
-  };
-
-  // --- Purchase save: cash/bank pays what is actually available; remainder becomes Supplier Due ---
-  // This replaces older wrappers so paymentType is never overwritten incorrectly.
-  window.saveCompletePurchaseInvoice=function(print){
-    if(!Array.isArray(currentPurInvoiceItems)||currentPurInvoiceItems.length===0)return alert('Purchase invoice is empty.');
-    const date=document.getElementById('purInvDate')?.value||dateNow();
-    const supplier=(document.getElementById('purSupplierName')?.value||'').trim();
-    const invNo=(document.getElementById('purInvoiceNo')?.value||'').trim();
-    const category=document.getElementById('purCategory')?.value||'General';
-    const requestedType=document.getElementById('purPaymentType')?.value||'Cash';
-    const totalAmt=currentPurInvoiceItems.reduce((a,b)=>a+N(b.subtotal),0);
-    if(!supplier||!invNo)return alert('Supplier Name and Purchase Invoice No are required.');
-    if(totalAmt<=0)return alert('Purchase invoice total must be greater than zero.');
-    const state=typeof cashState==='function'?cashState(date):{cash:0,bank:0};
-    const available=requestedType==='Bank'?Math.max(0,N(state.bank)):Math.max(0,N(state.cash));
-    const paidNow=requestedType==='Credit'?0:Math.min(totalAmt,available);
-    const dueAmount=totalAmt-paidNow;
-    const actualType=requestedType==='Credit'?'Credit':(dueAmount>0?requestedType+' + Due':requestedType);
-    const itemSnapshot=currentPurInvoiceItems.map(x=>({...x}));
-    const purchase={id:'PUR_'+Date.now(),invNo,date,supplier,category,paymentType:actualType,requestedPaymentType:requestedType,totalAmt,paidNow,dueAmount,items:itemSnapshot,status:dueAmount>0?'Due':'Paid'};
-    dbPurchaseInvoices.push(purchase);
-    itemSnapshot.forEach(item=>{
-      let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());
-      if(found){found.qty=N(found.qty)+N(item.totalPcs);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=N(item.pieceCost);found.tradePrice=N(item.tradePrice);found.retailPrice=N(item.retailPrice);if(item.imageData)found.imageData=item.imageData;}
-      else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'General',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:N(item.totalPcs),costPrice:N(item.pieceCost),tradePrice:N(item.tradePrice),retailPrice:N(item.retailPrice)});
-    });
-    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
-    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
-    if(typeof audit2==='function')audit2('CREATE','Purchase Invoice',purchase.id,`Purchase ${invNo}: Total Rs.${totalAmt}, Paid Rs.${paidNow}, Due Rs.${dueAmount}`);
-    alert(`Purchase invoice saved.\n\nPurchase Total: Rs. ${totalAmt.toLocaleString()}\nPaid Now: Rs. ${paidNow.toLocaleString()}\nSupplier Due: Rs. ${dueAmount.toLocaleString()}\n\n${dueAmount>0?'The unpaid amount is now visible in Purchase → Supplier Due.':'The purchase was fully paid.'}`);
-    currentPurInvoiceItems=[];
-    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
-    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
-    if(typeof updateStockDatalist==='function')updateStockDatalist();
-    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
-    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
-    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
-    if(typeof ftRenderFinance==='function')ftRenderFinance();
-  };
-
-  // Correct the payment summary wording and update it immediately.
-  window.updatePurchasePaymentSummary=function(){
-    const el=document.getElementById('purPaymentSummary'); if(!el)return;
-    const total=(currentPurInvoiceItems||[]).reduce((a,b)=>a+N(b.subtotal),0);
-    const type=document.getElementById('purPaymentType')?.value||'Cash';
-    if(total<=0){el.innerHTML='<span>Add products to calculate Purchase Total, Paid Now and Supplier Due.</span>';return;}
-    const state=typeof cashState==='function'?cashState(document.getElementById('purInvDate')?.value||dateNow()):{cash:0,bank:0};
-    const avail=type==='Bank'?N(state.bank):N(state.cash);
-    const paid=type==='Credit'?0:Math.min(total,Math.max(0,avail));
-    const due=total-paid;
-    el.innerHTML=`<b>Purchase Total:</b> ${M(total)} &nbsp; | &nbsp; <b>Available ${E(type==='Bank'?'Bank':'Cash')}:</b> ${M(avail)} &nbsp; | &nbsp; <b>Paid Now:</b> ${M(paid)} &nbsp; | &nbsp; <b style="color:#b91c1c">Supplier Due:</b> ${M(due)}`;
-  };
-
-  function boot(){
-    const pt=document.getElementById('purPaymentType');
-    if(pt&&!pt.__ftV30){pt.addEventListener('change',window.updatePurchasePaymentSummary);pt.__ftV30=true;}
-    window.updatePurchasePaymentSummary();
-    window.renderPurchaseStockReport();
-    window.renderSupplierDueReport();
-    window.ftRenderFinance();
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500));
-})();
-</script>
-
-</html>`);
+  w.document.write(`<!doctype html><html><head><title>${ftesc(title)}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#172033;margin:0}.wrap{padding:4mm}h1{font-size:20px;text-align:center;margin:0 0 4px}h2{font-size:14px;text-align:center;margin:0 0 12px;color:#214c86}.meta{text-align:center;font-size:10px;color:#64748b;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}.card{border:1px solid #cbd5e1;border-radius:7px;padding:7px;text-align:center}.card small{display:block;color:#64748b}.card b{font-size:15px}.section{margin-top:10px}.section h3{font-size:12px;margin:5px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aab4c3;padding:5px;font-size:9px}th{background:#e9eef6}tfoot th{background:#f2f4f8}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:10px}@media print{.wrap{padding:0}}</style></head><body><div class="wrap"><h1>Fatima Tech — Distribution ERP</h1><h2>${ftesc(title)}</h2>${html}</div></body></html>`);
   w.document.close();setTimeout(()=>{w.focus();w.print();},250);
 }
 window.printExpenseReport=function(){
@@ -7814,152 +7378,7 @@ document.addEventListener('DOMContentLoaded',function(){
     const all=rows.concat(drows).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
     const html=`<div style="padding:10px;"><h3>Investor Statement — ${esc(inv.name)}</h3><p>Profit Share: ${num(inv.share).toFixed(2)}% | Current Capital: ${money(investorCapital(id))} | Profit Payable: ${money(profitEarned(id)-profitPaid(id))}</p><div class="table-responsive"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Method</th><th>Remarks</th></tr></thead><tbody>${all.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.type)}</td><td>${money(x.amount)}</td><td>${esc(x.method||'')}</td><td>${esc(x.remarks||'')}</td></tr>`).join('')||'<tr><td colspan="5">No transactions.</td></tr>'}</tbody></table></div></div>`;
     const w=window.open('','_blank');if(!w)return alert('Please allow pop-ups for investor statements.');
-    w.document.write(`<html><head><title>Investor Statement</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body>${html}<script>window.print();<\/script></body>
-<script id="ft-v30-purchase-finance-layout-fix">
-(function(){
-  'use strict';
-  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
-  const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
-  const E=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
-
-  // --- Purchase Stock Report: correct columns + clear totals ---
-  window.renderPurchaseStockReport=function(){
-    const body=document.getElementById('purStockReportTbody');
-    if(!body)return;
-    const map={};
-    (dbPurchaseInvoices||[]).forEach(p=>(p.items||[]).forEach(it=>{
-      const key=String(it.sku||it.name||'').toUpperCase();
-      if(!map[key])map[key]={sku:it.sku||'',category:it.category||'General',name:it.name||'',packing:N(it.pcsPerCarton)||24,ctn:0,pcs:0,amount:0};
-      map[key].ctn+=N(it.cartonQty);
-      map[key].pcs+=N(it.totalPcs);
-      map[key].amount+=N(it.subtotal);
-    }));
-    const rows=Object.values(map);
-    body.innerHTML=rows.map((r,i)=>`<tr>
-      <td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td>
-      <td>${r.packing} Pcs/Carton</td><td>${r.ctn}</td><td>${r.pcs}</td><td>${M(r.amount)}</td>
-    </tr>`).join('')||'<tr><td colspan="8">No purchase stock records found.</td></tr>';
-
-    const totalCtn=rows.reduce((a,r)=>a+r.ctn,0), totalPcs=rows.reduce((a,r)=>a+r.pcs,0), totalAmt=rows.reduce((a,r)=>a+r.amount,0);
-    const paid=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.paidNow!=null?p.paidNow:0),0);
-    const due=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.dueAmount),0);
-    let box=document.getElementById('ftPurchaseStockSummary');
-    if(!box){
-      const tab=document.getElementById('purchaseStockReportTab');
-      if(tab){
-        box=document.createElement('div'); box.id='ftPurchaseStockSummary'; box.className='summary-cards';
-        box.style.margin='10px 0';
-        tab.insertBefore(box,tab.querySelector('.table-responsive'));
-      }
-    }
-    if(box)box.innerHTML=`
-      <div class="bubble-card"><h3>Purchase Total</h3><p>${M(totalAmt)}</p></div>
-      <div class="bubble-card"><h3>Paid from Cash/Bank</h3><p>${M(paid)}</p></div>
-      <div class="bubble-card"><h3>Supplier Due</h3><p>${M(due)}</p></div>
-      <div class="bubble-card"><h3>Total Cartons</h3><p>${totalCtn.toLocaleString()}</p></div>
-      <div class="bubble-card"><h3>Total Pieces</h3><p>${totalPcs.toLocaleString()}</p></div>`;
-  };
-
-  // --- Supplier Due: make outstanding payable impossible to miss ---
-  window.renderSupplierDueReport=function(){
-    const body=document.getElementById('supplierDueTbody'); if(!body)return;
-    const supplier=document.getElementById('supplierDueFilter')?.value||'ALL';
-    const from=document.getElementById('supplierDueFrom')?.value||'';
-    const to=document.getElementById('supplierDueTo')?.value||'';
-    const rows=(dbPurchaseInvoices||[]).filter(p=>N(p.dueAmount)>0 && (supplier==='ALL'||p.supplier===supplier) && (!from||p.date>=from) && (!to||p.date<=to));
-    body.innerHTML=rows.map(p=>`<tr><td>${E(p.date)}</td><td>${E(p.invNo)}</td><td>${E(p.supplier)}</td><td>${M(p.totalAmt)}</td><td>${M(p.paidNow||0)}</td><td><strong>${M(p.dueAmount)}</strong></td><td>${E(p.paymentType||p.requestedPaymentType||'Credit')}</td></tr>`).join('')||'<tr><td colspan="7">No supplier dues.</td></tr>';
-    const total=rows.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el=document.getElementById('supplierDueTotal'); if(el)el.textContent=M(total);
-    let note=document.getElementById('ftSupplierDueBanner');
-    if(!note){const tab=document.getElementById('supplierDueTab'); if(tab){note=document.createElement('div');note.id='ftSupplierDueBanner';note.className='section-box';note.style.cssText='margin-bottom:10px;border-left:5px solid #dc2626;background:#fff7ed;';tab.insertBefore(note,tab.querySelector('.section-box'));}}
-    if(note)note.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>📒 Total Supplier Outstanding</strong><strong style="font-size:20px;color:#b91c1c">${M(total)}</strong></div><small>یہ وہ رقم ہے جو ابھی suppliers کو ادا کرنی باقی ہے۔</small>`;
-  };
-
-  // --- Finance: purchases and supplier due are visible as first-class numbers ---
-  const baseFinance=window.ftRenderFinance;
-  window.ftRenderFinance=function(){
-    if(typeof baseFinance==='function')baseFinance();
-    const today=dateNow();
-    const to=document.getElementById('ftToDate')?.value||today;
-    const purchases=(dbPurchaseInvoices||[]).filter(p=>!to||p.date<=to);
-    const purchaseTotal=purchases.reduce((a,p)=>a+N(p.totalAmt),0);
-    const supplierDue=purchases.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el1=document.getElementById('ftTotalPurchases'); if(el1)el1.textContent=M(purchaseTotal);
-    const el2=document.getElementById('ftSupplierDue'); if(el2)el2.textContent=M(supplierDue);
-    const recon=document.getElementById('ftCashReconciliation');
-    if(recon){
-      const cashInv=dbInvestments.filter(x=>String(x.method||'Cash')==='Cash'&&(!to||x.date<=to)).reduce((a,x)=>a+N(x.amount),0);
-      const cashPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'Cash').toLowerCase().startsWith('cash')).reduce((a,p)=>a+N(p.paidNow),0);
-      const bankPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,p)=>a+N(p.paidNow),0);
-      recon.innerHTML=`<strong>💵 Capital & Purchase Reconciliation through ${E(to)}</strong><div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px"><span>Cash Investment: <b>${M(cashInv)}</b></span><span>Purchase Total: <b>${M(purchaseTotal)}</b></span><span>Cash/Bank Paid: <b>${M(cashPurch+bankPurch)}</b></span><span>Supplier Due: <b style="color:#b91c1c">${M(supplierDue)}</b></span><span style="color:#0f766e">Actual Cash: <b>${M(cashState(to).cash)}</b></span></div>`;
-    }
-  };
-
-  // --- Purchase save: cash/bank pays what is actually available; remainder becomes Supplier Due ---
-  // This replaces older wrappers so paymentType is never overwritten incorrectly.
-  window.saveCompletePurchaseInvoice=function(print){
-    if(!Array.isArray(currentPurInvoiceItems)||currentPurInvoiceItems.length===0)return alert('Purchase invoice is empty.');
-    const date=document.getElementById('purInvDate')?.value||dateNow();
-    const supplier=(document.getElementById('purSupplierName')?.value||'').trim();
-    const invNo=(document.getElementById('purInvoiceNo')?.value||'').trim();
-    const category=document.getElementById('purCategory')?.value||'General';
-    const requestedType=document.getElementById('purPaymentType')?.value||'Cash';
-    const totalAmt=currentPurInvoiceItems.reduce((a,b)=>a+N(b.subtotal),0);
-    if(!supplier||!invNo)return alert('Supplier Name and Purchase Invoice No are required.');
-    if(totalAmt<=0)return alert('Purchase invoice total must be greater than zero.');
-    const state=typeof cashState==='function'?cashState(date):{cash:0,bank:0};
-    const available=requestedType==='Bank'?Math.max(0,N(state.bank)):Math.max(0,N(state.cash));
-    const paidNow=requestedType==='Credit'?0:Math.min(totalAmt,available);
-    const dueAmount=totalAmt-paidNow;
-    const actualType=requestedType==='Credit'?'Credit':(dueAmount>0?requestedType+' + Due':requestedType);
-    const itemSnapshot=currentPurInvoiceItems.map(x=>({...x}));
-    const purchase={id:'PUR_'+Date.now(),invNo,date,supplier,category,paymentType:actualType,requestedPaymentType:requestedType,totalAmt,paidNow,dueAmount,items:itemSnapshot,status:dueAmount>0?'Due':'Paid'};
-    dbPurchaseInvoices.push(purchase);
-    itemSnapshot.forEach(item=>{
-      let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());
-      if(found){found.qty=N(found.qty)+N(item.totalPcs);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=N(item.pieceCost);found.tradePrice=N(item.tradePrice);found.retailPrice=N(item.retailPrice);if(item.imageData)found.imageData=item.imageData;}
-      else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'General',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:N(item.totalPcs),costPrice:N(item.pieceCost),tradePrice:N(item.tradePrice),retailPrice:N(item.retailPrice)});
-    });
-    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
-    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
-    if(typeof audit2==='function')audit2('CREATE','Purchase Invoice',purchase.id,`Purchase ${invNo}: Total Rs.${totalAmt}, Paid Rs.${paidNow}, Due Rs.${dueAmount}`);
-    alert(`Purchase invoice saved.\n\nPurchase Total: Rs. ${totalAmt.toLocaleString()}\nPaid Now: Rs. ${paidNow.toLocaleString()}\nSupplier Due: Rs. ${dueAmount.toLocaleString()}\n\n${dueAmount>0?'The unpaid amount is now visible in Purchase → Supplier Due.':'The purchase was fully paid.'}`);
-    currentPurInvoiceItems=[];
-    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
-    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
-    if(typeof updateStockDatalist==='function')updateStockDatalist();
-    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
-    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
-    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
-    if(typeof ftRenderFinance==='function')ftRenderFinance();
-  };
-
-  // Correct the payment summary wording and update it immediately.
-  window.updatePurchasePaymentSummary=function(){
-    const el=document.getElementById('purPaymentSummary'); if(!el)return;
-    const total=(currentPurInvoiceItems||[]).reduce((a,b)=>a+N(b.subtotal),0);
-    const type=document.getElementById('purPaymentType')?.value||'Cash';
-    if(total<=0){el.innerHTML='<span>Add products to calculate Purchase Total, Paid Now and Supplier Due.</span>';return;}
-    const state=typeof cashState==='function'?cashState(document.getElementById('purInvDate')?.value||dateNow()):{cash:0,bank:0};
-    const avail=type==='Bank'?N(state.bank):N(state.cash);
-    const paid=type==='Credit'?0:Math.min(total,Math.max(0,avail));
-    const due=total-paid;
-    el.innerHTML=`<b>Purchase Total:</b> ${M(total)} &nbsp; | &nbsp; <b>Available ${E(type==='Bank'?'Bank':'Cash')}:</b> ${M(avail)} &nbsp; | &nbsp; <b>Paid Now:</b> ${M(paid)} &nbsp; | &nbsp; <b style="color:#b91c1c">Supplier Due:</b> ${M(due)}`;
-  };
-
-  function boot(){
-    const pt=document.getElementById('purPaymentType');
-    if(pt&&!pt.__ftV30){pt.addEventListener('change',window.updatePurchasePaymentSummary);pt.__ftV30=true;}
-    window.updatePurchasePaymentSummary();
-    window.renderPurchaseStockReport();
-    window.renderSupplierDueReport();
-    window.ftRenderFinance();
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500));
-})();
-</script>
-
-</html>`);w.document.close();
+    w.document.write(`<html><head><title>Investor Statement</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body>${html}<script>window.print();<\/script></body></html>`);w.document.close();
   };
   function init(){
     const d=today();
@@ -8425,152 +7844,7 @@ function salarySlipHtml(x){
 }
 function printHtml(title,body){
   const w=window.open('','_blank','width=1000,height=800');if(!w)return;
-  w.document.write(`<!doctype html><html><head><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#111}h1{margin:0;font-size:22px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #999;padding:5px;font-size:11px}th{background:#eef2f7}.slip-head{text-align:center;margin-bottom:12px}.slip-meta{padding:8px;border:1px solid #bbb}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.money{max-width:520px;margin-left:auto}.money td:last-child{text-align:right}.money .net{font-size:14px;font-weight:bold;background:#eaf8ef}.sign{display:flex;justify-content:space-between;margin-top:40px}@media print{button{display:none}}</style></head><body>${body}</body>
-<script id="ft-v30-purchase-finance-layout-fix">
-(function(){
-  'use strict';
-  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
-  const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
-  const E=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
-
-  // --- Purchase Stock Report: correct columns + clear totals ---
-  window.renderPurchaseStockReport=function(){
-    const body=document.getElementById('purStockReportTbody');
-    if(!body)return;
-    const map={};
-    (dbPurchaseInvoices||[]).forEach(p=>(p.items||[]).forEach(it=>{
-      const key=String(it.sku||it.name||'').toUpperCase();
-      if(!map[key])map[key]={sku:it.sku||'',category:it.category||'General',name:it.name||'',packing:N(it.pcsPerCarton)||24,ctn:0,pcs:0,amount:0};
-      map[key].ctn+=N(it.cartonQty);
-      map[key].pcs+=N(it.totalPcs);
-      map[key].amount+=N(it.subtotal);
-    }));
-    const rows=Object.values(map);
-    body.innerHTML=rows.map((r,i)=>`<tr>
-      <td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td>
-      <td>${r.packing} Pcs/Carton</td><td>${r.ctn}</td><td>${r.pcs}</td><td>${M(r.amount)}</td>
-    </tr>`).join('')||'<tr><td colspan="8">No purchase stock records found.</td></tr>';
-
-    const totalCtn=rows.reduce((a,r)=>a+r.ctn,0), totalPcs=rows.reduce((a,r)=>a+r.pcs,0), totalAmt=rows.reduce((a,r)=>a+r.amount,0);
-    const paid=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.paidNow!=null?p.paidNow:0),0);
-    const due=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.dueAmount),0);
-    let box=document.getElementById('ftPurchaseStockSummary');
-    if(!box){
-      const tab=document.getElementById('purchaseStockReportTab');
-      if(tab){
-        box=document.createElement('div'); box.id='ftPurchaseStockSummary'; box.className='summary-cards';
-        box.style.margin='10px 0';
-        tab.insertBefore(box,tab.querySelector('.table-responsive'));
-      }
-    }
-    if(box)box.innerHTML=`
-      <div class="bubble-card"><h3>Purchase Total</h3><p>${M(totalAmt)}</p></div>
-      <div class="bubble-card"><h3>Paid from Cash/Bank</h3><p>${M(paid)}</p></div>
-      <div class="bubble-card"><h3>Supplier Due</h3><p>${M(due)}</p></div>
-      <div class="bubble-card"><h3>Total Cartons</h3><p>${totalCtn.toLocaleString()}</p></div>
-      <div class="bubble-card"><h3>Total Pieces</h3><p>${totalPcs.toLocaleString()}</p></div>`;
-  };
-
-  // --- Supplier Due: make outstanding payable impossible to miss ---
-  window.renderSupplierDueReport=function(){
-    const body=document.getElementById('supplierDueTbody'); if(!body)return;
-    const supplier=document.getElementById('supplierDueFilter')?.value||'ALL';
-    const from=document.getElementById('supplierDueFrom')?.value||'';
-    const to=document.getElementById('supplierDueTo')?.value||'';
-    const rows=(dbPurchaseInvoices||[]).filter(p=>N(p.dueAmount)>0 && (supplier==='ALL'||p.supplier===supplier) && (!from||p.date>=from) && (!to||p.date<=to));
-    body.innerHTML=rows.map(p=>`<tr><td>${E(p.date)}</td><td>${E(p.invNo)}</td><td>${E(p.supplier)}</td><td>${M(p.totalAmt)}</td><td>${M(p.paidNow||0)}</td><td><strong>${M(p.dueAmount)}</strong></td><td>${E(p.paymentType||p.requestedPaymentType||'Credit')}</td></tr>`).join('')||'<tr><td colspan="7">No supplier dues.</td></tr>';
-    const total=rows.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el=document.getElementById('supplierDueTotal'); if(el)el.textContent=M(total);
-    let note=document.getElementById('ftSupplierDueBanner');
-    if(!note){const tab=document.getElementById('supplierDueTab'); if(tab){note=document.createElement('div');note.id='ftSupplierDueBanner';note.className='section-box';note.style.cssText='margin-bottom:10px;border-left:5px solid #dc2626;background:#fff7ed;';tab.insertBefore(note,tab.querySelector('.section-box'));}}
-    if(note)note.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>📒 Total Supplier Outstanding</strong><strong style="font-size:20px;color:#b91c1c">${M(total)}</strong></div><small>یہ وہ رقم ہے جو ابھی suppliers کو ادا کرنی باقی ہے۔</small>`;
-  };
-
-  // --- Finance: purchases and supplier due are visible as first-class numbers ---
-  const baseFinance=window.ftRenderFinance;
-  window.ftRenderFinance=function(){
-    if(typeof baseFinance==='function')baseFinance();
-    const today=dateNow();
-    const to=document.getElementById('ftToDate')?.value||today;
-    const purchases=(dbPurchaseInvoices||[]).filter(p=>!to||p.date<=to);
-    const purchaseTotal=purchases.reduce((a,p)=>a+N(p.totalAmt),0);
-    const supplierDue=purchases.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el1=document.getElementById('ftTotalPurchases'); if(el1)el1.textContent=M(purchaseTotal);
-    const el2=document.getElementById('ftSupplierDue'); if(el2)el2.textContent=M(supplierDue);
-    const recon=document.getElementById('ftCashReconciliation');
-    if(recon){
-      const cashInv=dbInvestments.filter(x=>String(x.method||'Cash')==='Cash'&&(!to||x.date<=to)).reduce((a,x)=>a+N(x.amount),0);
-      const cashPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'Cash').toLowerCase().startsWith('cash')).reduce((a,p)=>a+N(p.paidNow),0);
-      const bankPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,p)=>a+N(p.paidNow),0);
-      recon.innerHTML=`<strong>💵 Capital & Purchase Reconciliation through ${E(to)}</strong><div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px"><span>Cash Investment: <b>${M(cashInv)}</b></span><span>Purchase Total: <b>${M(purchaseTotal)}</b></span><span>Cash/Bank Paid: <b>${M(cashPurch+bankPurch)}</b></span><span>Supplier Due: <b style="color:#b91c1c">${M(supplierDue)}</b></span><span style="color:#0f766e">Actual Cash: <b>${M(cashState(to).cash)}</b></span></div>`;
-    }
-  };
-
-  // --- Purchase save: cash/bank pays what is actually available; remainder becomes Supplier Due ---
-  // This replaces older wrappers so paymentType is never overwritten incorrectly.
-  window.saveCompletePurchaseInvoice=function(print){
-    if(!Array.isArray(currentPurInvoiceItems)||currentPurInvoiceItems.length===0)return alert('Purchase invoice is empty.');
-    const date=document.getElementById('purInvDate')?.value||dateNow();
-    const supplier=(document.getElementById('purSupplierName')?.value||'').trim();
-    const invNo=(document.getElementById('purInvoiceNo')?.value||'').trim();
-    const category=document.getElementById('purCategory')?.value||'General';
-    const requestedType=document.getElementById('purPaymentType')?.value||'Cash';
-    const totalAmt=currentPurInvoiceItems.reduce((a,b)=>a+N(b.subtotal),0);
-    if(!supplier||!invNo)return alert('Supplier Name and Purchase Invoice No are required.');
-    if(totalAmt<=0)return alert('Purchase invoice total must be greater than zero.');
-    const state=typeof cashState==='function'?cashState(date):{cash:0,bank:0};
-    const available=requestedType==='Bank'?Math.max(0,N(state.bank)):Math.max(0,N(state.cash));
-    const paidNow=requestedType==='Credit'?0:Math.min(totalAmt,available);
-    const dueAmount=totalAmt-paidNow;
-    const actualType=requestedType==='Credit'?'Credit':(dueAmount>0?requestedType+' + Due':requestedType);
-    const itemSnapshot=currentPurInvoiceItems.map(x=>({...x}));
-    const purchase={id:'PUR_'+Date.now(),invNo,date,supplier,category,paymentType:actualType,requestedPaymentType:requestedType,totalAmt,paidNow,dueAmount,items:itemSnapshot,status:dueAmount>0?'Due':'Paid'};
-    dbPurchaseInvoices.push(purchase);
-    itemSnapshot.forEach(item=>{
-      let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());
-      if(found){found.qty=N(found.qty)+N(item.totalPcs);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=N(item.pieceCost);found.tradePrice=N(item.tradePrice);found.retailPrice=N(item.retailPrice);if(item.imageData)found.imageData=item.imageData;}
-      else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'General',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:N(item.totalPcs),costPrice:N(item.pieceCost),tradePrice:N(item.tradePrice),retailPrice:N(item.retailPrice)});
-    });
-    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
-    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
-    if(typeof audit2==='function')audit2('CREATE','Purchase Invoice',purchase.id,`Purchase ${invNo}: Total Rs.${totalAmt}, Paid Rs.${paidNow}, Due Rs.${dueAmount}`);
-    alert(`Purchase invoice saved.\n\nPurchase Total: Rs. ${totalAmt.toLocaleString()}\nPaid Now: Rs. ${paidNow.toLocaleString()}\nSupplier Due: Rs. ${dueAmount.toLocaleString()}\n\n${dueAmount>0?'The unpaid amount is now visible in Purchase → Supplier Due.':'The purchase was fully paid.'}`);
-    currentPurInvoiceItems=[];
-    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
-    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
-    if(typeof updateStockDatalist==='function')updateStockDatalist();
-    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
-    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
-    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
-    if(typeof ftRenderFinance==='function')ftRenderFinance();
-  };
-
-  // Correct the payment summary wording and update it immediately.
-  window.updatePurchasePaymentSummary=function(){
-    const el=document.getElementById('purPaymentSummary'); if(!el)return;
-    const total=(currentPurInvoiceItems||[]).reduce((a,b)=>a+N(b.subtotal),0);
-    const type=document.getElementById('purPaymentType')?.value||'Cash';
-    if(total<=0){el.innerHTML='<span>Add products to calculate Purchase Total, Paid Now and Supplier Due.</span>';return;}
-    const state=typeof cashState==='function'?cashState(document.getElementById('purInvDate')?.value||dateNow()):{cash:0,bank:0};
-    const avail=type==='Bank'?N(state.bank):N(state.cash);
-    const paid=type==='Credit'?0:Math.min(total,Math.max(0,avail));
-    const due=total-paid;
-    el.innerHTML=`<b>Purchase Total:</b> ${M(total)} &nbsp; | &nbsp; <b>Available ${E(type==='Bank'?'Bank':'Cash')}:</b> ${M(avail)} &nbsp; | &nbsp; <b>Paid Now:</b> ${M(paid)} &nbsp; | &nbsp; <b style="color:#b91c1c">Supplier Due:</b> ${M(due)}`;
-  };
-
-  function boot(){
-    const pt=document.getElementById('purPaymentType');
-    if(pt&&!pt.__ftV30){pt.addEventListener('change',window.updatePurchasePaymentSummary);pt.__ftV30=true;}
-    window.updatePurchasePaymentSummary();
-    window.renderPurchaseStockReport();
-    window.renderSupplierDueReport();
-    window.ftRenderFinance();
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500));
-})();
-</script>
-
-</html>`);
+  w.document.write(`<!doctype html><html><head><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#111}h1{margin:0;font-size:22px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #999;padding:5px;font-size:11px}th{background:#eef2f7}.slip-head{text-align:center;margin-bottom:12px}.slip-meta{padding:8px;border:1px solid #bbb}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.money{max-width:520px;margin-left:auto}.money td:last-child{text-align:right}.money .net{font-size:14px;font-weight:bold;background:#eaf8ef}.sign{display:flex;justify-content:space-between;margin-top:40px}@media print{button{display:none}}</style></head><body>${body}</body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
 window.ftPrintCurrentSalarySlip=function(){
@@ -9026,15 +8300,23 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 
 </body>
 
+<script id="ft-v29-purchase-render-fix">
+(function(){
+  if(typeof window.esc!=='function'){
+    window.esc=function(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]||m;});};
+  }
+})();
+</script>
 
-<script id="ft-v30-purchase-finance-layout-fix">
+
+<script id="ft-v31-purchase-finance-clean">
 (function(){
   'use strict';
   const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
   const E=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
 
-  // --- Purchase Stock Report: correct columns + clear totals ---
+  // Purchase Stock Report: keep the existing correct columns and add a clear financial/quantity summary.
   window.renderPurchaseStockReport=function(){
     const body=document.getElementById('purStockReportTbody');
     if(!body)return;
@@ -9047,121 +8329,92 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
       map[key].amount+=N(it.subtotal);
     }));
     const rows=Object.values(map);
-    body.innerHTML=rows.map((r,i)=>`<tr>
-      <td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td>
-      <td>${r.packing} Pcs/Carton</td><td>${r.ctn}</td><td>${r.pcs}</td><td>${M(r.amount)}</td>
-    </tr>`).join('')||'<tr><td colspan="8">No purchase stock records found.</td></tr>';
-
-    const totalCtn=rows.reduce((a,r)=>a+r.ctn,0), totalPcs=rows.reduce((a,r)=>a+r.pcs,0), totalAmt=rows.reduce((a,r)=>a+r.amount,0);
-    const paid=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.paidNow!=null?p.paidNow:0),0);
+    body.innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td><td>${r.packing} Pcs/Ctn</td><td>${r.ctn}</td><td>${r.pcs}</td><td>${M(r.amount)}</td></tr>`).join('')||'<tr><td colspan="8">No purchase stock records found.</td></tr>';
+    const totalCtn=rows.reduce((a,r)=>a+r.ctn,0);
+    const totalPcs=rows.reduce((a,r)=>a+r.pcs,0);
+    const totalAmt=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.totalAmt),0);
+    const paid=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.paidNow),0);
     const due=(dbPurchaseInvoices||[]).reduce((a,p)=>a+N(p.dueAmount),0);
     let box=document.getElementById('ftPurchaseStockSummary');
     if(!box){
       const tab=document.getElementById('purchaseStockReportTab');
-      if(tab){
-        box=document.createElement('div'); box.id='ftPurchaseStockSummary'; box.className='summary-cards';
-        box.style.margin='10px 0';
-        tab.insertBefore(box,tab.querySelector('.table-responsive'));
-      }
+      if(tab){box=document.createElement('div');box.id='ftPurchaseStockSummary';box.className='summary-cards';box.style.margin='10px 0';const table=tab.querySelector('.table-responsive');if(table)tab.insertBefore(box,table);}
     }
-    if(box)box.innerHTML=`
-      <div class="bubble-card"><h3>Purchase Total</h3><p>${M(totalAmt)}</p></div>
-      <div class="bubble-card"><h3>Paid from Cash/Bank</h3><p>${M(paid)}</p></div>
-      <div class="bubble-card"><h3>Supplier Due</h3><p>${M(due)}</p></div>
-      <div class="bubble-card"><h3>Total Cartons</h3><p>${totalCtn.toLocaleString()}</p></div>
-      <div class="bubble-card"><h3>Total Pieces</h3><p>${totalPcs.toLocaleString()}</p></div>`;
+    if(box)box.innerHTML=`<div class="bubble-card"><h3>Purchase Total</h3><p>${M(totalAmt)}</p></div><div class="bubble-card"><h3>Paid from Cash/Bank</h3><p>${M(paid)}</p></div><div class="bubble-card"><h3>Supplier Due</h3><p>${M(due)}</p></div><div class="bubble-card"><h3>Total Cartons</h3><p>${totalCtn.toLocaleString()}</p></div><div class="bubble-card"><h3>Total Pieces</h3><p>${totalPcs.toLocaleString()}</p></div>`;
   };
 
-  // --- Supplier Due: make outstanding payable impossible to miss ---
+  // Supplier Due: make the payable amount prominent and filterable.
   window.renderSupplierDueReport=function(){
-    const body=document.getElementById('supplierDueTbody'); if(!body)return;
+    const body=document.getElementById('supplierDueTbody');if(!body)return;
     const supplier=document.getElementById('supplierDueFilter')?.value||'ALL';
     const from=document.getElementById('supplierDueFrom')?.value||'';
     const to=document.getElementById('supplierDueTo')?.value||'';
-    const rows=(dbPurchaseInvoices||[]).filter(p=>N(p.dueAmount)>0 && (supplier==='ALL'||p.supplier===supplier) && (!from||p.date>=from) && (!to||p.date<=to));
-    body.innerHTML=rows.map(p=>`<tr><td>${E(p.date)}</td><td>${E(p.invNo)}</td><td>${E(p.supplier)}</td><td>${M(p.totalAmt)}</td><td>${M(p.paidNow||0)}</td><td><strong>${M(p.dueAmount)}</strong></td><td>${E(p.paymentType||p.requestedPaymentType||'Credit')}</td></tr>`).join('')||'<tr><td colspan="7">No supplier dues.</td></tr>';
+    const rows=(dbPurchaseInvoices||[]).filter(p=>N(p.dueAmount)>0&&(supplier==='ALL'||p.supplier===supplier)&&(!from||p.date>=from)&&(!to||p.date<=to));
+    body.innerHTML=rows.map(p=>`<tr><td>${E(p.date)}</td><td>${E(p.invNo)}</td><td>${E(p.supplier)}</td><td>${M(p.totalAmt)}</td><td>${M(p.paidNow)}</td><td><strong>${M(p.dueAmount)}</strong></td><td>${E(p.paymentType||p.requestedPaymentType||'Credit')}</td></tr>`).join('')||'<tr><td colspan="7">No supplier dues.</td></tr>';
     const total=rows.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el=document.getElementById('supplierDueTotal'); if(el)el.textContent=M(total);
+    const el=document.getElementById('supplierDueTotal');if(el)el.textContent=M(total);
     let note=document.getElementById('ftSupplierDueBanner');
-    if(!note){const tab=document.getElementById('supplierDueTab'); if(tab){note=document.createElement('div');note.id='ftSupplierDueBanner';note.className='section-box';note.style.cssText='margin-bottom:10px;border-left:5px solid #dc2626;background:#fff7ed;';tab.insertBefore(note,tab.querySelector('.section-box'));}}
-    if(note)note.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong>📒 Total Supplier Outstanding</strong><strong style="font-size:20px;color:#b91c1c">${M(total)}</strong></div><small>یہ وہ رقم ہے جو ابھی suppliers کو ادا کرنی باقی ہے۔</small>`;
+    if(!note){const tab=document.getElementById('supplierDueTab');if(tab){note=document.createElement('div');note.id='ftSupplierDueBanner';note.className='section-box';note.style.cssText='margin-bottom:10px;border-left:5px solid #dc2626;background:#fff7ed;';tab.insertBefore(note,tab.querySelector('.section-box'));}}
+    if(note)note.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><strong>📒 Total Supplier Outstanding</strong><strong style="font-size:20px;color:#b91c1c">${M(total)}</strong></div><small>یہ وہ رقم ہے جو ابھی suppliers کو ادا کرنی باقی ہے۔</small>`;
   };
 
-  // --- Finance: purchases and supplier due are visible as first-class numbers ---
+  // Finance: purchases are an outflow only by the amount actually paid; unpaid balance stays Supplier Due.
   const baseFinance=window.ftRenderFinance;
   window.ftRenderFinance=function(){
     if(typeof baseFinance==='function')baseFinance();
-    const today=dateNow();
+    const today=typeof dateNow==='function'?dateNow():new Date().toISOString().slice(0,10);
     const to=document.getElementById('ftToDate')?.value||today;
-    const purchases=(dbPurchaseInvoices||[]).filter(p=>!to||p.date<=to);
+    const purchases=(dbPurchaseInvoices||[]).filter(p=>!to||String(p.date||'')<=to);
     const purchaseTotal=purchases.reduce((a,p)=>a+N(p.totalAmt),0);
     const supplierDue=purchases.reduce((a,p)=>a+N(p.dueAmount),0);
-    const el1=document.getElementById('ftTotalPurchases'); if(el1)el1.textContent=M(purchaseTotal);
-    const el2=document.getElementById('ftSupplierDue'); if(el2)el2.textContent=M(supplierDue);
     const recon=document.getElementById('ftCashReconciliation');
     if(recon){
-      const cashInv=dbInvestments.filter(x=>String(x.method||'Cash')==='Cash'&&(!to||x.date<=to)).reduce((a,x)=>a+N(x.amount),0);
-      const cashPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'Cash').toLowerCase().startsWith('cash')).reduce((a,p)=>a+N(p.paidNow),0);
-      const bankPurch=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,p)=>a+N(p.paidNow),0);
-      recon.innerHTML=`<strong>💵 Capital & Purchase Reconciliation through ${E(to)}</strong><div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px"><span>Cash Investment: <b>${M(cashInv)}</b></span><span>Purchase Total: <b>${M(purchaseTotal)}</b></span><span>Cash/Bank Paid: <b>${M(cashPurch+bankPurch)}</b></span><span>Supplier Due: <b style="color:#b91c1c">${M(supplierDue)}</b></span><span style="color:#0f766e">Actual Cash: <b>${M(cashState(to).cash)}</b></span></div>`;
+      const cashInv=(dbInvestments||[]).filter(x=>String(x.method||'Cash')==='Cash'&&(!to||String(x.date||'')<=to)).reduce((a,x)=>a+N(x.amount),0);
+      const cashPaid=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('cash')).reduce((a,p)=>a+N(p.paidNow),0);
+      const bankPaid=purchases.filter(p=>String(p.requestedPaymentType||p.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,p)=>a+N(p.paidNow),0);
+      const actual=typeof cashState==='function'?cashState(to):{cash:0,bank:0};
+      recon.innerHTML=`<strong>💵 Capital & Purchase Reconciliation through ${E(to)}</strong><div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px"><span>Cash Investment: <b>${M(cashInv)}</b></span><span>Purchase Total: <b>${M(purchaseTotal)}</b></span><span>Cash/Bank Paid: <b>${M(cashPaid+bankPaid)}</b></span><span>Supplier Due: <b style="color:#b91c1c">${M(supplierDue)}</b></span><span style="color:#0f766e">Actual Cash: <b>${M(actual.cash)}</b></span><span style="color:#1d4ed8">Bank: <b>${M(actual.bank)}</b></span></div>`;
     }
   };
 
-  // --- Purchase save: cash/bank pays what is actually available; remainder becomes Supplier Due ---
-  // This replaces older wrappers so paymentType is never overwritten incorrectly.
-  window.saveCompletePurchaseInvoice=function(print){
-    if(!Array.isArray(currentPurInvoiceItems)||currentPurInvoiceItems.length===0)return alert('Purchase invoice is empty.');
-    const date=document.getElementById('purInvDate')?.value||dateNow();
-    const supplier=(document.getElementById('purSupplierName')?.value||'').trim();
-    const invNo=(document.getElementById('purInvoiceNo')?.value||'').trim();
-    const category=document.getElementById('purCategory')?.value||'General';
-    const requestedType=document.getElementById('purPaymentType')?.value||'Cash';
-    const totalAmt=currentPurInvoiceItems.reduce((a,b)=>a+N(b.subtotal),0);
-    if(!supplier||!invNo)return alert('Supplier Name and Purchase Invoice No are required.');
-    if(totalAmt<=0)return alert('Purchase invoice total must be greater than zero.');
-    const state=typeof cashState==='function'?cashState(date):{cash:0,bank:0};
-    const available=requestedType==='Bank'?Math.max(0,N(state.bank)):Math.max(0,N(state.cash));
-    const paidNow=requestedType==='Credit'?0:Math.min(totalAmt,available);
-    const dueAmount=totalAmt-paidNow;
-    const actualType=requestedType==='Credit'?'Credit':(dueAmount>0?requestedType+' + Due':requestedType);
-    const itemSnapshot=currentPurInvoiceItems.map(x=>({...x}));
-    const purchase={id:'PUR_'+Date.now(),invNo,date,supplier,category,paymentType:actualType,requestedPaymentType:requestedType,totalAmt,paidNow,dueAmount,items:itemSnapshot,status:dueAmount>0?'Due':'Paid'};
-    dbPurchaseInvoices.push(purchase);
-    itemSnapshot.forEach(item=>{
-      let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());
-      if(found){found.qty=N(found.qty)+N(item.totalPcs);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=N(item.pieceCost);found.tradePrice=N(item.tradePrice);found.retailPrice=N(item.retailPrice);if(item.imageData)found.imageData=item.imageData;}
-      else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'General',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:N(item.totalPcs),costPrice:N(item.pieceCost),tradePrice:N(item.tradePrice),retailPrice:N(item.retailPrice)});
-    });
-    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
-    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
-    if(typeof audit2==='function')audit2('CREATE','Purchase Invoice',purchase.id,`Purchase ${invNo}: Total Rs.${totalAmt}, Paid Rs.${paidNow}, Due Rs.${dueAmount}`);
-    alert(`Purchase invoice saved.\n\nPurchase Total: Rs. ${totalAmt.toLocaleString()}\nPaid Now: Rs. ${paidNow.toLocaleString()}\nSupplier Due: Rs. ${dueAmount.toLocaleString()}\n\n${dueAmount>0?'The unpaid amount is now visible in Purchase → Supplier Due.':'The purchase was fully paid.'}`);
-    currentPurInvoiceItems=[];
-    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
-    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
-    if(typeof updateStockDatalist==='function')updateStockDatalist();
-    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
-    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
-    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
-    if(typeof ftRenderFinance==='function')ftRenderFinance();
-  };
+  // The core purchase function already supports partial Cash/Bank payment. Normalize the saved payment label
+  // after legacy wrappers run, so a partially-paid purchase remains visible as "Cash + Due" / "Bank + Due".
+  const currentSave=window.saveCompletePurchaseInvoice;
+  if(typeof currentSave==='function'&&!window.__ftV31PurchaseSaveWrapped){
+    window.saveCompletePurchaseInvoice=function(print){
+      const before=(dbPurchaseInvoices||[]).length;
+      const result=currentSave.apply(this,arguments);
+      const arr=dbPurchaseInvoices||[];
+      if(arr.length>before){
+        const p=arr[arr.length-1];
+        const requested=String(p.requestedPaymentType||document.getElementById('purPaymentType')?.value||'Cash');
+        p.paidNow=N(p.paidNow);p.dueAmount=Math.max(0,N(p.totalAmt)-p.paidNow);
+        p.paymentType=requested==='Credit'?'Credit':(p.dueAmount>0?requested+' + Due':requested);
+        p.status=p.dueAmount>0?'Due':'Paid';
+        localStorage.setItem('ht_purchase_invoices',JSON.stringify(arr));
+      }
+      setTimeout(()=>{if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();if(typeof ftRenderFinance==='function')ftRenderFinance();},30);
+      return result;
+    };
+    window.__ftV31PurchaseSaveWrapped=true;
+  }
 
-  // Correct the payment summary wording and update it immediately.
+  // Live payment preview on the Purchase Invoice screen.
   window.updatePurchasePaymentSummary=function(){
-    const el=document.getElementById('purPaymentSummary'); if(!el)return;
+    const el=document.getElementById('purPaymentSummary');if(!el)return;
     const total=(currentPurInvoiceItems||[]).reduce((a,b)=>a+N(b.subtotal),0);
     const type=document.getElementById('purPaymentType')?.value||'Cash';
     if(total<=0){el.innerHTML='<span>Add products to calculate Purchase Total, Paid Now and Supplier Due.</span>';return;}
-    const state=typeof cashState==='function'?cashState(document.getElementById('purInvDate')?.value||dateNow()):{cash:0,bank:0};
-    const avail=type==='Bank'?N(state.bank):N(state.cash);
-    const paid=type==='Credit'?0:Math.min(total,Math.max(0,avail));
+    const state=typeof cashState==='function'?cashState(document.getElementById('purInvDate')?.value||today()):{cash:0,bank:0};
+    const available=type==='Bank'?Math.max(0,N(state.bank)):Math.max(0,N(state.cash));
+    const paid=type==='Credit'?0:Math.min(total,available);
     const due=total-paid;
-    el.innerHTML=`<b>Purchase Total:</b> ${M(total)} &nbsp; | &nbsp; <b>Available ${E(type==='Bank'?'Bank':'Cash')}:</b> ${M(avail)} &nbsp; | &nbsp; <b>Paid Now:</b> ${M(paid)} &nbsp; | &nbsp; <b style="color:#b91c1c">Supplier Due:</b> ${M(due)}`;
+    el.innerHTML=`<b>Purchase Total:</b> ${M(total)} &nbsp; | &nbsp; <b>Available ${type==='Bank'?'Bank':'Cash'}:</b> ${M(available)} &nbsp; | &nbsp; <b>Paid Now:</b> ${M(paid)} &nbsp; | &nbsp; <b style="color:#b91c1c">Supplier Due:</b> ${M(due)}`;
   };
 
   function boot(){
     const pt=document.getElementById('purPaymentType');
-    if(pt&&!pt.__ftV30){pt.addEventListener('change',window.updatePurchasePaymentSummary);pt.__ftV30=true;}
+    if(pt&&!pt.__ftV31){pt.addEventListener('change',window.updatePurchasePaymentSummary);pt.__ftV31=true;}
     window.updatePurchasePaymentSummary();
     window.renderPurchaseStockReport();
     window.renderSupplierDueReport();
@@ -9174,10 +8427,4 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 </html>
 
 
-<script id="ft-v29-purchase-render-fix">
-(function(){
-  if(typeof window.esc!=='function'){
-    window.esc=function(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]||m;});};
-  }
-})();
-</script>
+
