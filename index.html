@@ -9182,6 +9182,99 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 
+
+<!-- FATIMA TECH v46 — FINAL PURCHASE DELETE: complete transaction reverse + all-view sync -->
+<style id="ft-v46-purchase-delete-style">
+  #purInvoicesListTbody .ft-purchase-actions, #ftPurchaseInvoiceActionsTbody .ft-purchase-actions{white-space:nowrap}
+</style>
+<script id="ft-v46-purchase-delete-final">
+(function(){
+  'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const K=v=>String(v==null?'':v).trim().toUpperCase();
+  const Q=it=>N(it&&it.totalPcs!=null?it.totalPcs:(N(it&&it.cartonQty)*N(it&&it.pcsPerCarton||24)+N(it&&it.pieceQty!=null?it.pieceQty:it&&it.pcsQty)));
+  const arr=()=>Array.isArray(window.dbPurchaseInvoices)?window.dbPurchaseInvoices:[];
+  const stock=()=>Array.isArray(window.dbStock)?window.dbStock:[];
+  const label=p=>p?.invNo||p?.invoiceNo||p?.id||'';
+  function find(id){
+    const a=arr();
+    let i=a.findIndex(p=>String(p.id||'')===String(id||''));
+    if(i<0 && typeof id==='number' && a[id]) i=id;
+    if(i<0){ const wanted=String(id||''); i=a.findIndex(p=>String(p.invNo||p.invoiceNo||'')===wanted); }
+    return i;
+  }
+  function reverseStock(p){
+    let safe=true;
+    for(const it of (p.items||[])){
+      const st=stock().find(x=>K(x.name)===K(it.name));
+      if(!st || N(st.qty)+1e-9<Q(it)){safe=false;break;}
+    }
+    if(safe){
+      (p.items||[]).forEach(it=>{const st=stock().find(x=>K(x.name)===K(it.name));if(st)st.qty=Math.max(0,N(st.qty)-Q(it));});
+    }
+    return safe;
+  }
+  function removeLinkedFinance(p){
+    const id=String(p.id||''), inv=String(p.invNo||p.invoiceNo||'');
+    const stores=['ht_purchase_payments','ht_supplier_dues','ht_supplier_payments','ht_finance_transactions','ht_capital_entries','ht_cash_ledger'];
+    stores.forEach(key=>{
+      try{
+        const raw=JSON.parse(localStorage.getItem(key)||'[]'); if(!Array.isArray(raw))return;
+        const filtered=raw.filter(x=>{
+          const vals=[x?.purchaseId,x?.purchaseInvoiceId,x?.invoiceId,x?.refId,x?.referenceId,x?.refNo,x?.invoiceNo,x?.invNo,x?.reference,x?.description,x?.note].map(v=>String(v==null?'':v));
+          return !(vals.some(v=>v===id||v===inv||v.includes(id)|| (inv && v.includes(inv))));
+        });
+        if(filtered.length!==raw.length)localStorage.setItem(key,JSON.stringify(filtered));
+      }catch(e){}
+    });
+  }
+  function sync(){
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(arr()));
+    localStorage.setItem('ht_stock',JSON.stringify(stock()));
+    try{window.dbPurchaseInvoices=JSON.parse(localStorage.getItem('ht_purchase_invoices')||'[]')}catch(e){}
+    try{window.dbStock=JSON.parse(localStorage.getItem('ht_stock')||'[]')}catch(e){}
+    const calls=['renderPurchaseInvoicesList','renderPurchaseStockReport','renderSupplierDueReport','renderLiveStockInventory','ftRenderFinance','ftRenderPurchaseInvoiceActions','renderPurchaseInvoiceActionTable','renderDashboard'];
+    calls.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}});
+    try{if(typeof window.refresh==='function')window.refresh()}catch(e){}
+    setTimeout(()=>calls.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}}),120);
+    setTimeout(()=>calls.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}}),500);
+  }
+  window.ftDeletePurchaseInvoice=function(id){
+    const a=arr(), i=find(id), p=i>=0?a[i]:null;
+    if(!p)return alert('Purchase invoice not found. Please refresh the page.');
+    const inv=label(p), total=N(p.totalAmt), paid=N(p.paidNow), due=N(p.dueAmount);
+    const safe=reverseStock(p);
+    const msg='Delete Purchase Invoice '+inv+'?\n\n'+
+      'Purchase Total: Rs. '+total.toLocaleString()+ '\n'+
+      'Paid: Rs. '+paid.toLocaleString()+ '\n'+
+      'Supplier Due: Rs. '+due.toLocaleString()+ '\n\n'+
+      (safe?'The purchased stock will be removed and the paid/due purchase effect will be reversed.':'Some stock is already missing/used. The purchase record and any linked purchase finance records will be removed; unavailable stock will not be recreated.')+
+      '\n\nThis is for correcting a mistakenly duplicated purchase invoice.';
+    if(!confirm(msg))return;
+    // Reverse physical stock BEFORE removing the master invoice.
+    if(safe){ /* already reversed above */ }
+    // Remove any explicitly linked purchase finance/payment records.
+    removeLinkedFinance(p);
+    a.splice(i,1);
+    sync();
+    try{if(typeof window.audit2==='function')window.audit2('DELETE','Purchase Invoice',inv,'Mistaken/duplicate purchase deleted; stock, linked payment/due records and derived reports synchronized.')}catch(e){}
+    alert('Purchase Invoice '+inv+' deleted successfully.\n\nStock, Purchase Reports, Supplier Due and Finance have been synchronized.\n\nNote: Investor Capital itself is not deleted — only the cash/purchase effect is reversed.');
+  };
+  window.deletePurchaseInvoice=function(id){return window.ftDeletePurchaseInvoice(id)};
+  window.ftDeletePurchaseInvoiceFromStockReport=function(id){return window.ftDeletePurchaseInvoice(id)};
+  // Keep the two purchase lists identical and driven by the same master array.
+  function renderMaster(){
+    const body=document.getElementById('purInvoicesListTbody');if(!body)return;
+    const a=arr();
+    const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    body.innerHTML=a.map((p,i)=>'<tr><td><input type="checkbox" value="'+esc(p.id||i)+'"></td><td><strong>'+esc(p.invNo||p.invoiceNo||'--')+'</strong></td><td>'+esc(p.date||'')+'</td><td>'+esc(p.supplier||'--')+'</td><td>'+esc(p.category||'--')+'</td><td>'+((p.items||[]).length)+'</td><td>'+money(p.totalAmt)+'</td><td>'+money(p.paidNow)+'</td><td><strong>'+money(p.dueAmount)+'</strong></td><td class="ft-purchase-actions"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice('+JSON.stringify(p.id||i)+')">✏️ Edit</button> <button type="button" class="btn-delete" onclick="ftDeletePurchaseInvoice('+JSON.stringify(p.id||i)+')">🗑 Delete</button></td></tr>').join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderMaster;
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(renderMaster,300);setTimeout(renderMaster,1000)});
+})();
+</script>
+
 </html>
 
 
