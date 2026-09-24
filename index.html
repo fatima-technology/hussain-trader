@@ -9306,7 +9306,6 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 
-</html>
 
 
 
@@ -9717,3 +9716,95 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(rerender,500));
 })();
 </script>
+<!-- FATIMA TECH v50 — FINAL PURCHASE DELETE = COMPLETE TRANSACTION REVERSE -->
+<style id="ft-v50-purchase-delete-final-css">
+.ft-v50-delete-note{padding:10px 12px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:9px;margin:8px 0;font-size:12px;color:#1e3a8a}
+</style>
+<script id="ft-v50-purchase-delete-final-js">
+(function(){
+  'use strict';
+  const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+  const KEY=v=>String(v==null?'':v).trim().toUpperCase();
+  const Q=it=>N(it&&it.totalPcs!=null?it.totalPcs:(N(it&&it.cartonQty)*N(it&&it.pcsPerCarton||24)+N(it&&it.pieceQty!=null?it.pieceQty:it&&it.pcsQty)));
+  const purchases=()=>{try{const a=JSON.parse(localStorage.getItem('ht_purchase_invoices')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}};
+  const stocks=()=>{try{const a=JSON.parse(localStorage.getItem('ht_stock')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}};
+  function findIndex(id,a){
+    let i=a.findIndex(p=>String(p.id||'')===String(id||''));
+    if(i<0 && typeof id==='number' && a[id]) i=id;
+    if(i<0){const s=String(id||'');i=a.findIndex(p=>String(p.invNo||p.invoiceNo||'')===s)}
+    return i;
+  }
+  function linkedFilter(key,id,inv){
+    try{
+      const raw=JSON.parse(localStorage.getItem(key)||'[]');
+      if(!Array.isArray(raw))return;
+      const out=raw.filter(x=>{
+        const vals=['purchaseId','purchaseInvoiceId','invoiceId','refId','referenceId','purchaseRef','refNo','invoiceNo','invNo','reference','ref','description','note','memo'].map(k=>String(x&&x[k]!=null?x[k]:'')).filter(Boolean);
+        return !vals.some(v=>v===id || (inv && v===inv) || (id && v.includes(id)) || (inv && v.includes(inv)));
+      });
+      if(out.length!==raw.length)localStorage.setItem(key,JSON.stringify(out));
+    }catch(e){}
+  }
+  function reverseStock(p){
+    const st=stocks();
+    const items=p.items||[];
+    const needed=new Map();
+    items.forEach(it=>{const k=KEY(it.name);needed.set(k,(needed.get(k)||0)+Q(it));});
+    for(const [k,q] of needed){const row=st.find(x=>KEY(x.name)===k);if(!row || N(row.qty)+1e-8<q)return {ok:false,reason:'Insufficient remaining stock for '+k};}
+    for(const [k,q] of needed){const row=st.find(x=>KEY(x.name)===k);row.qty=Math.max(0,N(row.qty)-q);}
+    // Remove empty orphan rows created only by this purchase.
+    for(let i=st.length-1;i>=0;i--){if(N(st[i].qty)<=1e-8){const stillPurchased=purchases().some((other)=>other!==p && (other.items||[]).some(it=>KEY(it.name)===KEY(st[i].name)));if(!stillPurchased)st.splice(i,1);}}
+    return {ok:true,stock:st};
+  }
+  function persist(st,a){
+    window.dbPurchaseInvoices=a;window.dbStock=st;
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(a));
+    localStorage.setItem('ht_stock',JSON.stringify(st));
+  }
+  function refreshAll(){
+    const fns=['refresh','renderPurchaseInvoicesList','renderPurchaseStockReport','renderSupplierDueReport','renderLiveStockInventory','ftRenderFinance','renderDashboard','renderPurchaseInvoiceActionTable','ftRenderPurchaseInvoiceActions','updateStockDatalist','updatePurchasePaymentSummary','renderOwnerDailySummary'];
+    fns.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}});
+    [100,400,900].forEach(ms=>setTimeout(()=>fns.forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}}),ms));
+  }
+  function deleteComplete(id){
+    const a=purchases(),i=findIndex(id,a),p=i>=0?a[i]:null;
+    if(!p)return alert('Purchase invoice not found. Please refresh the page.');
+    const label=p.invNo||p.invoiceNo||p.id||String(i),total=N(p.totalAmt),paid=N(p.paidNow),due=N(p.dueAmount);
+    const st=stocks();
+    const check=(function(){
+      const need=new Map();(p.items||[]).forEach(it=>{const k=KEY(it.name);need.set(k,(need.get(k)||0)+Q(it));});
+      for(const [k,q] of need){const row=st.find(x=>KEY(x.name)===k);if(!row||N(row.qty)+1e-8<q)return false;}return true;
+    })();
+    const msg='Delete Purchase Invoice '+label+' completely?\n\nPurchase Total: Rs. '+total.toLocaleString()+'\nPaid Now: Rs. '+paid.toLocaleString()+'\nSupplier Due: Rs. '+due.toLocaleString()+'\n\nThis will undo this mistaken purchase from the system: stock, Live Stock, Stock Report, Purchase Reports, Supplier Due and Cash/Bank purchase effect will be recalculated. Your Investor/Owner Capital record will NOT be deleted.\n\nThis is intended for a duplicate/mistaken purchase invoice.';
+    if(!confirm(msg))return;
+    if(check){
+      const r=reverseStock(p); if(!r.ok)return alert(r.reason||'Purchase stock could not be reversed safely.');
+      const newSt=r.stock;
+      // Remove master purchase FIRST; all derived cash/due reports calculate from this list.
+      a.splice(i,1);
+      persist(newSt,a);
+    }else{
+      // The purchase itself is still removed. Any stock already consumed/missing is left unchanged.
+      a.splice(i,1);
+      persist(st,a);
+    }
+    // Clean any explicit purchase-linked auxiliary records, but NEVER touch investment/capital records.
+    const idStr=String(p.id||''),invStr=String(p.invNo||p.invoiceNo||'');
+    ['ht_purchase_payments','ht_supplier_dues','ht_supplier_payments','ht_finance_transactions','ht_cash_ledger'].forEach(k=>linkedFilter(k,idStr,invStr));
+    // Re-read master arrays so all legacy functions see the same authoritative state.
+    try{window.dbPurchaseInvoices=JSON.parse(localStorage.getItem('ht_purchase_invoices')||'[]')}catch(e){window.dbPurchaseInvoices=[]}
+    try{window.dbStock=JSON.parse(localStorage.getItem('ht_stock')||'[]')}catch(e){window.dbStock=[]}
+    try{if(typeof window.audit2==='function')window.audit2('DELETE','Purchase Invoice',label,'Complete reverse of mistaken purchase: master invoice removed; remaining stock reversed; linked purchase payment/due records cleaned; capital record preserved.')}catch(e){}
+    refreshAll();
+    setTimeout(()=>alert('Purchase Invoice '+label+' deleted.\n\nStock, Live Stock, Purchase Reports, Supplier Due and Cash/Bank purchase effect have been reversed.\nInvestor/Owner Capital was NOT deleted.'),120);
+  }
+  window.ftDeletePurchaseInvoice=deleteComplete;
+  window.deletePurchaseInvoice=deleteComplete;
+  window.ftDeletePurchaseInvoiceFromStockReport=deleteComplete;
+  // Ensure all purchase action buttons resolve to the final ID-based handler.
+  const oldRender=window.renderPurchaseInvoicesList;
+  window.renderPurchaseInvoicesList=function(){try{if(typeof oldRender==='function')oldRender.apply(this,arguments)}catch(e){} };
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshAll,700));
+})();
+</script>
+</html>
