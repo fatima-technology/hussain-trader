@@ -1798,6 +1798,10 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
   .table-responsive{width:100%!important;max-width:100%!important;overflow-x:auto!important}
 }
 </style>
+
+<style id="ft-purchase-edit-style">
+.btn-edit{border:1px solid #2563eb;background:#eef5ff;color:#1456b8;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-weight:700}.btn-edit:hover{background:#dbeafe}.btn-secondary{border:1px solid #94a3b8;background:#fff;color:#334155;border-radius:6px;padding:4px 9px;cursor:pointer;font-weight:700}
+</style>
 </head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
@@ -2748,7 +2752,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <div class="form-group"><label>List Price (Cost) *:</label><input type="number" id="purPieceCost" placeholder="List Price"></div>
                 <div class="form-group"><label>Trade Price / Pcs:</label><input type="number" id="purTradePricePiece" placeholder="TP Price"></div>
                 <div class="form-group"><label>Retail Price / Pcs:</label><input type="number" id="purRetailPricePiece" placeholder="Retail Price"></div>
-                <div style="display:flex; align-items:flex-end;"><button class="btn-add" style="width:100%; height:28px;" onclick="ftAddPurchaseProduct()">+ Add Product</button></div>
+                <div style="display:flex; align-items:flex-end; gap:6px;"><button class="btn-add" style="width:100%; height:28px;" onclick="ftAddPurchaseProduct()">+ Add Product</button><button type="button" id="ftCancelPurchaseEdit" class="btn-secondary" style="display:none;height:28px;white-space:nowrap" onclick="ftCancelEditPurchaseProduct()">Cancel</button></div>
             </div>
 
             <div class="table-responsive" style="margin-top: 10px;">
@@ -5041,6 +5045,40 @@ function addPurchaseRowItem() {
         document.getElementById('purCartonQty').value = '';
     }
 
+let ftPurchaseEditIndex = -1;
+
+function ftBeginEditPurchaseProduct(idx){
+  try{
+    const item=currentPurInvoiceItems[idx];
+    if(!item) return;
+    ftPurchaseEditIndex=idx;
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};
+    set('purItemName',item.name);
+    set('purBrand',item.brand||'');
+    set('purPcsPerCarton',item.pcsPerCarton||24);
+    set('purCartonQty',item.cartonQty||'');
+    set('purPieceCost',item.pieceCost||'');
+    set('purTradePricePiece',item.tradePrice||'');
+    set('purRetailPricePiece',item.retailPrice||'');
+    set('purCategory',item.category||'General');
+    const btn=document.querySelector('#purItemName')?.closest('div')?.parentElement?.querySelector('button[onclick*="ftAddPurchaseProduct"]') || document.querySelector('button[onclick="ftAddPurchaseProduct()"]');
+    if(btn){btn.textContent='✓ Update Product';btn.dataset.editing='1';}
+    const cancel=document.getElementById('ftCancelPurchaseEdit');
+    if(cancel) cancel.style.display='inline-flex';
+    document.getElementById('purItemName')?.scrollIntoView({behavior:'smooth',block:'center'});
+    document.getElementById('purItemName')?.focus();
+  }catch(e){alert('Unable to edit product: '+e.message)}
+}
+
+function ftCancelEditPurchaseProduct(){
+  ftPurchaseEditIndex=-1;
+  ['purItemName','purBrand','purCartonQty','purPieceCost','purTradePricePiece','purRetailPricePiece'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  const btn=document.querySelector('button[onclick="ftAddPurchaseProduct()"]');
+  if(btn){btn.textContent='+ Add Product';delete btn.dataset.editing;}
+  const cancel=document.getElementById('ftCancelPurchaseEdit');
+  if(cancel) cancel.style.display='none';
+}
+
 function renderPurInvoiceItemsTable() {
         // Local HTML escape keeps this renderer independent of other script scopes.
         const esc = v => String(v == null ? '' : v).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
@@ -5060,7 +5098,7 @@ function renderPurInvoiceItemsTable() {
                 <td>Rs. ${item.tradePrice}</td>
                 <td>Rs. ${item.retailPrice}</td>
                 <td>Rs. ${item.subtotal.toLocaleString()}</td>
-                <td><button class="btn-delete" onclick="currentPurInvoiceItems.splice(${idx},1);renderPurInvoiceItemsTable();">X</button></td>
+                <td style="white-space:nowrap"><button type="button" class="btn-edit" style="margin-right:4px" onclick="ftBeginEditPurchaseProduct(${idx})">Edit</button><button type="button" class="btn-delete" onclick="currentPurInvoiceItems.splice(${idx},1);if(ftPurchaseEditIndex===${idx})ftCancelEditPurchaseProduct();renderPurInvoiceItemsTable();">X</button></td>
             </tr>
         `).join('');
     }
@@ -8335,35 +8373,29 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
       if(cartons<=0){alert('Please enter Cartons Quantity.');document.getElementById('purCartonQty')?.focus();return false}
       if(cost<=0){alert('Please enter List Price / Cost.');document.getElementById('purPieceCost')?.focus();return false}
       const totalPcs=cartons*pcs, subtotal=totalPcs*cost;
-      let imageData='';
+      let imageData=currentPurInvoiceItems[ftPurchaseEditIndex]?.imageData||'';
       const img=document.getElementById('purProductImage')?.files?.[0];
-      const push=(data)=>{
-        currentPurInvoiceItems.push({
-          sku:'SKU-'+Date.now().toString().slice(-6),
+      const save=(data)=>{
+        const item={
+          sku:currentPurInvoiceItems[ftPurchaseEditIndex]?.sku||('SKU-'+Date.now().toString().slice(-6)),
           brand,category,name,pcsPerCarton:pcs,cartonQty:cartons,totalPcs,
           pieceCost:cost,tradePrice:trade,retailPrice:retail,subtotal,imageData:data||''
-        });
+        };
+        if(ftPurchaseEditIndex>=0 && currentPurInvoiceItems[ftPurchaseEditIndex]) currentPurInvoiceItems[ftPurchaseEditIndex]=item;
+        else currentPurInvoiceItems.push(item);
         if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
-        else{
-          const tb=document.getElementById('purInvoiceItemsTbody');
-          if(tb)tb.innerHTML=currentPurInvoiceItems.map((x,i)=>`<tr><td>📦</td><td>${esc(x.sku)}</td><td>${esc(x.brand||'General')}</td><td>${esc(x.category)}</td><td><b>${esc(x.name)}</b></td><td>${x.pcsPerCarton} Pcs</td><td>${x.cartonQty} Ctn</td><td>${x.totalPcs} Pcs</td><td>Rs. ${x.pieceCost}</td><td>Rs. ${x.tradePrice}</td><td>Rs. ${x.retailPrice}</td><td>Rs. ${x.subtotal.toLocaleString()}</td><td><button type="button" onclick="currentPurInvoiceItems.splice(${i},1);if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable()">X</button></td></tr>`).join('');
-        }
         ['purItemName','purBrand','purCartonQty','purPieceCost','purTradePricePiece','purRetailPricePiece'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+        ftPurchaseEditIndex=-1;
+        const btn=document.querySelector('button[onclick="ftAddPurchaseProduct()"]');
+        if(btn){btn.textContent='+ Add Product';delete btn.dataset.editing;}
+        const cancel=document.getElementById('ftCancelPurchaseEdit');if(cancel)cancel.style.display='none';
         const sum=document.getElementById('purPaymentSummary');
         if(sum)sum.textContent='Invoice Total: Rs. '+currentPurInvoiceItems.reduce((a,x)=>a+n(x.subtotal),0).toLocaleString();
         return true;
       };
-      if(img){
-        const reader=new FileReader();
-        reader.onload=e=>push(e.target.result);
-        reader.onerror=()=>{alert('Product image could not be read. Product will be added without image.');push('')};
-        reader.readAsDataURL(img);
-      }else push('');
-    }catch(err){
-      console.error('Purchase product add error:',err);
-      alert('Product add failed: '+(err?.message||err));
-    }
-    return false;
+      if(img){const r=new FileReader();r.onload=()=>save(r.result);r.onerror=()=>save(imageData);r.readAsDataURL(img)} else save(imageData);
+      return true;
+    }catch(e){alert('Product add failed: '+e.message);return false}
   };
 })();
 </script>
