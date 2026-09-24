@@ -8923,6 +8923,151 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   setTimeout(renderActions,1500);
 })();
 </script>
+
+<style id="ft-v51-purchase-grouped-import-css">
+  .ft-v51-invoice-row{background:#f7fbff;cursor:pointer}
+  .ft-v51-invoice-row:hover{background:#eef7ff}
+  .ft-v51-detail{background:#fff}
+  .ft-v51-detail td{font-size:11px;padding:6px 8px}
+  .ft-v51-arrow{display:inline-block;width:18px;font-weight:700}
+  .ft-v51-stock-section{margin-top:18px}
+  .ft-v51-stock-section h4{margin:0 0 8px;color:var(--primary-blue)}
+</style>
+<script id="ft-v51-purchase-grouped-and-import">
+(function(){
+  const N51=v=>Number(v)||0;
+  const M51=v=>'Rs. '+N51(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const E51=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const KEY51=v=>String(v||'').trim().toUpperCase();
+  const getPurch51=()=>{try{const a=JSON.parse(localStorage.getItem('ht_purchase_invoices')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
+
+  // ONE authoritative example format for Purchase Stock Import.
+  window.downloadImportTemplate=function(type){
+    if(typeof XLSX==='undefined')return alert('Excel library is not loaded.');
+    let headers=[],sample=[],fileName='',title='';
+    if(type==='shops'){
+      headers=['Shop Name','Owner','Phone','Address','Route / Area','Booker','Credit Limit','Opening Balance'];
+      sample=['Adnan Super Store','Adnan','0300-1234567','Main Bazar','Mansehra','Huzafa',50000,10000];
+      fileName='Shops_Bulk_Import_Example.xlsx';title='Bulk Shops Import';
+    }else if(type==='stock'){
+      headers=['Invoice Date','Purchase Invoice No','Supplier Name','Category','Purchase Payment','Product','Brand','Packing (Pcs/Ctn)','Cartons','Pieces','Cost Price / Carton','Trade Price / Pcs','Retail Price / Pcs','Product Image URL (Optional)'];
+      sample=['2026-09-24','PUR-001','Coca-Cola','General','Cash','COCA-COLA RGB 250 ML','Coca-Cola',24,10,0,980.06,44,50,''];
+      fileName='Purchase_Stock_Import_Example.xlsx';title='Purchase Stock / Invoice Import';
+    }else if(type==='openingStock'){
+      headers=['SKU Code','Product','Brand','Category','Packing (Pcs/Ctn)','Opening Cartons','Opening Pieces','Cost Price / Pcs','Trade Price / Pcs','Retail Price / Pcs','Product Image URL (Optional)'];
+      sample=['SKU-1001','Cola 1.5L','Coca-Cola','Beverage',6,25,12,850,900,1000,''];
+      fileName='Opening_Stock_Import_Example.xlsx';title='Opening Stock Import';
+    }else return;
+    const ws=XLSX.utils.aoa_to_sheet([headers,sample]);
+    ws['!cols']=headers.map(h=>({wch:Math.max(14,h.length+2)}));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Example Format');XLSX.writeFile(wb,fileName);
+    alert(title+' ka Excel format download ho gaya.\n\nIsi downloaded format ko use karein. Column names change na karein.');
+  };
+
+  // Import format is the SAME as the downloaded Purchase_Stock_Import_Example.xlsx.
+  window.handlePurchaseImport=function(event){
+    const file=event?.target?.files?.[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        if(!/\.xlsx?$/i.test(file.name))return alert('Purchase bulk import ke liye Excel (.xlsx/.xls) use karein.');
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        if(!rows.length)return alert('Excel mein koi data row nahi mili.');
+        const grouped={};
+        rows.forEach((row,idx)=>{
+          const name=String(row['Product']??'').trim();if(!name)return;
+          const invNo=String(row['Purchase Invoice No']??row['Invoice No']??'PUR-IMPORT-'+(Date.now()+idx)).trim();
+          const date=String(row['Invoice Date']??new Date().toISOString().slice(0,10)).trim();
+          const supplier=String(row['Supplier Name']??'Imported Supplier').trim()||'Imported Supplier';
+          const category=String(row['Category']??'General').trim()||'General';
+          const payment=String(row['Purchase Payment']??'Credit').trim()||'Credit';
+          const pack=Math.max(1,N51(row['Packing (Pcs/Ctn)']??row['Packing']??24));
+          const ctn=Math.max(0,N51(row['Cartons']??0));
+          const pcs=Math.max(0,N51(row['Pieces']??0));
+          const cartonCost=Math.max(0,N51(row['Cost Price / Carton']??row['Carton Cost']??row['Cost']??0));
+          const trade=Math.max(0,N51(row['Trade Price / Pcs']??row['Trade Price']??0));
+          const retail=Math.max(0,N51(row['Retail Price / Pcs']??row['Retail Price']??0));
+          const image=String(row['Product Image URL (Optional)']??row['Product Image URL']??'').trim();
+          const item={sku:'SKU-IMP-'+Date.now().toString().slice(-6)+'-'+idx,brand:String(row['Brand']??'').trim(),category,name:name.toUpperCase(),pcsPerCarton:pack,cartonQty:ctn,totalPcs:(ctn*pack)+pcs,cartonCost,pieceCost:cartonCost/pack,tradePrice:trade,tradePricePiece:trade,tradePriceCarton:trade*pack,retailPrice:retail,retailPricePiece:retail,retailPriceCarton:retail*pack,subtotal:(ctn*cartonCost)+(pcs*(cartonCost/pack)),imageData:image};
+          const key=invNo+'|'+date+'|'+supplier;
+          if(!grouped[key])grouped[key]={invNo,date,supplier,category,payment,items:[]};
+          grouped[key].items.push(item);
+        });
+        const newPurchases=[];
+        Object.values(grouped).forEach((g,gi)=>{
+          const total=g.items.reduce((a,x)=>a+N51(x.subtotal),0);
+          if(total<=0)return;
+          let paid=0,due=total;
+          if(g.payment.toLowerCase()!=='credit'){
+            const state=typeof cashState==='function'?cashState(g.date):{cash:0,bank:0};
+            const available=Math.max(0,N51(g.payment.toLowerCase()==='bank'?state.bank:state.cash));
+            paid=Math.min(total,available);due=total-paid;
+          }
+          newPurchases.push({id:'PUR_IMP_'+Date.now()+'_'+gi,invNo:g.invNo,date:g.date,supplier:g.supplier,category:g.category,paymentType:due>0?(g.payment+' + Due'):g.payment,requestedPaymentType:g.payment,totalAmt:total,paidNow:paid,dueAmount:due,items:g.items,status:due>0?'Due':'Paid'});
+        });
+        if(!newPurchases.length)return alert('Valid purchase rows nahi milin. Downloaded Example Format use karein.');
+        if(typeof dbPurchaseInvoices==='undefined')window.dbPurchaseInvoices=[];
+        newPurchases.forEach(p=>{
+          dbPurchaseInvoices.push(p);
+          p.items.forEach(it=>{
+            let st=dbStock.find(x=>KEY51(x.name)===KEY51(it.name));
+            if(!st){st={id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:it.sku,brand:it.brand,category:it.category,name:it.name,imageData:it.imageData||'',pcsPerCarton:it.pcsPerCarton,qty:0,costPrice:it.pieceCost,tradePrice:it.tradePrice,tradePricePiece:it.tradePrice,tradePriceCarton:it.tradePriceCarton,retailPrice:it.retailPrice,retailPricePiece:it.retailPrice,retailPriceCarton:it.retailPriceCarton};dbStock.push(st);}
+            st.qty+=N51(it.totalPcs);st.pcsPerCarton=it.pcsPerCarton;st.costPrice=it.pieceCost;st.tradePrice=it.tradePrice;st.tradePricePiece=it.tradePrice;st.tradePriceCarton=it.tradePriceCarton;st.retailPrice=it.retailPrice;st.retailPricePiece=it.retailPrice;st.retailPriceCarton=it.retailPriceCarton;if(it.imageData)st.imageData=it.imageData;
+          });
+        });
+        localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
+        localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+        try{if(typeof audit==='function')audit('Imported','Purchase Stock','BULK',file.name,`${newPurchases.length} purchase invoice(s) imported.`)}catch(e){}
+        if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+        if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+        if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
+        if(typeof renderDashboard==='function')renderDashboard();
+        alert(`Purchase import successful. ${newPurchases.length} invoice(s) added.`);
+      }catch(err){console.error(err);alert('Purchase import failed. Please use the downloaded Purchase Stock Example Format exactly.');}
+      finally{event.target.value='';}
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  function renderGroupedPurchaseInvoices51(asOf){
+    const host=document.getElementById('ftV51PurchaseInvoiceGroups');if(!host)return;
+    const arr=getPurch51().filter(p=>!asOf||String(p.date||'')<=String(asOf));
+    if(!arr.length){host.innerHTML='<div class="section-box"><strong>No purchase invoices found for the selected date.</strong></div>';return;}
+    host.innerHTML=`<div class="section-box"><h4 style="margin:0 0 8px;color:var(--primary-blue)">📑 Purchase Invoices — Grouped</h4><div class="table-responsive"><table><thead><tr><th>#</th><th>Invoice No</th><th>Date</th><th>Supplier</th><th>Products</th><th>Total</th><th>Paid</th><th>Due</th><th>Actions</th></tr></thead><tbody>${arr.map((p,i)=>{
+      const id=E51(p.id||i);const label=E51(p.invNo||p.invoiceNo||'--');
+      const detailId='ftV51det_'+i;
+      const items=(p.items||[]);
+      return `<tr class="ft-v51-invoice-row" onclick="ftV51Toggle('${detailId}',this)"><td><span class="ft-v51-arrow">▶</span>${i+1}</td><td><strong>${label}</strong></td><td>${E51(p.date||'')}</td><td>${E51(p.supplier||'')}</td><td>${items.length}</td><td>${M51(p.totalAmt)}</td><td>${M51(p.paidNow)}</td><td>${M51(p.dueAmount)}</td><td onclick="event.stopPropagation();"><button type="button" class="btn-edit" data-purchase-id="${id}" onclick="ftEditPurchaseInvoice(this.dataset.purchaseId)">✏️ Edit</button> <button type="button" class="btn-delete" data-purchase-id="${id}" onclick="ftDeletePurchaseInvoice(this.dataset.purchaseId)">🗑 Delete</button></td></tr><tr id="${detailId}" class="ft-v51-detail" style="display:none"><td colspan="9"><table><thead><tr><th>Product</th><th>Brand</th><th>Packing</th><th>Cartons</th><th>Pieces</th><th>Cost/Ctn</th><th>Trade/Pcs</th><th>Retail/Pcs</th><th>Subtotal</th></tr></thead><tbody>${items.map(it=>`<tr><td><strong>${E51(it.name)}</strong></td><td>${E51(it.brand||'')}</td><td>${N51(it.pcsPerCarton)} Pcs/Ctn</td><td>${N51(it.cartonQty)} Ctn</td><td>${N51(it.totalPcs)} Pcs</td><td>${M51(it.cartonCost!=null?it.cartonCost:N51(it.pieceCost)*N51(it.pcsPerCarton||24))}</td><td>${M51(it.tradePrice)}</td><td>${M51(it.retailPrice)}</td><td>${M51(it.subtotal)}</td></tr>`).join('')}</tbody></table></td></tr>`;
+    }).join('')}</tbody></table></div></div>`;
+  }
+  window.ftV51Toggle=function(id,row){const d=document.getElementById(id);if(!d)return;const open=d.style.display!=='none';d.style.display=open?'none':'table-row';const a=row?.querySelector('.ft-v51-arrow');if(a)a.textContent=open?'▶':'▼';};
+
+  function ensureV51PurchaseSection(){
+    const tab=document.getElementById('purchaseStockReportTab');if(!tab)return;
+    let host=document.getElementById('ftV51PurchaseInvoiceGroups');
+    if(!host){host=document.createElement('div');host.id='ftV51PurchaseInvoiceGroups';tab.insertBefore(host,tab.querySelector('.ft-v40-stock-filter')||tab.firstChild);}
+    // Keep date-wise stock report below the grouped invoice list.
+    let stockTitle=document.getElementById('ftV51StockPositionTitle');
+    if(!stockTitle){stockTitle=document.createElement('div');stockTitle.id='ftV51StockPositionTitle';stockTitle.className='ft-v51-stock-section';stockTitle.innerHTML='<h4>📦 Stock Position (As Of Selected Date)</h4>';const filters=document.getElementById('ftV40StockFilters');if(filters)filters.insertAdjacentElement('beforebegin',stockTitle);}
+    const asOf=document.getElementById('ftStockAsOfDate')?.value||new Date().toISOString().slice(0,10);
+    renderGroupedPurchaseInvoices51(asOf);
+  }
+
+  const oldStockReport=window.renderPurchaseStockReport;
+  window.renderPurchaseStockReport=function(){
+    try{if(typeof oldStockReport==='function')oldStockReport.apply(this,arguments)}catch(e){}
+    ensureV51PurchaseSection();
+  };
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV51OpenWrapped){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);setTimeout(()=>{if(id==='purchaseStockReportTab')ensureV51PurchaseSection();},30);return r;};
+    window.__ftV51OpenWrapped=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(ensureV51PurchaseSection,600));
+})();
+</script>
 </body>
 
 <script id="ft-v29-purchase-render-fix">
