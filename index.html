@@ -2749,7 +2749,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <div class="form-group"><label>Product Image:</label><input type="file" id="purProductImage" accept="image/*"></div>
                 <div class="form-group"><label>Cotton Packing (Pcs) *:</label><input type="number" id="purPcsPerCarton" placeholder="e.g. 24" value="24"></div>
                 <div class="form-group"><label>Cartons Quantity *:</label><input type="number" id="purCartonQty" placeholder="Cartons"></div>
-                <div class="form-group"><label>List Price (Cost) *:</label><input type="number" id="purPieceCost" placeholder="List Price"></div>
+                <div class="form-group"><label>List Price / Carton (Cost) *:</label><input type="number" id="purPieceCost" placeholder="Carton Cost"></div>
                 <div class="form-group"><label>Trade Price / Pcs:</label><input type="number" id="purTradePricePiece" placeholder="TP Price"></div>
                 <div class="form-group"><label>Retail Price / Pcs:</label><input type="number" id="purRetailPricePiece" placeholder="Retail Price"></div>
                 <div style="display:flex; align-items:flex-end; gap:6px;"><button class="btn-add" style="width:100%; height:28px;" onclick="ftAddPurchaseProduct()">+ Add Product</button><button type="button" id="ftCancelPurchaseEdit" class="btn-secondary" style="display:none;height:28px;white-space:nowrap" onclick="ftCancelEditPurchaseProduct()">Cancel</button></div>
@@ -2767,7 +2767,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                             <th>Packing (Carton)</th>
                             <th>Cartons Qty</th>
                             <th>Total Pieces</th>
-                            <th>List Price</th>
+                            <th>List Price / Ctn</th>
                             <th>Trade Price</th>
                             <th>Retail Price</th>
                             <th>Subtotal</th>
@@ -2864,7 +2864,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         <div class="table-responsive">
             <table>
                 <thead>
-                    <tr><th>Image</th><th>SKU Code</th><th>Brand</th><th>Category</th><th>Product Name</th><th>Packing</th><th>List Price</th><th>Trade Price</th><th>Retail Price</th><th>Available Stock</th><th>Total Pieces</th><th>Actions</th></tr>
+                    <tr><th>Image</th><th>SKU Code</th><th>Brand</th><th>Category</th><th>Product Name</th><th>Packing</th><th>List Price / Ctn</th><th>Trade Price</th><th>Retail Price</th><th>Available Stock</th><th>Total Pieces</th><th>Actions</th></tr>
                 </thead>
                 <tbody id="liveStockInventoryTbody"></tbody>
             </table>
@@ -4994,9 +4994,10 @@ function handlePurchaseImport(event) {
                     let brand = row['Brand'] || '';
                     let ctnQty = parseFloat(row['Cartons'] || row['Qty'] || 1);
                     let packing = parseFloat(row['Packing'] || 24);
-                    let cost = parseFloat(row['Cost'] || row['Price'] || 0);
-                    let tp = parseFloat(row['TP'] || cost * 1.1);
-                    let retail = parseFloat(row['Retail'] || cost * 1.2);
+                    let cartonCost = parseFloat(row['Carton Cost'] || row['Cost'] || row['Price'] || 0);
+                    let pieceCost = packing > 0 ? cartonCost / packing : cartonCost;
+                    let tp = parseFloat(row['TP'] || pieceCost * 1.1);
+                    let retail = parseFloat(row['Retail'] || pieceCost * 1.2);
 
                     currentPurInvoiceItems.push({
                         sku: 'SKU-' + Date.now().toString().slice(-4),
@@ -5006,10 +5007,11 @@ function handlePurchaseImport(event) {
                         pcsPerCarton: packing,
                         cartonQty: ctnQty,
                         totalPcs: ctnQty * packing,
-                        pieceCost: cost,
+                        cartonCost,
+                        pieceCost,
                         tradePrice: tp,
                         retailPrice: retail,
-                        subtotal: (ctnQty * packing) * cost
+                        subtotal: ctnQty * cartonCost
                     });
                 });
                 renderPurInvoiceItemsTable();
@@ -5025,19 +5027,20 @@ function addPurchaseRowItem() {
         let name = document.getElementById('purItemName').value.trim().toUpperCase();
         let pcsPerCarton = parseFloat(document.getElementById('purPcsPerCarton').value) || 24;
         let cartonQty = parseFloat(document.getElementById('purCartonQty').value) || 0;
-        let pieceCost = parseFloat(document.getElementById('purPieceCost').value) || 0;
+        let cartonCost = parseFloat(document.getElementById('purPieceCost').value) || 0;
+        let pieceCost = cartonCost / pcsPerCarton;
         let tradePrice = parseFloat(document.getElementById('purTradePricePiece').value) || pieceCost;
         let retailPrice = parseFloat(document.getElementById('purRetailPricePiece').value) || tradePrice;
 
         if(!name || cartonQty <= 0) return alert('پروڈکٹ کا نام اور کارٹن کی تعداد درج کریں!');
 
         let totalPcs = cartonQty * pcsPerCarton;
-        let subtotal = totalPcs * pieceCost;
+        let subtotal = cartonQty * cartonCost;
 
         currentPurInvoiceItems.push({
             sku: 'SKU-' + Date.now().toString().slice(-4),
             category: document.getElementById('purCategory').value,
-            name, pcsPerCarton, cartonQty, totalPcs, pieceCost, tradePrice, retailPrice, subtotal
+            name, pcsPerCarton, cartonQty, totalPcs, cartonCost, pieceCost, tradePrice, retailPrice, subtotal
         });
 
         renderPurInvoiceItemsTable();
@@ -5057,7 +5060,7 @@ function ftBeginEditPurchaseProduct(idx){
     set('purBrand',item.brand||'');
     set('purPcsPerCarton',item.pcsPerCarton||24);
     set('purCartonQty',item.cartonQty||'');
-    set('purPieceCost',item.pieceCost||'');
+    set('purPieceCost',item.cartonCost!=null?item.cartonCost:(Number(item.pieceCost||0)*Number(item.pcsPerCarton||24)));
     set('purTradePricePiece',item.tradePrice||'');
     set('purRetailPricePiece',item.retailPrice||'');
     set('purCategory',item.category||'General');
@@ -5094,7 +5097,7 @@ function renderPurInvoiceItemsTable() {
                 <td>${item.pcsPerCarton} Pcs</td>
                 <td>${item.cartonQty} Ctn</td>
                 <td>${item.totalPcs} Pcs</td>
-                <td>Rs. ${item.pieceCost}</td>
+                <td>Rs. ${Number(item.cartonCost!=null?item.cartonCost:(Number(item.pieceCost||0)*Number(item.pcsPerCarton||24))).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                 <td>Rs. ${item.tradePrice}</td>
                 <td>Rs. ${item.retailPrice}</td>
                 <td>Rs. ${item.subtotal.toLocaleString()}</td>
@@ -8365,21 +8368,22 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
       const brand=(document.getElementById('purBrand')?.value||'').trim();
       const pcs=n(document.getElementById('purPcsPerCarton')?.value)||24;
       const cartons=n(document.getElementById('purCartonQty')?.value);
-      const cost=n(document.getElementById('purPieceCost')?.value);
-      const trade=n(document.getElementById('purTradePricePiece')?.value)||cost;
+      const cartonCost=n(document.getElementById('purPieceCost')?.value);
+      const pieceCost=pcs>0?cartonCost/pcs:cartonCost;
+      const trade=n(document.getElementById('purTradePricePiece')?.value)||pieceCost;
       const retail=n(document.getElementById('purRetailPricePiece')?.value)||trade;
       const category=document.getElementById('purCategory')?.value||'General';
       if(!name){alert('Please enter Product Name.');document.getElementById('purItemName')?.focus();return false}
       if(cartons<=0){alert('Please enter Cartons Quantity.');document.getElementById('purCartonQty')?.focus();return false}
-      if(cost<=0){alert('Please enter List Price / Cost.');document.getElementById('purPieceCost')?.focus();return false}
-      const totalPcs=cartons*pcs, subtotal=totalPcs*cost;
+      if(cartonCost<=0){alert('Please enter List Price / Carton (Cost).');document.getElementById('purPieceCost')?.focus();return false}
+      const totalPcs=cartons*pcs, subtotal=cartons*cartonCost;
       let imageData=currentPurInvoiceItems[ftPurchaseEditIndex]?.imageData||'';
       const img=document.getElementById('purProductImage')?.files?.[0];
       const save=(data)=>{
         const item={
           sku:currentPurInvoiceItems[ftPurchaseEditIndex]?.sku||('SKU-'+Date.now().toString().slice(-6)),
           brand,category,name,pcsPerCarton:pcs,cartonQty:cartons,totalPcs,
-          pieceCost:cost,tradePrice:trade,retailPrice:retail,subtotal,imageData:data||''
+          cartonCost,pieceCost,tradePrice:trade,retailPrice:retail,subtotal,imageData:data||''
         };
         if(ftPurchaseEditIndex>=0 && currentPurInvoiceItems[ftPurchaseEditIndex]) currentPurInvoiceItems[ftPurchaseEditIndex]=item;
         else currentPurInvoiceItems.push(item);
@@ -8489,6 +8493,74 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     if(e.target.closest('.sidebar .ft-submenu-toggle')) setTimeout(normalizeSidebar,30);
   },true);
   window.addEventListener('resize',function(){setTimeout(normalizeSidebar,30);});
+})();
+</script>
+<script id="ft-v37-purchase-cost-semantics">
+(function(){
+  'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
+
+  // Purchase pricing rule: List Price is the supplier's COST PER CARTON.
+  // Trade/Retail remain PER PIECE. Internal stock cost remains PER PIECE for COGS.
+  window.ftAddPurchaseProduct=function(){
+    try{
+      const name=(document.getElementById('purItemName')?.value||'').trim().toUpperCase();
+      const brand=(document.getElementById('purBrand')?.value||'').trim();
+      const pcs=N(document.getElementById('purPcsPerCarton')?.value)||24;
+      const cartons=N(document.getElementById('purCartonQty')?.value);
+      const cartonCost=N(document.getElementById('purPieceCost')?.value);
+      const pieceCost=pcs>0?cartonCost/pcs:cartonCost;
+      const trade=N(document.getElementById('purTradePricePiece')?.value)||pieceCost;
+      const retail=N(document.getElementById('purRetailPricePiece')?.value)||trade;
+      const category=document.getElementById('purCategory')?.value||'General';
+      if(!name){alert('Please enter Product Name.');document.getElementById('purItemName')?.focus();return false;}
+      if(cartons<=0){alert('Please enter Cartons Quantity.');document.getElementById('purCartonQty')?.focus();return false;}
+      if(cartonCost<=0){alert('Please enter List Price / Carton (Cost).');document.getElementById('purPieceCost')?.focus();return false;}
+      const totalPcs=cartons*pcs, subtotal=cartons*cartonCost;
+      let imageData=currentPurInvoiceItems[ftPurchaseEditIndex]?.imageData||'';
+      const img=document.getElementById('purProductImage')?.files?.[0];
+      const save=data=>{
+        const old=currentPurInvoiceItems[ftPurchaseEditIndex];
+        const item={sku:old?.sku||('SKU-'+Date.now().toString().slice(-6)),brand,category,name,pcsPerCarton:pcs,cartonQty:cartons,totalPcs,cartonCost,pieceCost,tradePrice:trade,retailPrice:retail,subtotal,imageData:data||''};
+        if(ftPurchaseEditIndex>=0&&old)currentPurInvoiceItems[ftPurchaseEditIndex]=item;else currentPurInvoiceItems.push(item);
+        if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+        ['purItemName','purBrand','purCartonQty','purPieceCost','purTradePricePiece','purRetailPricePiece'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+        ftPurchaseEditIndex=-1;
+        const btn=document.querySelector('button[onclick="ftAddPurchaseProduct()"]');if(btn){btn.textContent='+ Add Product';delete btn.dataset.editing;}
+        const cancel=document.getElementById('ftCancelPurchaseEdit');if(cancel)cancel.style.display='none';
+        if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+      };
+      if(img){const r=new FileReader();r.onload=()=>save(r.result);r.onerror=()=>save(imageData);r.readAsDataURL(img);}else save(imageData);
+      return true;
+    }catch(e){alert('Product add failed: '+e.message);return false;}
+  };
+
+  window.renderPurInvoiceItemsTable=function(){
+    const tbody=document.getElementById('purInvoiceItemsTbody');if(!tbody)return;
+    tbody.innerHTML=(currentPurInvoiceItems||[]).map((item,idx)=>{
+      const pack=N(item.pcsPerCarton)||24;
+      const cartonCost=item.cartonCost!=null?N(item.cartonCost):N(item.pieceCost)*pack;
+      const pieceCost=pack>0?cartonCost/pack:N(item.pieceCost);
+      item.cartonCost=cartonCost;item.pieceCost=pieceCost;item.totalPcs=N(item.cartonQty)*pack;item.subtotal=N(item.cartonQty)*cartonCost;
+      return `<tr><td>${item.imageData?`<img class="ft-product-mini" src="${item.imageData}" alt="${esc(item.name)}">`:'📦'}</td><td>${esc(item.sku)}</td><td>${esc(item.brand||'General')}</td><td>${esc(item.category||'General')}</td><td><strong>${esc(item.name)}</strong></td><td>${pack} Pcs</td><td>${N(item.cartonQty)} Ctn</td><td>${N(item.totalPcs)} Pcs</td><td>Rs. ${cartonCost.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td>Rs. ${N(item.tradePrice).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td>Rs. ${N(item.retailPrice).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td>Rs. ${N(item.subtotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td style="white-space:nowrap"><button type="button" class="btn-edit" style="margin-right:4px" onclick="ftBeginEditPurchaseProduct(${idx})">Edit</button><button type="button" class="btn-delete" onclick="currentPurInvoiceItems.splice(${idx},1);if(ftPurchaseEditIndex===${idx})ftCancelEditPurchaseProduct();renderPurInvoiceItemsTable();if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();">X</button></td></tr>`;
+    }).join('');
+    if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+  };
+
+  // Ensure edit loads carton cost and preserves per-piece cost internally.
+  const oldBegin=window.ftBeginEditPurchaseProduct;
+  window.ftBeginEditPurchaseProduct=function(idx){
+    const item=currentPurInvoiceItems?.[idx];if(!item)return;
+    const pack=N(item.pcsPerCarton)||24;item.cartonCost=item.cartonCost!=null?N(item.cartonCost):N(item.pieceCost)*pack;
+    if(typeof oldBegin==='function')oldBegin(idx);
+    const e=document.getElementById('purPieceCost');if(e)e.value=item.cartonCost;
+  };
+
+  // Normalize existing items created by older versions.
+  (currentPurInvoiceItems||[]).forEach(it=>{const pack=N(it.pcsPerCarton)||24;if(it.cartonCost==null)it.cartonCost=N(it.pieceCost)*pack;it.pieceCost=pack?N(it.cartonCost)/pack:N(it.pieceCost);it.subtotal=N(it.cartonQty)*N(it.cartonCost);});
+  setTimeout(()=>{if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();},0);
 })();
 </script>
 </body>
