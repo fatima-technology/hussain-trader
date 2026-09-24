@@ -2746,7 +2746,6 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <div class="form-group"><label>Purchase Invoice No *:</label><input type="text" id="purInvoiceNo" placeholder="INV-8890"></div>
                 <div class="form-group"><label>Purchase Payment:</label><select id="purPaymentType"><option value="Cash">Cash Paid</option><option value="Bank">Bank Paid</option><option value="Credit">Credit Purchase</option></select></div>
                 <div class="form-group"><label>Payment Now / Auto Due:</label><div id="purPaymentSummary" class="ft-purchase-payment-summary">Add products to calculate.</div></div>
-                <div class="form-group"><label>Payment Now / Auto Due:</label><div id="purPaymentSummary" class="ft-purchase-payment-summary">Add products to calculate.</div></div>
                 <div class="form-group"><label>Attach Invoice:</label><input type="file" id="purInvoiceAttachment" accept="image/*,.pdf,.xlsx,.xls"></div>
             </div>
 
@@ -2755,7 +2754,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <div class="form-group"><label>Product Name *:</label><input type="text" id="purItemName" placeholder="Product Name"></div>
                 <div class="form-group"><label>Brand *:</label><input type="text" id="purBrand" placeholder="e.g. Coca-Cola / Colgate"></div>
                 <div class="form-group"><label>Product Image:</label><input type="file" id="purProductImage" accept="image/*"></div>
-                <div class="form-group"><label>Cotton Packing (Pcs) *:</label><input type="number" id="purPcsPerCarton" placeholder="e.g. 24" value="24"></div>
+                <div class="form-group"><label>Carton Packing (Pcs) *:</label><input type="number" id="purPcsPerCarton" placeholder="e.g. 24" value="24"></div>
                 <div class="form-group"><label>Cartons Quantity *:</label><input type="number" id="purCartonQty" placeholder="Cartons"></div>
                 <div class="form-group"><label>List Price / Carton (Cost) *:</label><input type="number" id="purPieceCost" placeholder="Carton Cost"></div>
                 <div class="form-group"><label>Trade Price / Pcs:</label><input type="number" id="purTradePricePiece" placeholder="TP Price"></div>
@@ -2827,10 +2826,11 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                         <th>SKU Code</th>
                         <th>Category</th>
                         <th>Product Name</th>
-                        <th>Cotton Packing</th>
-                        <th>Total Cartons Purchased</th>
-                        <th>Total Pieces Purchased</th>
-                        <th>Total Investment</th>
+                        <th>Carton Packing</th>
+                        <th>Stock Balance</th>
+                        <th>Total Pieces</th>
+                        <th>Avg Cost / Pc</th>
+                        <th>Stock Amount (Cost)</th>
                     </tr>
                 </thead>
                 <tbody id="purStockReportTbody"></tbody>
@@ -2851,7 +2851,6 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         </div>
     </div>
 
-    <div id="supplierDueTab" class="tab-content"><h3>📒 Supplier Due / Purchase Payables</h3><div class="section-box"><div class="form-grid"><div class="form-group"><label>Supplier:</label><select id="supplierDueFilter"><option value="ALL">All Suppliers</option></select></div><div class="form-group"><label>From:</label><input type="date" id="supplierDueFrom"></div><div class="form-group"><label>To:</label><input type="date" id="supplierDueTo"></div></div><div class="table-responsive"><table><thead><tr><th>Date</th><th>Invoice</th><th>Supplier</th><th>Total</th><th>Paid Now</th><th>Due</th><th>Payment</th></tr></thead><tbody id="supplierDueTbody"></tbody><tfoot><tr><th colspan="5">Total Due</th><th id="supplierDueTotal">Rs. 0</th><th></th></tr></tfoot></table></div></div></div>
 
     <!-- LIVE STOCK TAB -->
     <div id="liveStockTab" class="tab-content">
@@ -8777,6 +8776,139 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     window.ftRenderFinance();
   }
   document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,500));
+})();
+</script>
+
+
+<!-- FATIMA TECH v40 — Stock cycle, clean POS, centralized reports -->
+<style id="ft-v40-stock-reports-pos-fix">
+/* POS: punching-only workspace. Live invoice preview is removed from the working area. */
+.pos-container{grid-template-columns:1fr!important;display:grid!important;width:100%!important;max-width:none!important}
+.pos-container > .pos-card:nth-child(2){display:none!important}
+#posSales .pos-card:first-child{width:100%!important;max-width:none!important}
+#posProductEntryGrid{grid-template-columns:minmax(220px,2.2fr) repeat(8,minmax(90px,1fr)) auto!important;overflow-x:auto}
+#posSales .table-responsive{max-width:100%;overflow-x:auto}
+@media(max-width:900px){
+  #posProductEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;overflow:visible}
+  #posSales .pos-card:first-child{padding:10px!important}
+}
+.ft-v40-stock-filter{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px;align-items:end;margin:10px 0}
+.ft-v40-stock-kpis{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:8px;margin:10px 0}
+.ft-v40-stock-kpi{background:#fff;border:1px solid #dbe5ef;border-radius:10px;padding:10px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+.ft-v40-stock-kpi small{display:block;color:#64748b;font-weight:700;font-size:11px}.ft-v40-stock-kpi strong{display:block;margin-top:4px;font-size:18px;color:#0f3d66}
+@media(max-width:900px){.ft-v40-stock-filter{grid-template-columns:1fr 1fr}.ft-v40-stock-kpis{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.ft-v40-stock-filter,.ft-v40-stock-kpis{grid-template-columns:1fr}}
+</style>
+<script id="ft-v40-stock-reports-pos-js">
+(function(){
+  'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const E=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const M=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const norm=v=>String(v||'').trim().toUpperCase();
+  const qtyOf=it=>it?.totalPcsQty!=null?N(it.totalPcsQty):N(it?.totalPcs)!=0?N(it.totalPcs):(N(it?.ctnQty)*N(it?.packing||it?.pcsPerCarton||12)+N(it?.pcsQty));
+  const allProducts=()=>{
+    const m={};
+    (dbStock||[]).forEach(s=>{const k=norm(s.name);if(!k)return;m[k]={name:s.name,sku:s.sku||'',brand:s.brand||'',category:s.category||'General',packing:N(s.pcsPerCarton)||24,currentQty:N(s.qty),currentCost:N(s.costPrice),currentTradeCtn:N(s.tradePriceCarton),currentRetailCtn:N(s.retailPriceCarton)};});
+    (dbPurchaseInvoices||[]).forEach(p=>(p.items||[]).forEach(it=>{const k=norm(it.name);if(!k)return;if(!m[k])m[k]={name:it.name,sku:it.sku||'',brand:it.brand||'',category:it.category||'General',packing:N(it.pcsPerCarton)||24,currentQty:0,currentCost:N(it.pieceCost),currentTradeCtn:N(it.tradePriceCarton),currentRetailCtn:N(it.retailPriceCarton)};}));
+    (dbInvoices||[]).forEach(inv=>(inv.items||[]).forEach(it=>{const k=norm(it.name);if(!k)return;if(!m[k])m[k]={name:it.name,sku:it.sku||'',brand:it.brand||'',category:it.category||'General',packing:N(it.packing)||24,currentQty:0,currentCost:N(it.costPriceSnapshot),currentTradeCtn:N(it.tradeRateCtn),currentRetailCtn:N(it.retailRateCtn)};}));
+    return m;
+  };
+  function salesCommitted(inv){return inv && inv.stockCommitted!==false;}
+  function movementTotals(k,cutoff){
+    let purQty=0,purVal=0,saleQty=0,returnQty=0;
+    (dbPurchaseInvoices||[]).filter(p=>!cutoff||String(p.date||'')<=cutoff).forEach(p=>(p.items||[]).forEach(it=>{if(norm(it.name)!==k)return;const q=qtyOf(it);purQty+=q;purVal+=N(it.subtotal||q*N(it.pieceCost));}));
+    (dbInvoices||[]).filter(i=>(!cutoff||String(i.date||'')<=cutoff)&&salesCommitted(i)).forEach(i=>(i.items||[]).forEach(it=>{if(norm(it.name)!==k)return;saleQty+=qtyOf(it);}));
+    (dbReturns||[]).filter(r=>!cutoff||String(r.date||'')<=cutoff).forEach(r=>{
+      if(String(r.type||'').toLowerCase().includes('full invoice')){
+        const inv=(dbInvoices||[]).find(i=>String(i.invNum)===String(r.invoice));
+        (inv?.items||[]).forEach(it=>{if(norm(it.name)===k)returnQty+=qtyOf(it);});
+      }else if(norm(r.item)===k){returnQty+=N(r.qtyPcs||r.qty||r.totalPcs);}
+    });
+    return {purQty,purVal,saleQty,returnQty};
+  }
+  function ensureStockReportUI(){
+    const tab=document.getElementById('purchaseStockReportTab');if(!tab)return;
+    if(!document.getElementById('ftV40StockFilters')){
+      const h=tab.querySelector('h3');
+      const box=document.createElement('div');box.id='ftV40StockFilters';box.className='section-box no-print';box.innerHTML=`<div class="ft-v40-stock-filter"><div class="form-group"><label>Stock As Of Date:</label><input type="date" id="ftStockAsOfDate"></div><div class="form-group"><label>Product:</label><select id="ftStockProductFilter"><option value="ALL">All Products</option></select></div><div><button type="button" class="btn-add" style="width:100%" onclick="renderPurchaseStockReport()">🔎 Show Stock</button></div><div style="display:flex;gap:6px"><button type="button" class="btn-print" style="flex:1" onclick="window.print()">🖨 Print</button><button type="button" class="btn-excel" style="flex:1" onclick="ftExportStockAsOf()">📊 Excel</button></div></div>`;
+      if(h)h.insertAdjacentElement('afterend',box);else tab.prepend(box);
+    }
+    const d=document.getElementById('ftStockAsOfDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);
+    const sel=document.getElementById('ftStockProductFilter');if(sel){const cur=sel.value;sel.innerHTML='<option value="ALL">All Products</option>'+Object.values(allProducts()).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${E(p.name)}">${E(p.name)}</option>`).join('');if([...sel.options].some(o=>o.value===cur))sel.value=cur;}
+  }
+  window.renderPurchaseStockReport=function(){
+    ensureStockReportUI();
+    const body=document.getElementById('purStockReportTbody');if(!body)return;
+    const asOf=document.getElementById('ftStockAsOfDate')?.value||new Date().toISOString().slice(0,10);
+    const product=document.getElementById('ftStockProductFilter')?.value||'ALL';
+    const products=Object.values(allProducts()).filter(p=>product==='ALL'||p.name===product);
+    const rows=products.map(p=>{
+      const all=movementTotals(norm(p.name),null), cut=movementTotals(norm(p.name),asOf);
+      const opening=Math.max(0,p.currentQty-all.purQty+all.saleQty-all.returnQty);
+      const qty=Math.max(0,opening+cut.purQty-cut.saleQty+cut.returnQty);
+      const avgCost=cut.purQty>0?cut.purVal/cut.purQty:(p.currentCost||0);
+      const amount=qty*avgCost;
+      return {...p,qty,ctn:Math.floor(qty/(p.packing||24)),pcs:qty%(p.packing||24),avgCost,amount,purchasedCtn:cut.purQty/(p.packing||24),purchaseValue:cut.purVal};
+    }).filter(r=>r.qty!==0||r.purchaseValue!==0||r.name);
+    body.innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td><td>${r.packing} Pcs/Ctn</td><td>${r.ctn} Ctn + ${r.pcs} Pcs</td><td>${r.qty.toLocaleString()} Pcs</td><td>${M(r.avgCost)}</td><td>${M(r.amount)}</td></tr>`).join('')||'<tr><td colspan="9">No stock found for the selected date.</td></tr>';
+    const totalQty=rows.reduce((a,r)=>a+r.qty,0),totalAmount=rows.reduce((a,r)=>a+r.amount,0),totalPurchase=rows.reduce((a,r)=>a+r.purchaseValue,0),totalCtn=rows.reduce((a,r)=>a+r.purchasedCtn,0);
+    let k=document.getElementById('ftV40StockKpis');if(!k){k=document.createElement('div');k.id='ftV40StockKpis';k.className='ft-v40-stock-kpis';const filter=document.getElementById('ftV40StockFilters');if(filter)filter.insertAdjacentElement('afterend',k);}
+    if(k)k.innerHTML=`<div class="ft-v40-stock-kpi"><small>Stock As Of</small><strong>${E(asOf)}</strong></div><div class="ft-v40-stock-kpi"><small>Total Stock</small><strong>${totalQty.toLocaleString()} Pcs</strong></div><div class="ft-v40-stock-kpi"><small>Stock Amount (Cost)</small><strong>${M(totalAmount)}</strong></div><div class="ft-v40-stock-kpi"><small>Purchases Through Date</small><strong>${M(totalPurchase)}</strong></div><div class="ft-v40-stock-kpi"><small>Purchase Cartons</small><strong>${totalCtn.toLocaleString()}</strong></div>`;
+    window.__ftV40StockRows=rows;window.__ftV40StockAsOf=asOf;
+  };
+  window.ftExportStockAsOf=function(){if(!window.XLSX)return alert('Excel library is not loaded.');const rows=window.__ftV40StockRows||[];if(!rows.length)return alert('No stock data to export.');const out=rows.map(r=>({Date:window.__ftV40StockAsOf,SKU:r.sku,Category:r.category,Product:r.name,'Packing Pcs/Ctn':r.packing,'Stock Cartons':r.ctn,'Stock Pieces':r.pcs,'Total Pieces':r.qty,'Avg Cost/Pc':r.avgCost,'Stock Amount':r.amount}));const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(out);XLSX.utils.book_append_sheet(wb,ws,'Stock As Of');XLSX.writeFile(wb,'Stock_As_Of_'+window.__ftV40StockAsOf+'.xlsx');};
+
+  // Purchase commit guard: if the legacy save deducted cash but failed to write physical stock, restore the missing stock delta.
+  const baseSave=window.saveCompletePurchaseInvoice;
+  if(typeof baseSave==='function'&&!window.__ftV40PurchaseStockGuard){
+    window.saveCompletePurchaseInvoice=function(print){
+      const beforeCount=(dbPurchaseInvoices||[]).length;
+      const before={};
+      (currentPurInvoiceItems||[]).forEach(it=>{const k=norm(it.name);if(!(k in before)){const st=(dbStock||[]).find(s=>norm(s.name)===k);before[k]=N(st?.qty);}});
+      const requested=(currentPurInvoiceItems||[]).map(it=>({name:it.name,qty:qtyOf(it)}));
+      const result=baseSave.apply(this,arguments);
+      const afterCount=(dbPurchaseInvoices||[]).length;
+      if(afterCount>beforeCount){
+        const delta={};requested.forEach(x=>delta[norm(x.name)]=(delta[norm(x.name)]||0)+x.qty);
+        Object.entries(delta).forEach(([k,q])=>{let st=(dbStock||[]).find(s=>norm(s.name)===k);if(!st){const src=(dbPurchaseInvoices[dbPurchaseInvoices.length-1].items||[]).find(it=>norm(it.name)===k);if(src){st={id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:src.sku||('SKU-'+Date.now().toString().slice(-6)),brand:src.brand||'',category:src.category||'General',name:src.name,imageData:src.imageData||'',pcsPerCarton:N(src.pcsPerCarton)||24,qty:0,costPrice:N(src.pieceCost),tradePrice:N(src.tradePrice),tradePricePiece:N(src.tradePrice),tradePriceCarton:N(src.tradePriceCarton)||N(src.tradePrice)*(N(src.pcsPerCarton)||24),retailPrice:N(src.retailPrice),retailPricePiece:N(src.retailPrice),retailPriceCarton:N(src.retailPriceCarton)||N(src.retailPrice)*(N(src.pcsPerCarton)||24)};dbStock.push(st);}}
+          if(st){const expected=before[k]+q;const missing=expected-N(st.qty);if(missing>0.000001)st.qty+=missing;st.lastPurchaseDate=document.getElementById('purInvDate')?.value||new Date().toISOString().slice(0,10);}
+        });
+        localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+        setTimeout(()=>{if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(typeof updateStockDatalist==='function')updateStockDatalist();renderPurchaseStockReport();},50);
+      }
+      return result;
+    };
+    window.__ftV40PurchaseStockGuard=true;
+  }
+
+  // Centralize report/list modules under System Reports.
+  function centralizeReports(){
+    const reportMenu=document.getElementById('reportsSubmenu');if(!reportMenu)return;
+    const moves=[
+      ['invoicesList','📄 Sales / Saved Invoices'],
+      ['purchaseInvoiceListTab','📑 Purchase Invoices'],
+      ['purchaseStockReportTab','📦 Stock Report (As Of Date)'],
+      ['liveStockTab','📦 Live Stock Inventory'],
+      ['supplierDueTab','📒 Supplier Due / Payables'],
+      ['salaryRecordsTab','📑 Salary Records']
+    ];
+    moves.forEach(([id,label])=>{
+      const tab=document.getElementById(id);const li=document.querySelector(`.sidebar li[data-perm="${id}"]`);if(li&&li.parentElement!==reportMenu){const a=li.querySelector('.nav-link');if(a)a.innerHTML=label;reportMenu.appendChild(li);}
+      if(id==='supplierDueTab'&&!li){const n=document.createElement('li');n.setAttribute('data-perm','supplierDueTab');n.innerHTML=`<a class="nav-link" onclick="openTab('supplierDueTab', this)">${label}</a>`;reportMenu.appendChild(n);}
+      if(id==='supplierDueTab'&&tab)tab.setAttribute('data-perm','supplierDueTab');
+    });
+    // Remove empty purchase/sales report-looking entries if moved; operational tabs remain where they belong.
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){centralizeReports();ensureStockReportUI();renderPurchaseStockReport();},450);
+  });
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV40OpenTabPatched){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);setTimeout(function(){if(id==='purchaseStockReportTab')renderPurchaseStockReport();if(id==='liveStockTab'&&typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(id==='supplierDueTab'&&typeof renderSupplierDueReport==='function')renderSupplierDueReport();},40);return r;};
+    window.__ftV40OpenTabPatched=true;
+  }
 })();
 </script>
 
