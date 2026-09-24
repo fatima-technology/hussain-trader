@@ -549,6 +549,7 @@
 .ft-product-mini{width:34px;height:34px;object-fit:contain;border-radius:6px;background:#fff;border:1px solid #d7deea;padding:2px}
 .ft-brand-badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#eef5ff;color:#1456a0;font-weight:700;font-size:11px}
 .ft-product-picker-note{font-size:11px;color:#6b7280;margin-top:3px}
+</style>
 
 <style id="ft-v6-report-style">
 .ft-v6-report-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
@@ -561,7 +562,9 @@
 .ft-v6-note{font-size:11px;color:#64748b;margin-top:4px}
 .ft-v6-print-only{display:none}
 @media print{.ft-v6-print-only{display:block}.ft-v6-report-actions,.no-print{display:none!important}}
+</style>
 
+<style id="ft-professional-erp-theme">
 /* =========================================================
    FATIMA TECH — PROFESSIONAL ERP UI THEME v1
    Premium enterprise navy / cyan / gold visual system
@@ -646,8 +649,6 @@ tr:hover td{background:#f8fbff!important;}
  .brand-logo-badge{width:64px;height:64px;border-radius:18px;}
  .login-card h2{font-size:19px;}
 }
-</style>
-</style>
 </style>
 
 <style id="fatima-bilingual-style">
@@ -1687,6 +1688,116 @@ img,svg,video,canvas{max-width:100%;height:auto}
 @media(max-width:900px){#supplierDueTab .form-grid{grid-template-columns:1fr!important}.ft-purchase-payment-summary{font-size:10px}}
 </style>
 <style id="ft-v27-css">.ft-purchase-payment-summary{min-height:34px;padding:7px 9px;border:1px solid #d8e5ef;border-radius:8px;background:#f7fbff;font-size:11px;line-height:1.4}.ft-purchase-payment-summary b{color:#1769e0}.ft-purchase-payment-summary .due{color:#b45309}@media(max-width:900px){#supplierDueTab .form-grid{grid-template-columns:1fr!important}}</style>
+
+<style id="ft-v32-responsive-shell-final">
+/* =========================================================
+   FATIMA TECH v32 — FINAL RESPONSIVE SHELL
+   Desktop = true full-width laptop workspace.
+   Mobile  = true full-width app viewport with drawer navigation.
+   This layer intentionally overrides older responsive patches.
+   ========================================================= */
+html,body{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+*,*::before,*::after{box-sizing:border-box}
+
+@media (min-width:901px){
+  body{
+    display:block!important;
+    overflow-x:hidden!important;
+    margin:0!important;
+  }
+  .sidebar{
+    position:fixed!important;
+    left:0!important;top:0!important;bottom:0!important;
+    width:265px!important;
+    max-width:265px!important;
+    min-width:265px!important;
+    height:100vh!important;
+    transform:none!important;
+    display:flex!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+  .main-wrapper{
+    display:block!important;
+    position:relative!important;
+    margin-left:265px!important;
+    width:calc(100% - 265px)!important;
+    max-width:none!important;
+    min-width:0!important;
+    padding:12px!important;
+    box-sizing:border-box!important;
+    overflow:visible!important;
+  }
+  .top-bar,
+  .tab-content,
+  .tab-content.active,
+  #dashboard,
+  #adminDashboardView,
+  #bookerDashboardView{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  .top-bar{margin-left:0!important;margin-right:0!important}
+  .tab-content{padding:18px 20px 28px!important}
+  .summary-cards{
+    width:100%!important;
+    max-width:none!important;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
+  }
+  .table-responsive{width:100%!important;max-width:none!important}
+  .form-grid,.pos-container{width:100%!important;max-width:none!important}
+}
+
+@media (max-width:900px){
+  html,body{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow-x:hidden!important;
+  }
+  body{display:block!important;margin:0!important}
+  .sidebar{
+    position:fixed!important;
+    left:0!important;top:0!important;bottom:0!important;
+    width:min(88vw,330px)!important;
+    max-width:330px!important;
+    min-width:0!important;
+    height:100dvh!important;
+    transform:translate3d(-110%,0,0)!important;
+    z-index:10004!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+  body.ft-mobile-nav-open .sidebar{transform:translate3d(0,0,0)!important}
+  .main-wrapper{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin-left:0!important;
+    padding:64px 10px 18px!important;
+    box-sizing:border-box!important;
+    overflow:visible!important;
+  }
+  .top-bar,
+  .tab-content,
+  .tab-content.active,
+  #dashboard,
+  #adminDashboardView,
+  #bookerDashboardView{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  .top-bar{margin-left:0!important;margin-right:0!important}
+  .tab-content{padding:12px 0 22px!important}
+  .summary-cards{width:100%!important;max-width:100%!important}
+  .table-responsive{width:100%!important;max-width:100%!important;overflow-x:auto!important}
+}
+</style>
 </head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
