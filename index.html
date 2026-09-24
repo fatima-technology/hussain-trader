@@ -1978,11 +1978,11 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <h3>Approved Recovery</h3>
                 <p id="dashTodayRecovery" style="color:#00f2fe;">Rs. 0</p>
             </div>
-            <div class="bubble-card" onclick="openTab('financeTab')">
+            <div class="bubble-card ft-cash-kpi" onclick="openCashFlowReport()">
                 <h3>Today's Cash Flow</h3>
                 <p id="dashTodayCashFlow" style="color:#1769e0;">Rs. 0</p>
             </div>
-            <div class="bubble-card" onclick="openTab('financeTab')">
+            <div class="bubble-card ft-cash-kpi" onclick="openCashInHandReport()">
                 <h3>Net Cash In Hand</h3>
                 <p id="dashCashInHand" style="color:#11998e;">Rs. 0</p>
                 <small class="ft-kpi-note">After sales, recovery, purchases & expenses</small>
@@ -8643,5 +8643,132 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   },true);
   document.addEventListener('DOMContentLoaded',bindProfile);
   setTimeout(bindProfile,300);
+})();
+</script>
+
+<!-- FATIMA TECH v35 — Capital Cycle / Cash Flow / Net Cash authoritative engine -->
+<style id="ft-v35-capital-cycle-css">
+.ft-v35-report-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.ft-v35-kpis{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;margin:10px 0}
+.ft-v35-kpi{background:#fff;border:1px solid #dbe4ef;border-radius:12px;padding:12px;box-shadow:0 3px 10px rgba(15,23,42,.05)}
+.ft-v35-kpi small{display:block;color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase}.ft-v35-kpi strong{display:block;margin-top:5px;font-size:18px;color:#0f172a}
+.ft-v35-in{color:#0f766e!important}.ft-v35-out{color:#b91c1c!important}.ft-v35-balance{color:#1d4ed8!important}
+.ft-v35-note{padding:9px 11px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;font-size:11px;color:#334155;margin:8px 0}
+@media(max-width:900px){.ft-v35-kpis{grid-template-columns:1fr 1fr}.ft-v35-report{padding:4px}.ft-v35-report table{min-width:720px}}
+@media(max-width:520px){.ft-v35-kpis{grid-template-columns:1fr}.ft-v35-kpi strong{font-size:17px}}
+</style>
+<script id="ft-v35-capital-cycle-engine">
+(function(){
+  const N=v=>Number(v)||0;
+  const today=()=>new Date().toISOString().slice(0,10);
+  const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
+  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const inTo=(d,to)=>!to||String(d||'')<=String(to);
+  const txns=()=>{try{return JSON.parse(localStorage.getItem('ft_investor_txns')||'[]')}catch(e){return []}};
+  const invs=()=>Array.isArray(window.ftFinance?.investments)?window.ftFinance.investments:(Array.isArray(window.dbInvestments)?window.dbInvestments:[]);
+
+  function capitalCycle(to){
+    const investments=invs().filter(x=>inTo(x.date,to));
+    const grossCapital=investments.reduce((a,x)=>a+N(x.amount),0);
+    const capitalWithdrawals=txns().filter(x=>inTo(x.date,to)&&x.type==='Capital Withdrawal').reduce((a,x)=>a+N(x.amount),0);
+    const netCapital=Math.max(0,grossCapital-capitalWithdrawals);
+    const cashInvestment=investments.filter(x=>String(x.method||'Cash')==='Cash').reduce((a,x)=>a+N(x.amount),0);
+    const bankInvestment=investments.filter(x=>String(x.method||'Cash')==='Bank').reduce((a,x)=>a+N(x.amount),0);
+    const sales=(dbInvoices||[]).filter(x=>inTo(x.date,to));
+    const cashSales=sales.filter(x=>String(x.payType||'').toLowerCase()==='cash').reduce((a,x)=>a+N(x.paidAmount),0);
+    const bankSales=sales.filter(x=>String(x.payType||'').toLowerCase()==='bank').reduce((a,x)=>a+N(x.paidAmount),0);
+    const creditSales=sales.reduce((a,x)=>a+Math.max(0,N(x.currentBillTotal)-N(x.paidAmount)),0);
+    const rec=(dbRecoveries||[]).filter(x=>x.status==='Approved'&&inTo(x.date,to));
+    const cashRecovery=rec.filter(x=>String(x.method||'Cash')!=='Bank').reduce((a,x)=>a+N(x.amount),0);
+    const bankRecovery=rec.filter(x=>String(x.method||'Cash')==='Bank').reduce((a,x)=>a+N(x.amount),0);
+    const purchases=(dbPurchaseInvoices||[]).filter(x=>inTo(x.date,to));
+    const cashPurchase=purchases.filter(x=>String(x.requestedPaymentType||x.paymentType||'Cash').toLowerCase().startsWith('cash')).reduce((a,x)=>a+N(x.paidNow),0);
+    const bankPurchase=purchases.filter(x=>String(x.requestedPaymentType||x.paymentType||'').toLowerCase().startsWith('bank')).reduce((a,x)=>a+N(x.paidNow),0);
+    const purchaseTotal=purchases.reduce((a,x)=>a+N(x.totalAmt),0);
+    const supplierDue=purchases.reduce((a,x)=>a+N(x.dueAmount),0);
+    const expenses=(dbExpenses||[]).filter(x=>inTo(x.date,to)).reduce((a,x)=>a+N(x.amount),0);
+    const profitPayments=txns().filter(x=>inTo(x.date,to)&&x.type==='Profit Payment');
+    const cashInvestorOut=txns().filter(x=>inTo(x.date,to)&&['Capital Withdrawal','Profit Payment'].includes(x.type)&&String(x.method||'Cash')==='Cash').reduce((a,x)=>a+N(x.amount),0);
+    const bankInvestorOut=txns().filter(x=>inTo(x.date,to)&&['Capital Withdrawal','Profit Payment'].includes(x.type)&&String(x.method||'Cash')==='Bank').reduce((a,x)=>a+N(x.amount),0);
+    const cash= cashInvestment+cashSales+cashRecovery-cashPurchase-expenses-cashInvestorOut;
+    const bank= bankInvestment+bankSales+bankRecovery-bankPurchase-bankInvestorOut;
+    const stockValue=(dbStock||[]).reduce((a,x)=>a+N(x.qty)*N(x.costPrice),0);
+    const marketCredit=(dbShops||[]).reduce((a,x)=>a+N(typeof dashboardShopBalanceAsOf==='function'?dashboardShopBalanceAsOf(x.name,to):0),0);
+    return {grossCapital,capitalWithdrawals,netCapital,cashInvestment,bankInvestment,cashSales,bankSales,creditSales,cashRecovery,bankRecovery,purchaseTotal,cashPurchase,bankPurchase,supplierDue,expenses,profitPayments,cashInvestorOut,bankInvestorOut,cash,bank,stockValue,marketCredit};
+  }
+
+  function cashStateV35(toDate){
+    const c=capitalCycle(toDate);
+    return {cash:c.cash,bank:c.bank};
+  }
+  function cashMovementV35(date){
+    const c0=capitalCycle(null);
+    const c1=capitalCycle(date);
+    // Capital-cycle fields above are cumulative through date; derive that day's movement from prior day.
+    const d=new Date(String(date)+'T00:00:00'); d.setDate(d.getDate()-1); const prev=d.toISOString().slice(0,10);
+    const p=capitalCycle(prev);
+    return {cash:c1.cash-p.cash,bank:c1.bank-p.bank};
+  }
+  window.ftCapitalCycle=capitalCycle;
+  window.cashState=cashStateV35;
+  window.cashMovementForDate=cashMovementV35;
+
+  function reportShell(title,subtitle,body){
+    const target=document.getElementById('ftV35ReportTab'); if(!target)return;
+    target.innerHTML='<div class="ft-v35-report section-box"><div class="ft-v35-report-head"><div><h3 style="margin:0">'+title+'</h3><small>'+subtitle+'</small></div><div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn-print" type="button" onclick="window.print()">🖨 Print</button><button class="btn-excel" type="button" onclick="ftExportV35Report()">📊 Excel</button><button class="btn-edit" type="button" onclick="openTab(\"dashboard\")">← Dashboard</button></div></div>'+body+'</div>';
+    if(typeof window.openTab==='function')window.openTab('ftV35ReportTab');
+  }
+  function selectedDate(){return typeof dashDate==='function'?dashDate():today();}
+
+  window.openCashFlowReport=function(){
+    const date=selectedDate(), c=capitalCycle(date), flow=cashMovementForDate(date).cash;
+    const d=new Date(date+'T00:00:00');d.setDate(d.getDate()-1);const prev=d.toISOString().slice(0,10), before=capitalCycle(prev);
+    const inflow=c.cashInvestment-before.cashInvestment + c.cashSales-before.cashSales + c.cashRecovery-before.cashRecovery;
+    const outflow=c.cashPurchase-before.cashPurchase + c.expenses-before.expenses + c.cashInvestorOut-before.cashInvestorOut;
+    const body='<div class="ft-v35-note">Cash Flow means <b>today ke cash ke andar aane aur bahar jane ka net movement</b>. Credit sale cash inflow nahi hoti; recovery hone par cash mein aati hai.</div>'+
+      '<div class="ft-v35-kpis"><div class="ft-v35-kpi"><small>Opening Cash</small><strong>'+M(before.cash)+'</strong></div><div class="ft-v35-kpi"><small>Cash In</small><strong class="ft-v35-in">+'+M(inflow)+'</strong></div><div class="ft-v35-kpi"><small>Cash Out</small><strong class="ft-v35-out">-'+M(outflow)+'</strong></div><div class="ft-v35-kpi"><small>Net Cash Flow</small><strong class="ft-v35-balance">'+M(flow)+'</strong></div></div>'+
+      '<div class="table-responsive"><table><thead><tr><th>Date</th><th>Cash In</th><th>Cash Out</th><th>Net Cash Flow</th><th>Closing Cash</th></tr></thead><tbody><tr><td>'+esc(date)+'</td><td>'+M(inflow)+'</td><td>'+M(outflow)+'</td><td><strong>'+M(flow)+'</strong></td><td><strong>'+M(c.cash)+'</strong></td></tr></tbody></table></div>'+
+      '<div class="section-box" style="margin-top:10px"><h4>Cash In Breakdown</h4><p>Cash Investment: <b>'+M(c.cashInvestment-before.cashInvestment)+'</b> &nbsp; | &nbsp; Cash Sales: <b>'+M(c.cashSales-before.cashSales)+'</b> &nbsp; | &nbsp; Approved Recovery: <b>'+M(c.cashRecovery-before.cashRecovery)+'</b></p><h4>Cash Out Breakdown</h4><p>Purchase Paid: <b>'+M(c.cashPurchase-before.cashPurchase)+'</b> &nbsp; | &nbsp; Expenses: <b>'+M(c.expenses-before.expenses)+'</b> &nbsp; | &nbsp; Investor Capital/Profit Paid: <b>'+M(c.cashInvestorOut-before.cashInvestorOut)+'</b></p></div>';
+    window.ftV35ReportData={type:'cashflow',date,rows:[{Date:date,'Cash In':inflow,'Cash Out':outflow,'Net Cash Flow':flow,'Closing Cash':c.cash}]};
+    reportShell('💵 Cash Flow Report','Selected date: '+date,body);
+  };
+
+  window.openCashInHandReport=function(){
+    const date=selectedDate(), c=capitalCycle(date);
+    const body='<div class="ft-v35-note">Net Cash In Hand = <b>business ke paas is waqt actual cash balance</b>. Capital jo stock mein convert ho chuka hai ya credit sale mein hai, woh cash mein count nahi hota.</div>'+
+      '<div class="ft-v35-kpis"><div class="ft-v35-kpi"><small>Gross Capital Invested</small><strong>'+M(c.grossCapital)+'</strong></div><div class="ft-v35-kpi"><small>Stock Value</small><strong>'+M(c.stockValue)+'</strong></div><div class="ft-v35-kpi"><small>Market Credit</small><strong>'+M(c.marketCredit)+'</strong></div><div class="ft-v35-kpi"><small>Net Cash In Hand</small><strong class="ft-v35-balance">'+M(c.cash)+'</strong></div></div>'+
+      '<div class="table-responsive"><table><thead><tr><th>Capital / Cash Cycle</th><th>Amount</th></tr></thead><tbody>'+
+      '<tr><td>Cash Investment</td><td>'+M(c.cashInvestment)+'</td></tr><tr><td>Cash Sales Received</td><td>+'+M(c.cashSales)+'</td></tr><tr><td>Approved Cash Recovery</td><td>+'+M(c.cashRecovery)+'</td></tr><tr><td>Cash Purchase Payments</td><td>-'+M(c.cashPurchase)+'</td></tr><tr><td>Cash Expenses</td><td>-'+M(c.expenses)+'</td></tr><tr><td>Investor Capital / Profit Cash Paid</td><td>-'+M(c.cashInvestorOut)+'</td></tr><tr><td><strong>Net Cash In Hand</strong></td><td><strong>'+M(c.cash)+'</strong></td></tr>'+
+      '</tbody></table></div>'+
+      '<div class="section-box" style="margin-top:10px"><h4>Business Position (selected date)</h4><p>Net Capital Invested: <b>'+M(c.netCapital)+'</b> &nbsp; | &nbsp; Cash: <b>'+M(c.cash)+'</b> &nbsp; | &nbsp; Bank: <b>'+M(c.bank)+'</b> &nbsp; | &nbsp; Stock: <b>'+M(c.stockValue)+'</b> &nbsp; | &nbsp; Market Credit: <b>'+M(c.marketCredit)+'</b> &nbsp; | &nbsp; Supplier Due: <b>'+M(c.supplierDue)+'</b></p></div>';
+    window.ftV35ReportData={type:'cashinhand',date,rows:[{Date:date,'Gross Capital':c.grossCapital,'Net Capital':c.netCapital,'Cash':c.cash,'Bank':c.bank,'Stock Value':c.stockValue,'Market Credit':c.marketCredit,'Supplier Due':c.supplierDue}]};
+    reportShell('💰 Net Cash In Hand Report','Actual cash position through: '+date,body);
+  };
+
+  window.ftExportV35Report=function(){
+    if(!window.XLSX||!window.ftV35ReportData)return alert('Report data is not ready.');
+    const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(window.ftV35ReportData.rows);XLSX.utils.book_append_sheet(wb,ws,window.ftV35ReportData.type==='cashflow'?'Cash Flow':'Cash In Hand');XLSX.writeFile(wb,(window.ftV35ReportData.type==='cashflow'?'Cash_Flow_':'Net_Cash_In_Hand_')+window.ftV35ReportData.date+'.xlsx');
+  };
+
+  function patchDashboard(){
+    const asOf=selectedDate();
+    const c=capitalCycle(asOf), flow=cashMovementForDate(asOf).cash;
+    const f=document.getElementById('dashTodayCashFlow');if(f)f.textContent=M(flow);
+    const h=document.getElementById('dashCashInHand');if(h)h.textContent=M(c.cash);
+    const label=f?.closest('.bubble-card')?.querySelector('h3');if(label)label.textContent=asOf===today()?"Today's Cash Flow":"Cash Flow (Selected Date)";
+    const note=h?.closest('.bubble-card')?.querySelector('small');if(note)note.textContent='Actual cash available after sales, recovery, purchases, expenses & investor payments';
+  }
+  const oldRender=window.renderDashboard;
+  window.renderDashboard=function(){if(typeof oldRender==='function')oldRender.apply(this,arguments);setTimeout(patchDashboard,0)};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(patchDashboard,500));
+
+  // Keep finance cards aligned with the same capital-cycle truth.
+  const oldFinance=window.ftRenderFinance;
+  window.ftRenderFinance=function(){if(typeof oldFinance==='function')oldFinance.apply(this,arguments);const to=document.getElementById('ftToDate')?.value||today(),c=capitalCycle(to);const cash=document.getElementById('ftCashInHand');if(cash)cash.textContent=M(c.cash);const bank=document.getElementById('ftBankBalance');if(bank)bank.textContent=M(c.bank);const ti=document.getElementById('ftTotalInvestment');if(ti)ti.textContent=M(c.grossCapital);let card=document.getElementById('ftNetCapitalCard');if(!card){const cards=document.getElementById('ftFinanceCards');if(cards){card=document.createElement('div');card.className='bubble-card';card.id='ftNetCapitalCard';card.innerHTML='<h3>Net Capital Invested</h3><p id="ftNetCapital">Rs. 0</p>';cards.insertBefore(card,cards.children[3]||null)}}const np=document.getElementById('ftNetCapital');if(np)np.textContent=M(c.netCapital);};
+
+  // Add the two dedicated report tabs once. They are opened only from the dashboard cards.
+  function ensureReportTab(){if(document.getElementById('ftV35ReportTab'))return;const d=document.createElement('div');d.id='ftV35ReportTab';d.className='tab-content';d.style.display='none';const anchor=document.getElementById('financeTab');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(d,anchor.nextSibling);}
+  document.addEventListener('DOMContentLoaded',ensureReportTab);
+  setTimeout(ensureReportTab,300);
 })();
 </script>
