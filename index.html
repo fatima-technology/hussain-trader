@@ -1802,7 +1802,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
 <style id="ft-purchase-edit-style">
 .btn-edit{border:1px solid #2563eb;background:#eef5ff;color:#1456b8;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-weight:700}.btn-edit:hover{background:#dbeafe}.btn-secondary{border:1px solid #94a3b8;background:#fff;color:#334155;border-radius:6px;padding:4px 9px;cursor:pointer;font-weight:700}
 </style>
-</head>
+<style id="ft-v47-stock-actions">#purchaseStockReportTab .btn-delete{padding:5px 8px;font-size:11px;white-space:nowrap}</style></head>
 <body>
 <!-- MOBILE ERP NAVIGATION -->
 <button id="ftMobileMenuBtn" class="ft-mobile-menu-btn no-print" type="button" onclick="toggleMobileNav()" aria-label="Open menu">☰</button>
@@ -2830,7 +2830,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                         <th>Stock Balance</th>
                         <th>Total Pieces</th>
                         <th>Avg Cost / Pc</th>
-                        <th>Stock Amount (Cost)</th>
+                        <th>Stock Amount (Cost)</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="purStockReportTbody"></tbody>
@@ -9107,6 +9107,27 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     const d=document.getElementById('ftStockAsOfDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);
     const sel=document.getElementById('ftStockProductFilter');if(sel){const cur=sel.value;sel.innerHTML='<option value="ALL">All Products</option>'+Object.values(allProducts()).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${E(p.name)}">${E(p.name)}</option>`).join('');if([...sel.options].some(o=>o.value===cur))sel.value=cur;}
   }
+  window.ftRemoveStockRow=function(name){
+    try{
+      const target=String(name||'').trim();
+      if(!target)return;
+      const hasPurchase=(dbPurchaseInvoices||[]).some(p=>(p.items||[]).some(it=>String(it.name||'').trim().toUpperCase()===target.toUpperCase()));
+      if(hasPurchase){ alert('This product still has a saved purchase invoice. Delete the exact purchase invoice from Saved Purchase Invoices List first.'); return; }
+      const st=(dbStock||[]).find(x=>String(x.name||'').trim().toUpperCase()===target.toUpperCase());
+      if(!st){alert('Stock record not found.');return;}
+      const qty=Number(st.qty)||0;
+      if(!confirm('Remove test/orphan stock for '+target+'?\n\nCurrent stock: '+qty.toLocaleString()+' pcs\n\nThis removes the stock record because its purchase invoice is no longer present.'))return;
+      dbStock.splice(dbStock.indexOf(st),1);
+      localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+      try{if(typeof updateStockDatalist==='function')updateStockDatalist();}catch(e){}
+      try{if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();}catch(e){}
+      try{if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();}catch(e){}
+      try{if(typeof ftRenderFinance==='function')ftRenderFinance();}catch(e){}
+      try{if(typeof renderDashboard==='function')renderDashboard();}catch(e){}
+      alert('Stock removed successfully.');
+    }catch(e){alert('Stock removal failed: '+(e&&e.message?e.message:e));}
+  };
+
   window.renderPurchaseStockReport=function(){
     ensureStockReportUI();
     const body=document.getElementById('purStockReportTbody');if(!body)return;
@@ -9121,7 +9142,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
       const amount=qty*avgCost;
       return {...p,qty,ctn:Math.floor(qty/(p.packing||24)),pcs:qty%(p.packing||24),avgCost,amount,purchasedCtn:cut.purQty/(p.packing||24),purchaseValue:cut.purVal};
     }).filter(r=>r.qty!==0||r.purchaseValue!==0||r.name);
-    body.innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td><td>${r.packing} Pcs/Ctn</td><td>${r.ctn} Ctn + ${r.pcs} Pcs</td><td>${r.qty.toLocaleString()} Pcs</td><td>${M(r.avgCost)}</td><td>${M(r.amount)}</td></tr>`).join('')||'<tr><td colspan="9">No stock found for the selected date.</td></tr>';
+    body.innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${E(r.sku)}</td><td>${E(r.category)}</td><td><strong>${E(r.name)}</strong></td><td>${r.packing} Pcs/Ctn</td><td>${r.ctn} Ctn + ${r.pcs} Pcs</td><td>${r.qty.toLocaleString()} Pcs</td><td>${M(r.avgCost)}</td><td>${M(r.amount)}</td><td style="white-space:nowrap"><button type="button" class="btn-delete" data-stock-name="${E(r.name)}" onclick="ftRemoveStockRow(this.dataset.stockName)">🗑 Remove</button></td></tr>`).join('')||'<tr><td colspan="10">No stock found for the selected date.</td></tr>';
     const totalQty=rows.reduce((a,r)=>a+r.qty,0),totalAmount=rows.reduce((a,r)=>a+r.amount,0),totalPurchase=rows.reduce((a,r)=>a+r.purchaseValue,0),totalCtn=rows.reduce((a,r)=>a+r.purchasedCtn,0);
     let k=document.getElementById('ftV40StockKpis');if(!k){k=document.createElement('div');k.id='ftV40StockKpis';k.className='ft-v40-stock-kpis';const filter=document.getElementById('ftV40StockFilters');if(filter)filter.insertAdjacentElement('afterend',k);}
     if(k)k.innerHTML=`<div class="ft-v40-stock-kpi"><small>Stock As Of</small><strong>${E(asOf)}</strong></div><div class="ft-v40-stock-kpi"><small>Total Stock</small><strong>${totalQty.toLocaleString()} Pcs</strong></div><div class="ft-v40-stock-kpi"><small>Stock Amount (Cost)</small><strong>${M(totalAmount)}</strong></div><div class="ft-v40-stock-kpi"><small>Purchases Through Date</small><strong>${M(totalPurchase)}</strong></div><div class="ft-v40-stock-kpi"><small>Purchase Cartons</small><strong>${totalCtn.toLocaleString()}</strong></div>`;
