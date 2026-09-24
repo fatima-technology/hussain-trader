@@ -6101,7 +6101,123 @@ function renderShops() {
     if(!w)return alert('Please allow pop-ups for report printing.');
     const css='@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111;margin:0}.ft-report-print-area{padding:4mm}.ft-report-print-area table{width:100%;border-collapse:collapse}.ft-report-print-area th,.ft-report-print-area td{border:1px solid #999;padding:5px;font-size:9px}.ft-report-print-area th{background:#e5e7eb}.report-meta{font-size:10px;color:#555;margin-bottom:8px}h1{font-size:18px;margin:0}h2{font-size:14px}';
     w.document.open();
-    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body></html>');
+    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'
+<style id="ft-v41-punching-compact-only">
+/* v41: compact POS working layout only. Do not alter global desktop/mobile screen sizing. */
+#posSales .pos-card:first-child{padding:10px!important}
+#posSales .pos-card:first-child h3{font-size:15px!important;margin:0 0 7px!important}
+#posSales .pos-card:first-child .form-group label{font-size:10px!important;margin-bottom:3px!important}
+#posSales .pos-card:first-child input,
+#posSales .pos-card:first-child select{min-height:34px!important;height:34px!important;padding:6px 8px!important;font-size:11px!important}
+#posProductEntryGrid{grid-template-columns:minmax(190px,2fr) repeat(8,minmax(72px,.78fr)) auto!important;gap:6px!important;align-items:end!important}
+#posProductEntryGrid .form-group{min-width:0!important}
+#posProductEntryGrid input,#posProductEntryGrid select{width:100%!important;box-sizing:border-box!important}
+#posSales .table-responsive{margin-top:7px!important}
+#posSales table{font-size:9px!important}
+#posSales th,#posSales td{padding:5px 6px!important}
+@media(min-width:901px){#posSales .pos-card:first-child{max-width:none!important}#posProductEntryGrid{overflow-x:hidden!important}}
+@media(max-width:900px){#posProductEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}#posProductEntryGrid .form-group:first-child{grid-column:1/-1!important}#posProductEntryGrid .form-group:last-child{grid-column:1/-1!important}}
+</style>
+
+
+<script id="ft-v41-stock-purchase-edit-fix">
+(function(){'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const norm=v=>String(v||'').trim().toUpperCase();
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const qtyOf=it=>it?.totalPcsQty!=null?N(it.totalPcsQty):it?.totalPcs!=null?N(it.totalPcs):(N(it?.ctnQty)*N(it?.packing||it?.pcsPerCarton||24)+N(it?.pcsQty));
+  const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  /* If a purchase exists but its physical stock row is missing, reconstruct ONLY the missing product row.
+     Existing stock rows are never overwritten here, so this cannot double-add good stock. */
+  window.ftRepairMissingPurchaseStock=function(){
+    if(!Array.isArray(window.dbStock)||!Array.isArray(window.dbPurchaseInvoices))return 0;
+    const existing=new Set(dbStock.map(s=>norm(s.name)));
+    const purchases={};
+    dbPurchaseInvoices.forEach(p=>(p.items||[]).forEach(it=>{
+      const k=norm(it.name); if(!k)return;
+      if(!purchases[k])purchases[k]={item:it,qty:0,cost:0};
+      purchases[k].qty+=qtyOf(it);
+      purchases[k].cost+=N(it.subtotal||qtyOf(it)*N(it.pieceCost));
+      purchases[k].item=it;
+    }));
+    let created=0;
+    Object.entries(purchases).forEach(([k,x])=>{
+      if(existing.has(k))return;
+      let qty=x.qty;
+      /* committed sales reduce physical stock */
+      dbInvoices.forEach(inv=>{if(inv.stockCommitted===false)return;(inv.items||[]).forEach(it=>{if(norm(it.name)===k)qty-=qtyOf(it);});});
+      /* returns add stock back */
+      dbReturns.forEach(r=>{
+        if(String(r.type||'').toLowerCase().includes('full invoice')){
+          const inv=dbInvoices.find(i=>String(i.invNum)===String(r.invoice));
+          (inv?.items||[]).forEach(it=>{if(norm(it.name)===k)qty+=qtyOf(it);});
+        }else if(norm(r.item)===k) qty+=N(r.qtyPcs||r.qty||r.totalPcs);
+      });
+      const it=x.item,pack=N(it.pcsPerCarton)||24,pieceCost=N(it.pieceCost)||(N(it.cartonCost)/pack);
+      dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:it.sku||('SKU-'+Date.now().toString().slice(-6)),brand:it.brand||'',category:it.category||'General',name:it.name,imageData:it.imageData||'',pcsPerCarton:pack,qty:Math.max(0,qty),costPrice:pieceCost,tradePricePiece:N(it.tradePrice),tradePrice:N(it.tradePrice),tradePriceCarton:N(it.tradePriceCarton)||N(it.tradePrice)*pack,retailPricePiece:N(it.retailPrice),retailPrice:N(it.retailPrice),retailPriceCarton:N(it.retailPriceCarton)||N(it.retailPrice)*pack});
+      created++;
+    });
+    if(created){localStorage.setItem('ht_stock',JSON.stringify(dbStock));if(typeof updateStockDatalist==='function')updateStockDatalist();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();}
+    return created;
+  };
+
+  /* Purchase Invoice List: explicit Edit + Delete actions. */
+  window.ftEditPurchaseInvoice=function(index){
+    const p=dbPurchaseInvoices?.[index]; if(!p)return;
+    const items=p.items||[];
+    for(const it of items){
+      const st=dbStock.find(s=>norm(s.name)===norm(it.name));
+      if(!st || N(st.qty)<qtyOf(it)){
+        return alert('This purchase cannot be edited safely because some of its stock has already been sold/used. Use a return/adjustment first.');
+      }
+    }
+    if(!confirm(`Edit Purchase Invoice ${p.invNo||p.invoiceNo||''}?\n\nThe current purchase will be temporarily removed, its stock restored/reversed, and its details loaded into Purchase Invoice Entry.\n\nSave the corrected invoice again when finished.`))return;
+    items.forEach(it=>{const st=dbStock.find(s=>norm(s.name)===norm(it.name));if(st)st.qty=Math.max(0,N(st.qty)-qtyOf(it));});
+    dbPurchaseInvoices.splice(index,1);
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
+    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};
+    set('purInvDate',p.date||'');set('purSupplierName',p.supplier||'');set('purInvoiceNo',p.invNo||p.invoiceNo||'');set('purCategory',p.category||'General');set('purPaymentType',p.requestedPaymentType||((p.paymentType||'Credit').replace(' + Due','')));
+    currentPurInvoiceItems.length=0; items.forEach(x=>currentPurInvoiceItems.push({...x}));
+    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+    if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
+    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
+    if(typeof ftRenderFinance==='function')ftRenderFinance();
+    if(typeof openTab==='function')openTab('stockPurchaseTab');
+    alert('Purchase invoice loaded for editing. Correct the details/products and press Save Purchase Invoice.');
+  };
+
+  function renderPurchaseListFinal(){
+    const body=document.getElementById('purInvoicesListTbody');if(!body)return;
+    body.innerHTML=(dbPurchaseInvoices||[]).map((p,i)=>`<tr>
+      <td><input type="checkbox" value="${i}"></td>
+      <td><strong>${esc(p.invNo||p.invoiceNo||'--')}</strong></td><td>${esc(p.date||'')}</td><td>${esc(p.supplier||'--')}</td><td>${esc(p.category||'--')}</td>
+      <td>${(p.items||[]).length}</td><td>${money(p.totalAmt)}</td><td>${money(p.paidNow||0)}</td><td><strong>${money(p.dueAmount||0)}</strong></td>
+      <td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice(${i})">✏️ Edit</button> <button type="button" class="btn-delete" onclick="deletePurchaseInvoice(${i})">🗑 Delete</button></td>
+    </tr>`).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderPurchaseListFinal;
+
+  /* Repair missing stock before the user opens Live Stock or after purchase save. */
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV41OpenRepair){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);if(id==='liveStockTab'||id==='purchaseStockReportTab'||id==='purchaseInvoiceListTab'){setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseInvoicesList();if(id==='purchaseStockReportTab'&&typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();if(id==='liveStockTab'&&typeof renderLiveStockInventory==='function')renderLiveStockInventory();},25);}return r;};
+    window.__ftV41OpenRepair=true;
+  }
+  const baseSave=window.saveCompletePurchaseInvoice;
+  if(typeof baseSave==='function'&&!window.__ftV41SaveRepair){
+    window.saveCompletePurchaseInvoice=function(print){const r=baseSave.apply(this,arguments);setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();},40);return r;};
+    window.__ftV41SaveRepair=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();},350));
+})();
+</script>
+
+</body></html>');
     w.document.close();
     w.focus();
     setTimeout(()=>w.print(),250);
@@ -6385,7 +6501,123 @@ function renderShops() {
   window.printShopLedger=function(shopName){
     const data=buildShopLedgerData(shopName),s=ledgerSummary(shopName),w=window.open('','_blank','width=1200,height=800');if(!w)return alert('Please allow pop-ups for printing.');
     const rows=data.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(e.date)}</td><td>${esc(e.type)}</td><td>${esc(e.ref)}</td><td>${e.items}</td><td>${e.debit?'Rs. '+e.debit.toLocaleString():'—'}</td><td>${e.credit?'Rs. '+e.credit.toLocaleString():'—'}</td><td>${esc(e.note)}</td></tr>`).join('');
-    w.document.write(`<!doctype html><html><head><title>${esc(shopName)} Ledger</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111}h1{margin:0 0 4px}h2{margin:0 0 8px;font-size:16px}.summary{margin:8px 0;font-size:11px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:5px;font-size:8px;vertical-align:top}th{background:#e9edf3}</style></head><body><h1>Fatima Tech — Distribution ERP</h1><h2>Shop Ledger: ${esc(shopName)}</h2><div class="summary">Bills: <b>${s.bills}</b> | Total Sales: <b>Rs. ${s.sales.toLocaleString()}</b> | Invoice Cash: <b>Rs. ${s.invoiceCash.toLocaleString()}</b> | Recovery: <b>Rs. ${s.recovery.toLocaleString()}</b> | Outstanding: <b>Rs. ${s.outstanding.toLocaleString()}</b></div><table><thead><tr><th>#</th><th>Date</th><th>Transaction</th><th>Reference</th><th>Products / Quantity</th><th>Debit</th><th>Credit</th><th>Status / Note</th></tr></thead><tbody>${rows||'<tr><td colspan="8">No transactions</td></tr>'}</tbody></table></body></html>`);w.document.close();setTimeout(()=>{w.focus();w.print();},250);
+    w.document.write(`<!doctype html><html><head><title>${esc(shopName)} Ledger</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111}h1{margin:0 0 4px}h2{margin:0 0 8px;font-size:16px}.summary{margin:8px 0;font-size:11px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:5px;font-size:8px;vertical-align:top}th{background:#e9edf3}</style></head><body><h1>Fatima Tech — Distribution ERP</h1><h2>Shop Ledger: ${esc(shopName)}</h2><div class="summary">Bills: <b>${s.bills}</b> | Total Sales: <b>Rs. ${s.sales.toLocaleString()}</b> | Invoice Cash: <b>Rs. ${s.invoiceCash.toLocaleString()}</b> | Recovery: <b>Rs. ${s.recovery.toLocaleString()}</b> | Outstanding: <b>Rs. ${s.outstanding.toLocaleString()}</b></div><table><thead><tr><th>#</th><th>Date</th><th>Transaction</th><th>Reference</th><th>Products / Quantity</th><th>Debit</th><th>Credit</th><th>Status / Note</th></tr></thead><tbody>${rows||'<tr><td colspan="8">No transactions</td></tr>'}</tbody></table>
+<style id="ft-v41-punching-compact-only">
+/* v41: compact POS working layout only. Do not alter global desktop/mobile screen sizing. */
+#posSales .pos-card:first-child{padding:10px!important}
+#posSales .pos-card:first-child h3{font-size:15px!important;margin:0 0 7px!important}
+#posSales .pos-card:first-child .form-group label{font-size:10px!important;margin-bottom:3px!important}
+#posSales .pos-card:first-child input,
+#posSales .pos-card:first-child select{min-height:34px!important;height:34px!important;padding:6px 8px!important;font-size:11px!important}
+#posProductEntryGrid{grid-template-columns:minmax(190px,2fr) repeat(8,minmax(72px,.78fr)) auto!important;gap:6px!important;align-items:end!important}
+#posProductEntryGrid .form-group{min-width:0!important}
+#posProductEntryGrid input,#posProductEntryGrid select{width:100%!important;box-sizing:border-box!important}
+#posSales .table-responsive{margin-top:7px!important}
+#posSales table{font-size:9px!important}
+#posSales th,#posSales td{padding:5px 6px!important}
+@media(min-width:901px){#posSales .pos-card:first-child{max-width:none!important}#posProductEntryGrid{overflow-x:hidden!important}}
+@media(max-width:900px){#posProductEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}#posProductEntryGrid .form-group:first-child{grid-column:1/-1!important}#posProductEntryGrid .form-group:last-child{grid-column:1/-1!important}}
+</style>
+
+
+<script id="ft-v41-stock-purchase-edit-fix">
+(function(){'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const norm=v=>String(v||'').trim().toUpperCase();
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const qtyOf=it=>it?.totalPcsQty!=null?N(it.totalPcsQty):it?.totalPcs!=null?N(it.totalPcs):(N(it?.ctnQty)*N(it?.packing||it?.pcsPerCarton||24)+N(it?.pcsQty));
+  const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  /* If a purchase exists but its physical stock row is missing, reconstruct ONLY the missing product row.
+     Existing stock rows are never overwritten here, so this cannot double-add good stock. */
+  window.ftRepairMissingPurchaseStock=function(){
+    if(!Array.isArray(window.dbStock)||!Array.isArray(window.dbPurchaseInvoices))return 0;
+    const existing=new Set(dbStock.map(s=>norm(s.name)));
+    const purchases={};
+    dbPurchaseInvoices.forEach(p=>(p.items||[]).forEach(it=>{
+      const k=norm(it.name); if(!k)return;
+      if(!purchases[k])purchases[k]={item:it,qty:0,cost:0};
+      purchases[k].qty+=qtyOf(it);
+      purchases[k].cost+=N(it.subtotal||qtyOf(it)*N(it.pieceCost));
+      purchases[k].item=it;
+    }));
+    let created=0;
+    Object.entries(purchases).forEach(([k,x])=>{
+      if(existing.has(k))return;
+      let qty=x.qty;
+      /* committed sales reduce physical stock */
+      dbInvoices.forEach(inv=>{if(inv.stockCommitted===false)return;(inv.items||[]).forEach(it=>{if(norm(it.name)===k)qty-=qtyOf(it);});});
+      /* returns add stock back */
+      dbReturns.forEach(r=>{
+        if(String(r.type||'').toLowerCase().includes('full invoice')){
+          const inv=dbInvoices.find(i=>String(i.invNum)===String(r.invoice));
+          (inv?.items||[]).forEach(it=>{if(norm(it.name)===k)qty+=qtyOf(it);});
+        }else if(norm(r.item)===k) qty+=N(r.qtyPcs||r.qty||r.totalPcs);
+      });
+      const it=x.item,pack=N(it.pcsPerCarton)||24,pieceCost=N(it.pieceCost)||(N(it.cartonCost)/pack);
+      dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:it.sku||('SKU-'+Date.now().toString().slice(-6)),brand:it.brand||'',category:it.category||'General',name:it.name,imageData:it.imageData||'',pcsPerCarton:pack,qty:Math.max(0,qty),costPrice:pieceCost,tradePricePiece:N(it.tradePrice),tradePrice:N(it.tradePrice),tradePriceCarton:N(it.tradePriceCarton)||N(it.tradePrice)*pack,retailPricePiece:N(it.retailPrice),retailPrice:N(it.retailPrice),retailPriceCarton:N(it.retailPriceCarton)||N(it.retailPrice)*pack});
+      created++;
+    });
+    if(created){localStorage.setItem('ht_stock',JSON.stringify(dbStock));if(typeof updateStockDatalist==='function')updateStockDatalist();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();}
+    return created;
+  };
+
+  /* Purchase Invoice List: explicit Edit + Delete actions. */
+  window.ftEditPurchaseInvoice=function(index){
+    const p=dbPurchaseInvoices?.[index]; if(!p)return;
+    const items=p.items||[];
+    for(const it of items){
+      const st=dbStock.find(s=>norm(s.name)===norm(it.name));
+      if(!st || N(st.qty)<qtyOf(it)){
+        return alert('This purchase cannot be edited safely because some of its stock has already been sold/used. Use a return/adjustment first.');
+      }
+    }
+    if(!confirm(`Edit Purchase Invoice ${p.invNo||p.invoiceNo||''}?\n\nThe current purchase will be temporarily removed, its stock restored/reversed, and its details loaded into Purchase Invoice Entry.\n\nSave the corrected invoice again when finished.`))return;
+    items.forEach(it=>{const st=dbStock.find(s=>norm(s.name)===norm(it.name));if(st)st.qty=Math.max(0,N(st.qty)-qtyOf(it));});
+    dbPurchaseInvoices.splice(index,1);
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
+    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};
+    set('purInvDate',p.date||'');set('purSupplierName',p.supplier||'');set('purInvoiceNo',p.invNo||p.invoiceNo||'');set('purCategory',p.category||'General');set('purPaymentType',p.requestedPaymentType||((p.paymentType||'Credit').replace(' + Due','')));
+    currentPurInvoiceItems.length=0; items.forEach(x=>currentPurInvoiceItems.push({...x}));
+    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+    if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
+    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
+    if(typeof ftRenderFinance==='function')ftRenderFinance();
+    if(typeof openTab==='function')openTab('stockPurchaseTab');
+    alert('Purchase invoice loaded for editing. Correct the details/products and press Save Purchase Invoice.');
+  };
+
+  function renderPurchaseListFinal(){
+    const body=document.getElementById('purInvoicesListTbody');if(!body)return;
+    body.innerHTML=(dbPurchaseInvoices||[]).map((p,i)=>`<tr>
+      <td><input type="checkbox" value="${i}"></td>
+      <td><strong>${esc(p.invNo||p.invoiceNo||'--')}</strong></td><td>${esc(p.date||'')}</td><td>${esc(p.supplier||'--')}</td><td>${esc(p.category||'--')}</td>
+      <td>${(p.items||[]).length}</td><td>${money(p.totalAmt)}</td><td>${money(p.paidNow||0)}</td><td><strong>${money(p.dueAmount||0)}</strong></td>
+      <td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice(${i})">✏️ Edit</button> <button type="button" class="btn-delete" onclick="deletePurchaseInvoice(${i})">🗑 Delete</button></td>
+    </tr>`).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderPurchaseListFinal;
+
+  /* Repair missing stock before the user opens Live Stock or after purchase save. */
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV41OpenRepair){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);if(id==='liveStockTab'||id==='purchaseStockReportTab'||id==='purchaseInvoiceListTab'){setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseInvoicesList();if(id==='purchaseStockReportTab'&&typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();if(id==='liveStockTab'&&typeof renderLiveStockInventory==='function')renderLiveStockInventory();},25);}return r;};
+    window.__ftV41OpenRepair=true;
+  }
+  const baseSave=window.saveCompletePurchaseInvoice;
+  if(typeof baseSave==='function'&&!window.__ftV41SaveRepair){
+    window.saveCompletePurchaseInvoice=function(print){const r=baseSave.apply(this,arguments);setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();},40);return r;};
+    window.__ftV41SaveRepair=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();},350));
+})();
+</script>
+
+</body></html>`);w.document.close();setTimeout(()=>{w.focus();w.print();},250);
   };
   window.pdfShopLedger=function(shopName){
     const data=buildShopLedgerData(shopName);if(!window.jspdf?.jsPDF)return alert('PDF library is not loaded.');const{jsPDF}=window.jspdf,doc=new jsPDF('landscape','mm','a4'),s=ledgerSummary(shopName);doc.setFontSize(16);doc.text('Fatima Tech — Distribution ERP',14,12);doc.setFontSize(12);doc.text('Shop Ledger: '+String(shopName),14,19);doc.setFontSize(8);doc.text(`Bills: ${s.bills} | Sales: Rs. ${s.sales.toLocaleString()} | Recovery: Rs. ${s.recovery.toLocaleString()} | Outstanding: Rs. ${s.outstanding.toLocaleString()}`,14,25);const body=data.map(e=>[e.date,e.type,e.ref,String(e.items).replace(/<br>/g,' | ').replace(/<[^>]+>/g,''),e.debit?`Rs. ${e.debit.toLocaleString()}`:'—',e.credit?`Rs. ${e.credit.toLocaleString()}`:'—',e.note]);doc.autoTable({head:[['Date','Transaction','Reference','Products / Quantity','Debit','Credit','Note']],body,startY:30,theme:'grid',styles:{fontSize:6,cellPadding:1.5}});doc.save('Shop_Ledger_'+String(shopName).replace(/[^a-z0-9]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
@@ -6741,7 +6973,123 @@ window.renderExpenseReport=function(){
 };
 function reportWindow(title,html){
   const w=window.open('','_blank','width=1200,height=850');if(!w)return alert('Please allow pop-ups for reports.');
-  w.document.write(`<!doctype html><html><head><title>${ftesc(title)}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#172033;margin:0}.wrap{padding:4mm}h1{font-size:20px;text-align:center;margin:0 0 4px}h2{font-size:14px;text-align:center;margin:0 0 12px;color:#214c86}.meta{text-align:center;font-size:10px;color:#64748b;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}.card{border:1px solid #cbd5e1;border-radius:7px;padding:7px;text-align:center}.card small{display:block;color:#64748b}.card b{font-size:15px}.section{margin-top:10px}.section h3{font-size:12px;margin:5px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aab4c3;padding:5px;font-size:9px}th{background:#e9eef6}tfoot th{background:#f2f4f8}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:10px}@media print{.wrap{padding:0}}</style></head><body><div class="wrap"><h1>Fatima Tech — Distribution ERP</h1><h2>${ftesc(title)}</h2>${html}</div></body></html>`);
+  w.document.write(`<!doctype html><html><head><title>${ftesc(title)}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#172033;margin:0}.wrap{padding:4mm}h1{font-size:20px;text-align:center;margin:0 0 4px}h2{font-size:14px;text-align:center;margin:0 0 12px;color:#214c86}.meta{text-align:center;font-size:10px;color:#64748b;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}.card{border:1px solid #cbd5e1;border-radius:7px;padding:7px;text-align:center}.card small{display:block;color:#64748b}.card b{font-size:15px}.section{margin-top:10px}.section h3{font-size:12px;margin:5px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aab4c3;padding:5px;font-size:9px}th{background:#e9eef6}tfoot th{background:#f2f4f8}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:10px}@media print{.wrap{padding:0}}</style></head><body><div class="wrap"><h1>Fatima Tech — Distribution ERP</h1><h2>${ftesc(title)}</h2>${html}</div>
+<style id="ft-v41-punching-compact-only">
+/* v41: compact POS working layout only. Do not alter global desktop/mobile screen sizing. */
+#posSales .pos-card:first-child{padding:10px!important}
+#posSales .pos-card:first-child h3{font-size:15px!important;margin:0 0 7px!important}
+#posSales .pos-card:first-child .form-group label{font-size:10px!important;margin-bottom:3px!important}
+#posSales .pos-card:first-child input,
+#posSales .pos-card:first-child select{min-height:34px!important;height:34px!important;padding:6px 8px!important;font-size:11px!important}
+#posProductEntryGrid{grid-template-columns:minmax(190px,2fr) repeat(8,minmax(72px,.78fr)) auto!important;gap:6px!important;align-items:end!important}
+#posProductEntryGrid .form-group{min-width:0!important}
+#posProductEntryGrid input,#posProductEntryGrid select{width:100%!important;box-sizing:border-box!important}
+#posSales .table-responsive{margin-top:7px!important}
+#posSales table{font-size:9px!important}
+#posSales th,#posSales td{padding:5px 6px!important}
+@media(min-width:901px){#posSales .pos-card:first-child{max-width:none!important}#posProductEntryGrid{overflow-x:hidden!important}}
+@media(max-width:900px){#posProductEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}#posProductEntryGrid .form-group:first-child{grid-column:1/-1!important}#posProductEntryGrid .form-group:last-child{grid-column:1/-1!important}}
+</style>
+
+
+<script id="ft-v41-stock-purchase-edit-fix">
+(function(){'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const norm=v=>String(v||'').trim().toUpperCase();
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const qtyOf=it=>it?.totalPcsQty!=null?N(it.totalPcsQty):it?.totalPcs!=null?N(it.totalPcs):(N(it?.ctnQty)*N(it?.packing||it?.pcsPerCarton||24)+N(it?.pcsQty));
+  const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  /* If a purchase exists but its physical stock row is missing, reconstruct ONLY the missing product row.
+     Existing stock rows are never overwritten here, so this cannot double-add good stock. */
+  window.ftRepairMissingPurchaseStock=function(){
+    if(!Array.isArray(window.dbStock)||!Array.isArray(window.dbPurchaseInvoices))return 0;
+    const existing=new Set(dbStock.map(s=>norm(s.name)));
+    const purchases={};
+    dbPurchaseInvoices.forEach(p=>(p.items||[]).forEach(it=>{
+      const k=norm(it.name); if(!k)return;
+      if(!purchases[k])purchases[k]={item:it,qty:0,cost:0};
+      purchases[k].qty+=qtyOf(it);
+      purchases[k].cost+=N(it.subtotal||qtyOf(it)*N(it.pieceCost));
+      purchases[k].item=it;
+    }));
+    let created=0;
+    Object.entries(purchases).forEach(([k,x])=>{
+      if(existing.has(k))return;
+      let qty=x.qty;
+      /* committed sales reduce physical stock */
+      dbInvoices.forEach(inv=>{if(inv.stockCommitted===false)return;(inv.items||[]).forEach(it=>{if(norm(it.name)===k)qty-=qtyOf(it);});});
+      /* returns add stock back */
+      dbReturns.forEach(r=>{
+        if(String(r.type||'').toLowerCase().includes('full invoice')){
+          const inv=dbInvoices.find(i=>String(i.invNum)===String(r.invoice));
+          (inv?.items||[]).forEach(it=>{if(norm(it.name)===k)qty+=qtyOf(it);});
+        }else if(norm(r.item)===k) qty+=N(r.qtyPcs||r.qty||r.totalPcs);
+      });
+      const it=x.item,pack=N(it.pcsPerCarton)||24,pieceCost=N(it.pieceCost)||(N(it.cartonCost)/pack);
+      dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:it.sku||('SKU-'+Date.now().toString().slice(-6)),brand:it.brand||'',category:it.category||'General',name:it.name,imageData:it.imageData||'',pcsPerCarton:pack,qty:Math.max(0,qty),costPrice:pieceCost,tradePricePiece:N(it.tradePrice),tradePrice:N(it.tradePrice),tradePriceCarton:N(it.tradePriceCarton)||N(it.tradePrice)*pack,retailPricePiece:N(it.retailPrice),retailPrice:N(it.retailPrice),retailPriceCarton:N(it.retailPriceCarton)||N(it.retailPrice)*pack});
+      created++;
+    });
+    if(created){localStorage.setItem('ht_stock',JSON.stringify(dbStock));if(typeof updateStockDatalist==='function')updateStockDatalist();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();}
+    return created;
+  };
+
+  /* Purchase Invoice List: explicit Edit + Delete actions. */
+  window.ftEditPurchaseInvoice=function(index){
+    const p=dbPurchaseInvoices?.[index]; if(!p)return;
+    const items=p.items||[];
+    for(const it of items){
+      const st=dbStock.find(s=>norm(s.name)===norm(it.name));
+      if(!st || N(st.qty)<qtyOf(it)){
+        return alert('This purchase cannot be edited safely because some of its stock has already been sold/used. Use a return/adjustment first.');
+      }
+    }
+    if(!confirm(`Edit Purchase Invoice ${p.invNo||p.invoiceNo||''}?\n\nThe current purchase will be temporarily removed, its stock restored/reversed, and its details loaded into Purchase Invoice Entry.\n\nSave the corrected invoice again when finished.`))return;
+    items.forEach(it=>{const st=dbStock.find(s=>norm(s.name)===norm(it.name));if(st)st.qty=Math.max(0,N(st.qty)-qtyOf(it));});
+    dbPurchaseInvoices.splice(index,1);
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
+    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};
+    set('purInvDate',p.date||'');set('purSupplierName',p.supplier||'');set('purInvoiceNo',p.invNo||p.invoiceNo||'');set('purCategory',p.category||'General');set('purPaymentType',p.requestedPaymentType||((p.paymentType||'Credit').replace(' + Due','')));
+    currentPurInvoiceItems.length=0; items.forEach(x=>currentPurInvoiceItems.push({...x}));
+    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+    if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
+    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
+    if(typeof ftRenderFinance==='function')ftRenderFinance();
+    if(typeof openTab==='function')openTab('stockPurchaseTab');
+    alert('Purchase invoice loaded for editing. Correct the details/products and press Save Purchase Invoice.');
+  };
+
+  function renderPurchaseListFinal(){
+    const body=document.getElementById('purInvoicesListTbody');if(!body)return;
+    body.innerHTML=(dbPurchaseInvoices||[]).map((p,i)=>`<tr>
+      <td><input type="checkbox" value="${i}"></td>
+      <td><strong>${esc(p.invNo||p.invoiceNo||'--')}</strong></td><td>${esc(p.date||'')}</td><td>${esc(p.supplier||'--')}</td><td>${esc(p.category||'--')}</td>
+      <td>${(p.items||[]).length}</td><td>${money(p.totalAmt)}</td><td>${money(p.paidNow||0)}</td><td><strong>${money(p.dueAmount||0)}</strong></td>
+      <td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice(${i})">✏️ Edit</button> <button type="button" class="btn-delete" onclick="deletePurchaseInvoice(${i})">🗑 Delete</button></td>
+    </tr>`).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderPurchaseListFinal;
+
+  /* Repair missing stock before the user opens Live Stock or after purchase save. */
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV41OpenRepair){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);if(id==='liveStockTab'||id==='purchaseStockReportTab'||id==='purchaseInvoiceListTab'){setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseInvoicesList();if(id==='purchaseStockReportTab'&&typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();if(id==='liveStockTab'&&typeof renderLiveStockInventory==='function')renderLiveStockInventory();},25);}return r;};
+    window.__ftV41OpenRepair=true;
+  }
+  const baseSave=window.saveCompletePurchaseInvoice;
+  if(typeof baseSave==='function'&&!window.__ftV41SaveRepair){
+    window.saveCompletePurchaseInvoice=function(print){const r=baseSave.apply(this,arguments);setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();},40);return r;};
+    window.__ftV41SaveRepair=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();},350));
+})();
+</script>
+
+</body></html>`);
   w.document.close();setTimeout(()=>{w.focus();w.print();},250);
 }
 window.printExpenseReport=function(){
@@ -7514,7 +7862,123 @@ document.addEventListener('DOMContentLoaded',function(){
     const all=rows.concat(drows).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
     const html=`<div style="padding:10px;"><h3>Investor Statement — ${esc(inv.name)}</h3><p>Profit Share: ${num(inv.share).toFixed(2)}% | Current Capital: ${money(investorCapital(id))} | Profit Payable: ${money(profitEarned(id)-profitPaid(id))}</p><div class="table-responsive"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Method</th><th>Remarks</th></tr></thead><tbody>${all.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.type)}</td><td>${money(x.amount)}</td><td>${esc(x.method||'')}</td><td>${esc(x.remarks||'')}</td></tr>`).join('')||'<tr><td colspan="5">No transactions.</td></tr>'}</tbody></table></div></div>`;
     const w=window.open('','_blank');if(!w)return alert('Please allow pop-ups for investor statements.');
-    w.document.write(`<html><head><title>Investor Statement</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body>${html}<script>window.print();<\/script></body></html>`);w.document.close();
+    w.document.write(`<html><head><title>Investor Statement</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body>${html}<script>window.print();<\/script>
+<style id="ft-v41-punching-compact-only">
+/* v41: compact POS working layout only. Do not alter global desktop/mobile screen sizing. */
+#posSales .pos-card:first-child{padding:10px!important}
+#posSales .pos-card:first-child h3{font-size:15px!important;margin:0 0 7px!important}
+#posSales .pos-card:first-child .form-group label{font-size:10px!important;margin-bottom:3px!important}
+#posSales .pos-card:first-child input,
+#posSales .pos-card:first-child select{min-height:34px!important;height:34px!important;padding:6px 8px!important;font-size:11px!important}
+#posProductEntryGrid{grid-template-columns:minmax(190px,2fr) repeat(8,minmax(72px,.78fr)) auto!important;gap:6px!important;align-items:end!important}
+#posProductEntryGrid .form-group{min-width:0!important}
+#posProductEntryGrid input,#posProductEntryGrid select{width:100%!important;box-sizing:border-box!important}
+#posSales .table-responsive{margin-top:7px!important}
+#posSales table{font-size:9px!important}
+#posSales th,#posSales td{padding:5px 6px!important}
+@media(min-width:901px){#posSales .pos-card:first-child{max-width:none!important}#posProductEntryGrid{overflow-x:hidden!important}}
+@media(max-width:900px){#posProductEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}#posProductEntryGrid .form-group:first-child{grid-column:1/-1!important}#posProductEntryGrid .form-group:last-child{grid-column:1/-1!important}}
+</style>
+
+
+<script id="ft-v41-stock-purchase-edit-fix">
+(function(){'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const norm=v=>String(v||'').trim().toUpperCase();
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const qtyOf=it=>it?.totalPcsQty!=null?N(it.totalPcsQty):it?.totalPcs!=null?N(it.totalPcs):(N(it?.ctnQty)*N(it?.packing||it?.pcsPerCarton||24)+N(it?.pcsQty));
+  const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  /* If a purchase exists but its physical stock row is missing, reconstruct ONLY the missing product row.
+     Existing stock rows are never overwritten here, so this cannot double-add good stock. */
+  window.ftRepairMissingPurchaseStock=function(){
+    if(!Array.isArray(window.dbStock)||!Array.isArray(window.dbPurchaseInvoices))return 0;
+    const existing=new Set(dbStock.map(s=>norm(s.name)));
+    const purchases={};
+    dbPurchaseInvoices.forEach(p=>(p.items||[]).forEach(it=>{
+      const k=norm(it.name); if(!k)return;
+      if(!purchases[k])purchases[k]={item:it,qty:0,cost:0};
+      purchases[k].qty+=qtyOf(it);
+      purchases[k].cost+=N(it.subtotal||qtyOf(it)*N(it.pieceCost));
+      purchases[k].item=it;
+    }));
+    let created=0;
+    Object.entries(purchases).forEach(([k,x])=>{
+      if(existing.has(k))return;
+      let qty=x.qty;
+      /* committed sales reduce physical stock */
+      dbInvoices.forEach(inv=>{if(inv.stockCommitted===false)return;(inv.items||[]).forEach(it=>{if(norm(it.name)===k)qty-=qtyOf(it);});});
+      /* returns add stock back */
+      dbReturns.forEach(r=>{
+        if(String(r.type||'').toLowerCase().includes('full invoice')){
+          const inv=dbInvoices.find(i=>String(i.invNum)===String(r.invoice));
+          (inv?.items||[]).forEach(it=>{if(norm(it.name)===k)qty+=qtyOf(it);});
+        }else if(norm(r.item)===k) qty+=N(r.qtyPcs||r.qty||r.totalPcs);
+      });
+      const it=x.item,pack=N(it.pcsPerCarton)||24,pieceCost=N(it.pieceCost)||(N(it.cartonCost)/pack);
+      dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:it.sku||('SKU-'+Date.now().toString().slice(-6)),brand:it.brand||'',category:it.category||'General',name:it.name,imageData:it.imageData||'',pcsPerCarton:pack,qty:Math.max(0,qty),costPrice:pieceCost,tradePricePiece:N(it.tradePrice),tradePrice:N(it.tradePrice),tradePriceCarton:N(it.tradePriceCarton)||N(it.tradePrice)*pack,retailPricePiece:N(it.retailPrice),retailPrice:N(it.retailPrice),retailPriceCarton:N(it.retailPriceCarton)||N(it.retailPrice)*pack});
+      created++;
+    });
+    if(created){localStorage.setItem('ht_stock',JSON.stringify(dbStock));if(typeof updateStockDatalist==='function')updateStockDatalist();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();}
+    return created;
+  };
+
+  /* Purchase Invoice List: explicit Edit + Delete actions. */
+  window.ftEditPurchaseInvoice=function(index){
+    const p=dbPurchaseInvoices?.[index]; if(!p)return;
+    const items=p.items||[];
+    for(const it of items){
+      const st=dbStock.find(s=>norm(s.name)===norm(it.name));
+      if(!st || N(st.qty)<qtyOf(it)){
+        return alert('This purchase cannot be edited safely because some of its stock has already been sold/used. Use a return/adjustment first.');
+      }
+    }
+    if(!confirm(`Edit Purchase Invoice ${p.invNo||p.invoiceNo||''}?\n\nThe current purchase will be temporarily removed, its stock restored/reversed, and its details loaded into Purchase Invoice Entry.\n\nSave the corrected invoice again when finished.`))return;
+    items.forEach(it=>{const st=dbStock.find(s=>norm(s.name)===norm(it.name));if(st)st.qty=Math.max(0,N(st.qty)-qtyOf(it));});
+    dbPurchaseInvoices.splice(index,1);
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
+    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};
+    set('purInvDate',p.date||'');set('purSupplierName',p.supplier||'');set('purInvoiceNo',p.invNo||p.invoiceNo||'');set('purCategory',p.category||'General');set('purPaymentType',p.requestedPaymentType||((p.paymentType||'Credit').replace(' + Due','')));
+    currentPurInvoiceItems.length=0; items.forEach(x=>currentPurInvoiceItems.push({...x}));
+    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+    if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
+    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
+    if(typeof ftRenderFinance==='function')ftRenderFinance();
+    if(typeof openTab==='function')openTab('stockPurchaseTab');
+    alert('Purchase invoice loaded for editing. Correct the details/products and press Save Purchase Invoice.');
+  };
+
+  function renderPurchaseListFinal(){
+    const body=document.getElementById('purInvoicesListTbody');if(!body)return;
+    body.innerHTML=(dbPurchaseInvoices||[]).map((p,i)=>`<tr>
+      <td><input type="checkbox" value="${i}"></td>
+      <td><strong>${esc(p.invNo||p.invoiceNo||'--')}</strong></td><td>${esc(p.date||'')}</td><td>${esc(p.supplier||'--')}</td><td>${esc(p.category||'--')}</td>
+      <td>${(p.items||[]).length}</td><td>${money(p.totalAmt)}</td><td>${money(p.paidNow||0)}</td><td><strong>${money(p.dueAmount||0)}</strong></td>
+      <td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice(${i})">✏️ Edit</button> <button type="button" class="btn-delete" onclick="deletePurchaseInvoice(${i})">🗑 Delete</button></td>
+    </tr>`).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderPurchaseListFinal;
+
+  /* Repair missing stock before the user opens Live Stock or after purchase save. */
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV41OpenRepair){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);if(id==='liveStockTab'||id==='purchaseStockReportTab'||id==='purchaseInvoiceListTab'){setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseInvoicesList();if(id==='purchaseStockReportTab'&&typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();if(id==='liveStockTab'&&typeof renderLiveStockInventory==='function')renderLiveStockInventory();},25);}return r;};
+    window.__ftV41OpenRepair=true;
+  }
+  const baseSave=window.saveCompletePurchaseInvoice;
+  if(typeof baseSave==='function'&&!window.__ftV41SaveRepair){
+    window.saveCompletePurchaseInvoice=function(print){const r=baseSave.apply(this,arguments);setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();},40);return r;};
+    window.__ftV41SaveRepair=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();},350));
+})();
+</script>
+
+</body></html>`);w.document.close();
   };
   function init(){
     const d=today();
@@ -7997,7 +8461,123 @@ function printHtml(title,body){
   .sidebar .submenu.open{display:block !important;visibility:visible !important;max-height:3000px !important;}
 }
 </style>
-</head><body>${body}</body></html>`);
+</head><body>${body}
+<style id="ft-v41-punching-compact-only">
+/* v41: compact POS working layout only. Do not alter global desktop/mobile screen sizing. */
+#posSales .pos-card:first-child{padding:10px!important}
+#posSales .pos-card:first-child h3{font-size:15px!important;margin:0 0 7px!important}
+#posSales .pos-card:first-child .form-group label{font-size:10px!important;margin-bottom:3px!important}
+#posSales .pos-card:first-child input,
+#posSales .pos-card:first-child select{min-height:34px!important;height:34px!important;padding:6px 8px!important;font-size:11px!important}
+#posProductEntryGrid{grid-template-columns:minmax(190px,2fr) repeat(8,minmax(72px,.78fr)) auto!important;gap:6px!important;align-items:end!important}
+#posProductEntryGrid .form-group{min-width:0!important}
+#posProductEntryGrid input,#posProductEntryGrid select{width:100%!important;box-sizing:border-box!important}
+#posSales .table-responsive{margin-top:7px!important}
+#posSales table{font-size:9px!important}
+#posSales th,#posSales td{padding:5px 6px!important}
+@media(min-width:901px){#posSales .pos-card:first-child{max-width:none!important}#posProductEntryGrid{overflow-x:hidden!important}}
+@media(max-width:900px){#posProductEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}#posProductEntryGrid .form-group:first-child{grid-column:1/-1!important}#posProductEntryGrid .form-group:last-child{grid-column:1/-1!important}}
+</style>
+
+
+<script id="ft-v41-stock-purchase-edit-fix">
+(function(){'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const norm=v=>String(v||'').trim().toUpperCase();
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const qtyOf=it=>it?.totalPcsQty!=null?N(it.totalPcsQty):it?.totalPcs!=null?N(it.totalPcs):(N(it?.ctnQty)*N(it?.packing||it?.pcsPerCarton||24)+N(it?.pcsQty));
+  const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  /* If a purchase exists but its physical stock row is missing, reconstruct ONLY the missing product row.
+     Existing stock rows are never overwritten here, so this cannot double-add good stock. */
+  window.ftRepairMissingPurchaseStock=function(){
+    if(!Array.isArray(window.dbStock)||!Array.isArray(window.dbPurchaseInvoices))return 0;
+    const existing=new Set(dbStock.map(s=>norm(s.name)));
+    const purchases={};
+    dbPurchaseInvoices.forEach(p=>(p.items||[]).forEach(it=>{
+      const k=norm(it.name); if(!k)return;
+      if(!purchases[k])purchases[k]={item:it,qty:0,cost:0};
+      purchases[k].qty+=qtyOf(it);
+      purchases[k].cost+=N(it.subtotal||qtyOf(it)*N(it.pieceCost));
+      purchases[k].item=it;
+    }));
+    let created=0;
+    Object.entries(purchases).forEach(([k,x])=>{
+      if(existing.has(k))return;
+      let qty=x.qty;
+      /* committed sales reduce physical stock */
+      dbInvoices.forEach(inv=>{if(inv.stockCommitted===false)return;(inv.items||[]).forEach(it=>{if(norm(it.name)===k)qty-=qtyOf(it);});});
+      /* returns add stock back */
+      dbReturns.forEach(r=>{
+        if(String(r.type||'').toLowerCase().includes('full invoice')){
+          const inv=dbInvoices.find(i=>String(i.invNum)===String(r.invoice));
+          (inv?.items||[]).forEach(it=>{if(norm(it.name)===k)qty+=qtyOf(it);});
+        }else if(norm(r.item)===k) qty+=N(r.qtyPcs||r.qty||r.totalPcs);
+      });
+      const it=x.item,pack=N(it.pcsPerCarton)||24,pieceCost=N(it.pieceCost)||(N(it.cartonCost)/pack);
+      dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:it.sku||('SKU-'+Date.now().toString().slice(-6)),brand:it.brand||'',category:it.category||'General',name:it.name,imageData:it.imageData||'',pcsPerCarton:pack,qty:Math.max(0,qty),costPrice:pieceCost,tradePricePiece:N(it.tradePrice),tradePrice:N(it.tradePrice),tradePriceCarton:N(it.tradePriceCarton)||N(it.tradePrice)*pack,retailPricePiece:N(it.retailPrice),retailPrice:N(it.retailPrice),retailPriceCarton:N(it.retailPriceCarton)||N(it.retailPrice)*pack});
+      created++;
+    });
+    if(created){localStorage.setItem('ht_stock',JSON.stringify(dbStock));if(typeof updateStockDatalist==='function')updateStockDatalist();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();}
+    return created;
+  };
+
+  /* Purchase Invoice List: explicit Edit + Delete actions. */
+  window.ftEditPurchaseInvoice=function(index){
+    const p=dbPurchaseInvoices?.[index]; if(!p)return;
+    const items=p.items||[];
+    for(const it of items){
+      const st=dbStock.find(s=>norm(s.name)===norm(it.name));
+      if(!st || N(st.qty)<qtyOf(it)){
+        return alert('This purchase cannot be edited safely because some of its stock has already been sold/used. Use a return/adjustment first.');
+      }
+    }
+    if(!confirm(`Edit Purchase Invoice ${p.invNo||p.invoiceNo||''}?\n\nThe current purchase will be temporarily removed, its stock restored/reversed, and its details loaded into Purchase Invoice Entry.\n\nSave the corrected invoice again when finished.`))return;
+    items.forEach(it=>{const st=dbStock.find(s=>norm(s.name)===norm(it.name));if(st)st.qty=Math.max(0,N(st.qty)-qtyOf(it));});
+    dbPurchaseInvoices.splice(index,1);
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
+    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};
+    set('purInvDate',p.date||'');set('purSupplierName',p.supplier||'');set('purInvoiceNo',p.invNo||p.invoiceNo||'');set('purCategory',p.category||'General');set('purPaymentType',p.requestedPaymentType||((p.paymentType||'Credit').replace(' + Due','')));
+    currentPurInvoiceItems.length=0; items.forEach(x=>currentPurInvoiceItems.push({...x}));
+    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+    if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
+    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
+    if(typeof ftRenderFinance==='function')ftRenderFinance();
+    if(typeof openTab==='function')openTab('stockPurchaseTab');
+    alert('Purchase invoice loaded for editing. Correct the details/products and press Save Purchase Invoice.');
+  };
+
+  function renderPurchaseListFinal(){
+    const body=document.getElementById('purInvoicesListTbody');if(!body)return;
+    body.innerHTML=(dbPurchaseInvoices||[]).map((p,i)=>`<tr>
+      <td><input type="checkbox" value="${i}"></td>
+      <td><strong>${esc(p.invNo||p.invoiceNo||'--')}</strong></td><td>${esc(p.date||'')}</td><td>${esc(p.supplier||'--')}</td><td>${esc(p.category||'--')}</td>
+      <td>${(p.items||[]).length}</td><td>${money(p.totalAmt)}</td><td>${money(p.paidNow||0)}</td><td><strong>${money(p.dueAmount||0)}</strong></td>
+      <td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice(${i})">✏️ Edit</button> <button type="button" class="btn-delete" onclick="deletePurchaseInvoice(${i})">🗑 Delete</button></td>
+    </tr>`).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderPurchaseListFinal;
+
+  /* Repair missing stock before the user opens Live Stock or after purchase save. */
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV41OpenRepair){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);if(id==='liveStockTab'||id==='purchaseStockReportTab'||id==='purchaseInvoiceListTab'){setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseInvoicesList();if(id==='purchaseStockReportTab'&&typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();if(id==='liveStockTab'&&typeof renderLiveStockInventory==='function')renderLiveStockInventory();},25);}return r;};
+    window.__ftV41OpenRepair=true;
+  }
+  const baseSave=window.saveCompletePurchaseInvoice;
+  if(typeof baseSave==='function'&&!window.__ftV41SaveRepair){
+    window.saveCompletePurchaseInvoice=function(print){const r=baseSave.apply(this,arguments);setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();},40);return r;};
+    window.__ftV41SaveRepair=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();},350));
+})();
+</script>
+
+</body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
 window.ftPrintCurrentSalarySlip=function(){
@@ -8653,6 +9233,122 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   #livePreviewBox{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important;}
 }
 </style>
+
+<style id="ft-v41-punching-compact-only">
+/* v41: compact POS working layout only. Do not alter global desktop/mobile screen sizing. */
+#posSales .pos-card:first-child{padding:10px!important}
+#posSales .pos-card:first-child h3{font-size:15px!important;margin:0 0 7px!important}
+#posSales .pos-card:first-child .form-group label{font-size:10px!important;margin-bottom:3px!important}
+#posSales .pos-card:first-child input,
+#posSales .pos-card:first-child select{min-height:34px!important;height:34px!important;padding:6px 8px!important;font-size:11px!important}
+#posProductEntryGrid{grid-template-columns:minmax(190px,2fr) repeat(8,minmax(72px,.78fr)) auto!important;gap:6px!important;align-items:end!important}
+#posProductEntryGrid .form-group{min-width:0!important}
+#posProductEntryGrid input,#posProductEntryGrid select{width:100%!important;box-sizing:border-box!important}
+#posSales .table-responsive{margin-top:7px!important}
+#posSales table{font-size:9px!important}
+#posSales th,#posSales td{padding:5px 6px!important}
+@media(min-width:901px){#posSales .pos-card:first-child{max-width:none!important}#posProductEntryGrid{overflow-x:hidden!important}}
+@media(max-width:900px){#posProductEntryGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}#posProductEntryGrid .form-group:first-child{grid-column:1/-1!important}#posProductEntryGrid .form-group:last-child{grid-column:1/-1!important}}
+</style>
+
+
+<script id="ft-v41-stock-purchase-edit-fix">
+(function(){'use strict';
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const norm=v=>String(v||'').trim().toUpperCase();
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const qtyOf=it=>it?.totalPcsQty!=null?N(it.totalPcsQty):it?.totalPcs!=null?N(it.totalPcs):(N(it?.ctnQty)*N(it?.packing||it?.pcsPerCarton||24)+N(it?.pcsQty));
+  const money=v=>'Rs. '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  /* If a purchase exists but its physical stock row is missing, reconstruct ONLY the missing product row.
+     Existing stock rows are never overwritten here, so this cannot double-add good stock. */
+  window.ftRepairMissingPurchaseStock=function(){
+    if(!Array.isArray(window.dbStock)||!Array.isArray(window.dbPurchaseInvoices))return 0;
+    const existing=new Set(dbStock.map(s=>norm(s.name)));
+    const purchases={};
+    dbPurchaseInvoices.forEach(p=>(p.items||[]).forEach(it=>{
+      const k=norm(it.name); if(!k)return;
+      if(!purchases[k])purchases[k]={item:it,qty:0,cost:0};
+      purchases[k].qty+=qtyOf(it);
+      purchases[k].cost+=N(it.subtotal||qtyOf(it)*N(it.pieceCost));
+      purchases[k].item=it;
+    }));
+    let created=0;
+    Object.entries(purchases).forEach(([k,x])=>{
+      if(existing.has(k))return;
+      let qty=x.qty;
+      /* committed sales reduce physical stock */
+      dbInvoices.forEach(inv=>{if(inv.stockCommitted===false)return;(inv.items||[]).forEach(it=>{if(norm(it.name)===k)qty-=qtyOf(it);});});
+      /* returns add stock back */
+      dbReturns.forEach(r=>{
+        if(String(r.type||'').toLowerCase().includes('full invoice')){
+          const inv=dbInvoices.find(i=>String(i.invNum)===String(r.invoice));
+          (inv?.items||[]).forEach(it=>{if(norm(it.name)===k)qty+=qtyOf(it);});
+        }else if(norm(r.item)===k) qty+=N(r.qtyPcs||r.qty||r.totalPcs);
+      });
+      const it=x.item,pack=N(it.pcsPerCarton)||24,pieceCost=N(it.pieceCost)||(N(it.cartonCost)/pack);
+      dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),sku:it.sku||('SKU-'+Date.now().toString().slice(-6)),brand:it.brand||'',category:it.category||'General',name:it.name,imageData:it.imageData||'',pcsPerCarton:pack,qty:Math.max(0,qty),costPrice:pieceCost,tradePricePiece:N(it.tradePrice),tradePrice:N(it.tradePrice),tradePriceCarton:N(it.tradePriceCarton)||N(it.tradePrice)*pack,retailPricePiece:N(it.retailPrice),retailPrice:N(it.retailPrice),retailPriceCarton:N(it.retailPriceCarton)||N(it.retailPrice)*pack});
+      created++;
+    });
+    if(created){localStorage.setItem('ht_stock',JSON.stringify(dbStock));if(typeof updateStockDatalist==='function')updateStockDatalist();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();}
+    return created;
+  };
+
+  /* Purchase Invoice List: explicit Edit + Delete actions. */
+  window.ftEditPurchaseInvoice=function(index){
+    const p=dbPurchaseInvoices?.[index]; if(!p)return;
+    const items=p.items||[];
+    for(const it of items){
+      const st=dbStock.find(s=>norm(s.name)===norm(it.name));
+      if(!st || N(st.qty)<qtyOf(it)){
+        return alert('This purchase cannot be edited safely because some of its stock has already been sold/used. Use a return/adjustment first.');
+      }
+    }
+    if(!confirm(`Edit Purchase Invoice ${p.invNo||p.invoiceNo||''}?\n\nThe current purchase will be temporarily removed, its stock restored/reversed, and its details loaded into Purchase Invoice Entry.\n\nSave the corrected invoice again when finished.`))return;
+    items.forEach(it=>{const st=dbStock.find(s=>norm(s.name)===norm(it.name));if(st)st.qty=Math.max(0,N(st.qty)-qtyOf(it));});
+    dbPurchaseInvoices.splice(index,1);
+    localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));
+    localStorage.setItem('ht_stock',JSON.stringify(dbStock));
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??''};
+    set('purInvDate',p.date||'');set('purSupplierName',p.supplier||'');set('purInvoiceNo',p.invNo||p.invoiceNo||'');set('purCategory',p.category||'General');set('purPaymentType',p.requestedPaymentType||((p.paymentType||'Credit').replace(' + Due','')));
+    currentPurInvoiceItems.length=0; items.forEach(x=>currentPurInvoiceItems.push({...x}));
+    if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();
+    if(typeof updatePurchasePaymentSummary==='function')updatePurchasePaymentSummary();
+    if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();
+    if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();
+    if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();
+    if(typeof renderSupplierDueReport==='function')renderSupplierDueReport();
+    if(typeof ftRenderFinance==='function')ftRenderFinance();
+    if(typeof openTab==='function')openTab('stockPurchaseTab');
+    alert('Purchase invoice loaded for editing. Correct the details/products and press Save Purchase Invoice.');
+  };
+
+  function renderPurchaseListFinal(){
+    const body=document.getElementById('purInvoicesListTbody');if(!body)return;
+    body.innerHTML=(dbPurchaseInvoices||[]).map((p,i)=>`<tr>
+      <td><input type="checkbox" value="${i}"></td>
+      <td><strong>${esc(p.invNo||p.invoiceNo||'--')}</strong></td><td>${esc(p.date||'')}</td><td>${esc(p.supplier||'--')}</td><td>${esc(p.category||'--')}</td>
+      <td>${(p.items||[]).length}</td><td>${money(p.totalAmt)}</td><td>${money(p.paidNow||0)}</td><td><strong>${money(p.dueAmount||0)}</strong></td>
+      <td style="white-space:nowrap"><button type="button" class="btn-edit" onclick="ftEditPurchaseInvoice(${i})">✏️ Edit</button> <button type="button" class="btn-delete" onclick="deletePurchaseInvoice(${i})">🗑 Delete</button></td>
+    </tr>`).join('')||'<tr><td colspan="10">No purchase invoices found.</td></tr>';
+  }
+  window.renderPurchaseInvoicesList=renderPurchaseListFinal;
+
+  /* Repair missing stock before the user opens Live Stock or after purchase save. */
+  const oldOpen=window.openTab;
+  if(typeof oldOpen==='function'&&!window.__ftV41OpenRepair){
+    window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);if(id==='liveStockTab'||id==='purchaseStockReportTab'||id==='purchaseInvoiceListTab'){setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseInvoicesList();if(id==='purchaseStockReportTab'&&typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();if(id==='liveStockTab'&&typeof renderLiveStockInventory==='function')renderLiveStockInventory();},25);}return r;};
+    window.__ftV41OpenRepair=true;
+  }
+  const baseSave=window.saveCompletePurchaseInvoice;
+  if(typeof baseSave==='function'&&!window.__ftV41SaveRepair){
+    window.saveCompletePurchaseInvoice=function(print){const r=baseSave.apply(this,arguments);setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();if(typeof renderLiveStockInventory==='function')renderLiveStockInventory();if(typeof renderPurchaseStockReport==='function')renderPurchaseStockReport();},40);return r;};
+    window.__ftV41SaveRepair=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ftRepairMissingPurchaseStock();renderPurchaseListFinal();},350));
+})();
+</script>
+
 </body>
 
 <script id="ft-v29-purchase-render-fix">
