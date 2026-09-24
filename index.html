@@ -2127,12 +2127,20 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                         <input type="number" id="posItemPcsQty" placeholder="Pcs" value="0" oninput="calculateRowTotal()"><div id="posEquivalentPieces" style="font-size:10px;color:#64748b;margin-top:3px;">Equivalent Pieces: 0</div>
                     </div>
                     <div class="form-group">
-                        <label>Trade Price:</label>
-                        <input type="number" id="posItemTradeRate" placeholder="TP Rate" readonly style="background:var(--input-bg);">
+                        <label>Trade Price / Carton:</label>
+                        <input type="number" id="posItemTradeCtnRate" placeholder="TP / Ctn" readonly style="background:var(--input-bg);">
                     </div>
                     <div class="form-group">
-                        <label>Retail Price:</label>
-                        <input type="number" id="posItemRetailRate" placeholder="Retail Rate" readonly style="background:var(--input-bg);">
+                        <label>Trade Price / Piece:</label>
+                        <input type="number" id="posItemTradePcsRate" placeholder="TP / Pcs" readonly style="background:var(--input-bg);">
+                    </div>
+                    <div class="form-group">
+                        <label>Retail Price / Carton:</label>
+                        <input type="number" id="posItemRetailCtnRate" placeholder="Retail / Ctn" readonly style="background:var(--input-bg);">
+                    </div>
+                    <div class="form-group">
+                        <label>Retail Price / Piece:</label>
+                        <input type="number" id="posItemRetailPcsRate" placeholder="Retail / Pcs" readonly style="background:var(--input-bg);">
                     </div>
                     <div class="form-group">
                         <label>Discount Type (per item):</label>
@@ -5040,7 +5048,7 @@ function addPurchaseRowItem() {
         currentPurInvoiceItems.push({
             sku: 'SKU-' + Date.now().toString().slice(-4),
             category: document.getElementById('purCategory').value,
-            name, pcsPerCarton, cartonQty, totalPcs, cartonCost, pieceCost, tradePrice, retailPrice, subtotal
+            name, pcsPerCarton, cartonQty, totalPcs, cartonCost, pieceCost, tradePrice, tradePricePiece:tradePrice, tradePriceCarton:tradePrice*pcsPerCarton, retailPrice, retailPricePiece:retailPrice, retailPriceCarton:retailPrice*pcsPerCarton, subtotal
         });
 
         renderPurInvoiceItemsTable();
@@ -5122,7 +5130,7 @@ function saveCompletePurchaseInvoice(print) {
         const itemSnapshot=currentPurInvoiceItems.map(x=>({...x}));
         const purchase={id:'PUR_'+Date.now(),invNo,date,supplier,category,paymentType:actualType,requestedPaymentType:requestedType,totalAmt,paidNow,dueAmount,items:itemSnapshot,status:dueAmount>0?'Due':'Paid'};
         dbPurchaseInvoices.push(purchase);
-        itemSnapshot.forEach(item=>{let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());if(found){found.qty=Number(found.qty||0)+Number(item.totalPcs||0);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=Number(item.pieceCost||0);found.tradePrice=Number(item.tradePrice||0);found.retailPrice=Number(item.retailPrice||0);}else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:Number(item.totalPcs||0),costPrice:Number(item.pieceCost||0),tradePrice:Number(item.tradePrice||0),retailPrice:Number(item.retailPrice||0)});});
+        itemSnapshot.forEach(item=>{let found=dbStock.find(st=>String(st.name).toUpperCase()===String(item.name).toUpperCase());if(found){found.qty=Number(found.qty||0)+Number(item.totalPcs||0);found.brand=item.brand||found.brand||'';found.category=item.category||found.category||'';found.pcsPerCarton=item.pcsPerCarton||found.pcsPerCarton||24;found.costPrice=Number(item.pieceCost||0);found.tradePrice=Number(item.tradePrice||0);found.tradePricePiece=Number(item.tradePrice||0);found.tradePriceCarton=Number(item.tradePriceCarton!=null?item.tradePriceCarton:(Number(item.tradePrice||0)*Number(item.pcsPerCarton||24)));found.retailPrice=Number(item.retailPrice||0);found.retailPricePiece=Number(item.retailPrice||0);found.retailPriceCarton=Number(item.retailPriceCarton!=null?item.retailPriceCarton:(Number(item.retailPrice||0)*Number(item.pcsPerCarton||24)));}else dbStock.push({id:'STK_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),sku:item.sku,brand:item.brand||'',category:item.category||'',name:item.name,imageData:item.imageData||'',pcsPerCarton:item.pcsPerCarton||24,qty:Number(item.totalPcs||0),costPrice:Number(item.pieceCost||0),tradePrice:Number(item.tradePrice||0),retailPrice:Number(item.retailPrice||0),tradePricePiece:Number(item.tradePrice||0),tradePriceCarton:Number(item.tradePriceCarton!=null?item.tradePriceCarton:(Number(item.tradePrice||0)*Number(item.pcsPerCarton||24))),retailPricePiece:Number(item.retailPrice||0),retailPriceCarton:Number(item.retailPriceCarton!=null?item.retailPriceCarton:(Number(item.retailPrice||0)*Number(item.pcsPerCarton||24)))});});
         localStorage.setItem('ht_purchase_invoices',JSON.stringify(dbPurchaseInvoices));localStorage.setItem('ht_stock',JSON.stringify(dbStock));
         if(typeof audit2==='function')audit2('CREATE','Purchase Invoice',purchase.id,`Purchase ${invNo}: Total Rs.${totalAmt}, Paid Rs.${paidNow}, Due Rs.${dueAmount}`);
         alert(`Purchase invoice saved.\n\nTotal: Rs. ${totalAmt.toLocaleString()}\nPaid now: Rs. ${paidNow.toLocaleString()}\nSupplier Due: Rs. ${dueAmount.toLocaleString()}${dueAmount>0?'\n\nUnpaid balance has been placed in Supplier Due automatically.':''}`);
@@ -5378,12 +5386,18 @@ function autoFillItemDetails() {
         const name = document.getElementById('posStockInput').value.trim();
         const found = dbStock.find(s => s.name.toUpperCase() === name.toUpperCase());
         if(found) {
-            document.getElementById('posItemTradeRate').value = found.tradePrice || 0;
-            document.getElementById('posItemRetailRate').value = found.retailPrice || found.tradePrice || 0;
+            const packing = Math.max(1, parseFloat(found.pcsPerCarton) || 12);
+            const tradeCtn = Number(found.tradePriceCarton != null ? found.tradePriceCarton : (found.tradePrice || 0));
+            const tradePcs = Number(found.tradePricePiece != null ? found.tradePricePiece : (tradeCtn / packing));
+            const retailPcs = Number(found.retailPricePiece != null ? found.retailPricePiece : (found.retailPrice || 0));
+            const retailCtn = Number(found.retailPriceCarton != null ? found.retailPriceCarton : (retailPcs * packing));
+            document.getElementById('posItemTradeCtnRate').value = tradeCtn.toFixed(2);
+            document.getElementById('posItemTradePcsRate').value = tradePcs.toFixed(2);
+            document.getElementById('posItemRetailCtnRate').value = retailCtn.toFixed(2);
+            document.getElementById('posItemRetailPcsRate').value = retailPcs.toFixed(2);
             recalcPosPieceFromCarton();
         }
-    }
-
+}
 function getPosPacking(name) {
         const found = dbStock.find(s => String(s.name || '').toUpperCase() === String(name || '').toUpperCase());
         return Math.max(1, parseFloat(found && found.pcsPerCarton) || 12);
@@ -5420,61 +5434,32 @@ function addPosItem() {
         const pcsQty = parseFloat(document.getElementById('posItemPcsQty').value) || 0;
         const packing = getPosPacking(name);
         const totalPcsQty = (ctnQty * packing) + pcsQty;
-        const tradeRate = parseFloat(document.getElementById('posItemTradeRate').value) || 0;
-        const retailRate = parseFloat(document.getElementById('posItemRetailRate').value) || 0;
+        const tradeRateCtn = parseFloat(document.getElementById('posItemTradeCtnRate').value) || 0;
+        const tradeRatePcs = parseFloat(document.getElementById('posItemTradePcsRate').value) || 0;
+        const retailRateCtn = parseFloat(document.getElementById('posItemRetailCtnRate').value) || 0;
+        const retailRatePcs = parseFloat(document.getElementById('posItemRetailPcsRate').value) || 0;
         const discType = document.getElementById('posItemDiscType').value;
         const discVal = parseFloat(document.getElementById('posItemDiscVal').value) || 0;
         if(discVal < 0) return alert('Discount cannot be negative.');
         if(discType === 'Percent' && discVal > 100) return alert('Discount % cannot be greater than 100%.');
-        const grossBeforeDiscount = totalPcsQty * tradeRate;
-        if(discType === 'Amount' && discVal > grossBeforeDiscount) return alert('Discount amount cannot be greater than the item amount.');
-
-        // Either Carton OR Pieces is valid. Carton-only orders must punch successfully.
         if(!name || totalPcsQty <= 0) return alert('Product and quantity required. Enter Carton and/or Pieces.');
-
-        let fullTradeAmount = totalPcsQty * tradeRate;
-        let calculatedDisc = discType === 'Percent' ? (fullTradeAmount * (discVal / 100)) : discVal;
-        let rowTotal = fullTradeAmount - calculatedDisc;
-
-        currentPosItems.push({
-            name, ctnQty, pcsQty, totalPcsQty, packing, tradeRate, retailRate, discType, discVal, calculatedDisc, rowTotal
-        });
-
-        renderPosCartTable();
-        calculatePosTotals();
-        document.getElementById('posStockInput').value = '';
-        document.getElementById('posItemCtnQty').value = '0';
-        document.getElementById('posItemPcsQty').value = '0';
-        const label = document.getElementById('posEquivalentPieces');
-        if(label) label.textContent = 'Equivalent Pieces: 0';
-    }
-
+        if((ctnQty > 0 && tradeRateCtn <= 0) || (pcsQty > 0 && tradeRatePcs <= 0)) return alert('Please ensure the carton/piece selling price is available.');
+        const grossTradeAmount = (ctnQty * tradeRateCtn) + (pcsQty * tradeRatePcs);
+        const calculatedDisc = discType === 'Percent' ? (grossTradeAmount * (discVal / 100)) : discVal;
+        if(calculatedDisc > grossTradeAmount) return alert('Discount amount cannot be greater than the item amount.');
+        const rowTotal = grossTradeAmount - calculatedDisc;
+        currentPosItems.push({name,ctnQty,pcsQty,totalPcsQty,packing,tradeRate:tradeRatePcs,tradeRateCtn,tradeRatePcs,retailRate:retailRatePcs,retailRateCtn,retailRatePcs,grossTradeAmount,discType,discVal,calculatedDisc,rowTotal});
+        renderPosCartTable(); calculatePosTotals();
+        document.getElementById('posStockInput').value=''; document.getElementById('posItemCtnQty').value='0'; document.getElementById('posItemPcsQty').value='0';
+        ['posItemTradeCtnRate','posItemTradePcsRate','posItemRetailCtnRate','posItemRetailPcsRate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+        const label=document.getElementById('posEquivalentPieces'); if(label)label.textContent='Equivalent Pieces: 0';
+}
 function renderPosCartTable() {
-        document.getElementById('posItemsTbody').innerHTML = currentPosItems.map((item, idx) => `
-            <tr>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.ctnQty} Ctn / ${item.pcsQty} Pcs</td>
-                <td>Rs. ${item.tradeRate}</td>
-                <td>Rs. ${item.retailRate}</td>
-                <td>Rs. ${item.calculatedDisc}</td>
-                <td>Rs. ${item.rowTotal}</td>
-                <td><button class="btn-delete" onclick="currentPosItems.splice(${idx},1);renderPosCartTable();calculatePosTotals();">X</button></td>
-            </tr>
-        `).join('');
-
-        document.getElementById('prevItemsTbody').innerHTML = currentPosItems.map(item => `
-            <tr>
-                <td>${item.name}</td>
-                <td style="text-align:center;">${item.ctnQty}c/${item.pcsQty}p</td>
-                <td style="text-align:right;">${item.tradeRate}</td>
-                <td style="text-align:right;">${item.calculatedDisc}</td>
-                <td style="text-align:right;">${item.rowTotal}</td>
-            </tr>
-        `).join('') || `<tr><td colspan="5" style="text-align:center;">No Items Added</td></tr>`;
-    }
-
+        document.getElementById('posItemsTbody').innerHTML = currentPosItems.map((item,idx)=>`<tr><td><strong>${item.name}</strong></td><td>${item.ctnQty} Ctn / ${item.pcsQty} Pcs</td><td><div>Rs. ${Number(item.tradeRateCtn||0).toFixed(2)} / Ctn</div><div style="font-size:11px;color:#64748b">Rs. ${Number(item.tradeRatePcs||0).toFixed(2)} / Pcs</div></td><td><div>Rs. ${Number(item.retailRateCtn||0).toFixed(2)} / Ctn</div><div style="font-size:11px;color:#64748b">Rs. ${Number(item.retailRatePcs||0).toFixed(2)} / Pcs</div></td><td>Rs. ${Number(item.calculatedDisc||0).toFixed(2)}</td><td>Rs. ${Number(item.rowTotal||0).toFixed(2)}</td><td><button class="btn-delete" onclick="currentPosItems.splice(${idx},1);renderPosCartTable();calculatePosTotals();">X</button></td></tr>`).join('');
+        document.getElementById('prevItemsTbody').innerHTML=currentPosItems.map(item=>`<tr><td>${item.name}</td><td style="text-align:center;">${item.ctnQty}c/${item.pcsQty}p</td><td style="text-align:right;">${Number(item.tradeRateCtn||0).toFixed(2)} / ${Number(item.tradeRatePcs||0).toFixed(2)}</td><td style="text-align:right;">${Number(item.calculatedDisc||0).toFixed(2)}</td><td style="text-align:right;">${Number(item.rowTotal||0).toFixed(2)}</td></tr>`).join('')||`<tr><td colspan="5" style="text-align:center;">No Items Added</td></tr>`;
+}
 function calculatePosTotals() {
-        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (getPosItemTotalPieces(item) * item.tradeRate), 0);
+        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + Number(item.grossTradeAmount != null ? item.grossTradeAmount : ((Number(item.ctnQty||0)*Number(item.tradeRateCtn||0)) + (Number(item.pcsQty||0)*Number(item.tradeRatePcs||item.tradeRate||0)))), 0);
         let totalDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
         let remainingSubtotal = tradeSubtotal - totalDiscounts;
 
@@ -5518,7 +5503,7 @@ function savePosInvoice(print) {
         let shop = document.getElementById('posShopSelect').value;
         let payType = document.getElementById('posPayType').value;
 
-        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + (getPosItemTotalPieces(item) * item.tradeRate), 0);
+        let tradeSubtotal = currentPosItems.reduce((acc, item) => acc + Number(item.grossTradeAmount != null ? item.grossTradeAmount : ((Number(item.ctnQty||0)*Number(item.tradeRateCtn||0)) + (Number(item.pcsQty||0)*Number(item.tradeRatePcs||item.tradeRate||0)))), 0);
         let itemDiscounts = currentPosItems.reduce((acc, item) => acc + item.calculatedDisc, 0);
         let remainingSubtotal = tradeSubtotal - itemDiscounts;
 
@@ -5628,7 +5613,7 @@ function printDualA5Invoice(inv) {
                             <tr>
                                 <td style="border:1px solid #000; padding:3px;">${it.name}</td>
                                 <td style="border:1px solid #000; padding:3px; text-align:center;">${it.ctnQty}c / ${it.pcsQty}p</td>
-                                <td style="border:1px solid #000; padding:3px; text-align:right;">${it.tradeRate}</td>
+                                <td style="border:1px solid #000; padding:3px; text-align:right;">${Number(it.tradeRateCtn||0).toFixed(2)} Ctn<br>${Number(it.tradeRatePcs||it.tradeRate||0).toFixed(2)} Pcs</td>
                                 <td style="border:1px solid #000; padding:3px; text-align:right;">${it.rowTotal}</td>
                             </tr>
                         `).join('')}
@@ -5750,7 +5735,7 @@ function renderShops() {
         const brand=it.category||it.brand||(stock&&stock.category)||'Unassigned';
         const cost=n(it.costPriceSnapshot!=null?it.costPriceSnapshot:(it.costPrice!=null?it.costPrice:(stock&&stock.costPrice)));
         const qty=n(it.totalPcsQty!=null?it.totalPcsQty:(n(it.ctnQty)*n(it.packing||12)+n(it.pcsQty)));
-        const revenue=n(qty*n(it.tradeRate))-n(it.calculatedDisc||0);
+        const revenue=n(it.grossTradeAmount!=null?it.grossTradeAmount:(qty*n(it.tradeRate)))-n(it.calculatedDisc||0);
         const cogs=qty*cost;
         rows.push({date:inv.date,brand,revenue,cogs,gross:revenue-cogs,inv:inv.invNum,shop:inv.shop});
       });
@@ -8561,6 +8546,20 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   // Normalize existing items created by older versions.
   (currentPurInvoiceItems||[]).forEach(it=>{const pack=N(it.pcsPerCarton)||24;if(it.cartonCost==null)it.cartonCost=N(it.pieceCost)*pack;it.pieceCost=pack?N(it.cartonCost)/pack:N(it.pieceCost);it.subtotal=N(it.cartonQty)*N(it.cartonCost);});
   setTimeout(()=>{if(typeof renderPurInvoiceItemsTable==='function')renderPurInvoiceItemsTable();},0);
+})();
+</script>
+
+<script id="ft-v38-pos-carton-piece-fix">
+(function(){
+  function n(v){return Number(v)||0;}
+  (window.dbStock||[]).forEach(st=>{
+    const pack=Math.max(1,n(st.pcsPerCarton)||12);
+    if(st.tradePriceCarton==null) st.tradePriceCarton=n(st.tradePrice);
+    if(st.tradePricePiece==null) st.tradePricePiece=n(st.tradePriceCarton)/pack;
+    if(st.retailPricePiece==null) st.retailPricePiece=n(st.retailPrice);
+    if(st.retailPriceCarton==null) st.retailPriceCarton=n(st.retailPricePiece)*pack;
+  });
+  try{localStorage.setItem('ht_stock',JSON.stringify(window.dbStock||[]));}catch(e){}
 })();
 </script>
 </body>
