@@ -7955,7 +7955,24 @@ function salarySlipHtml(x){
 }
 function printHtml(title,body){
   const w=window.open('','_blank','width=1000,height=800');if(!w)return;
-  w.document.write(`<!doctype html><html><head><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#111}h1{margin:0;font-size:22px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #999;padding:5px;font-size:11px}th{background:#eef2f7}.slip-head{text-align:center;margin-bottom:12px}.slip-meta{padding:8px;border:1px solid #bbb}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.money{max-width:520px;margin-left:auto}.money td:last-child{text-align:right}.money .net{font-size:14px;font-weight:bold;background:#eaf8ef}.sign{display:flex;justify-content:space-between;margin-top:40px}@media print{button{display:none}}</style></head><body>${body}</body></html>`);
+  w.document.write(`<!doctype html><html><head><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#111}h1{margin:0;font-size:22px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #999;padding:5px;font-size:11px}th{background:#eef2f7}.slip-head{text-align:center;margin-bottom:12px}.slip-meta{padding:8px;border:1px solid #bbb}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.money{max-width:520px;margin-left:auto}.money td:last-child{text-align:right}.money .net{font-size:14px;font-weight:bold;background:#eaf8ef}.sign{display:flex;justify-content:space-between;margin-top:40px}@media print{button{display:none}}</style>
+<style id="ft-v34-sidebar-clean-final">
+/* FINAL SIDEBAR VISIBILITY FIX: keep desktop sidebar compact and show submenu children only when opened. */
+.sidebar .submenu{display:none !important;visibility:hidden !important;max-height:0 !important;overflow:hidden !important;}
+.sidebar .submenu.open{display:block !important;visibility:visible !important;max-height:2000px !important;overflow:visible !important;}
+.sidebar .submenu .nav-item{display:block !important;visibility:visible !important;opacity:1 !important;}
+.sidebar .submenu .nav-link{display:flex !important;visibility:visible !important;opacity:1 !important;}
+@media (min-width:901px){
+  .sidebar{width:248px !important;overflow-y:auto !important;overflow-x:hidden !important;}
+  .main-wrapper{margin-left:248px !important;width:calc(100% - 248px) !important;max-width:none !important;}
+  .sidebar .nav-list{height:auto !important;min-height:0 !important;overflow:visible !important;padding-bottom:30px !important;}
+}
+@media (max-width:900px){
+  .sidebar .submenu{display:none !important;visibility:hidden !important;max-height:0 !important;}
+  .sidebar .submenu.open{display:block !important;visibility:visible !important;max-height:3000px !important;}
+}
+</style>
+</head><body>${body}</body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
 window.ftPrintCurrentSalarySlip=function(){
@@ -8409,6 +8426,39 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 
+
+<script id="ft-v34-sidebar-js">
+(function(){
+  function normalizeSidebar(){
+    try{
+      var user=window.currentUser || null;
+      var role=String(user && user.role || '').toLowerCase();
+      var all=!!(user && ((user.permissions||[]).includes('ALL') || role==='admin' || role==='fatima tech owner' || role==='kpo'));
+      document.querySelectorAll('.sidebar [data-perm]').forEach(function(el){
+        var p=el.getAttribute('data-perm');
+        if(all) el.style.display='';
+      });
+      document.querySelectorAll('.sidebar .submenu').forEach(function(sm){
+        var open=sm.classList.contains('open');
+        sm.style.display=open?'block':'none';
+        sm.style.visibility=open?'visible':'hidden';
+        sm.style.maxHeight=open?'3000px':'0';
+        sm.style.overflow=open?'visible':'hidden';
+      });
+      document.querySelectorAll('.sidebar .submenu .nav-item').forEach(function(li){
+        var link=li.querySelector(':scope > .nav-link');
+        if(all || (link && link.style.display!=='none')) li.style.display='';
+      });
+    }catch(e){console.warn('Sidebar normalize:',e);}
+  }
+  window.ftNormalizeSidebar=normalizeSidebar;
+  window.addEventListener('load',function(){setTimeout(normalizeSidebar,50);setTimeout(normalizeSidebar,400);});
+  document.addEventListener('click',function(e){
+    if(e.target.closest('.sidebar .ft-submenu-toggle')) setTimeout(normalizeSidebar,30);
+  },true);
+  window.addEventListener('resize',function(){setTimeout(normalizeSidebar,30);});
+})();
+</script>
 </body>
 
 <script id="ft-v29-purchase-render-fix">
