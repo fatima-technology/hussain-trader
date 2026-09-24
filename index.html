@@ -9111,8 +9111,18 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     try{
       const target=String(name||'').trim();
       if(!target)return;
-      const hasPurchase=(dbPurchaseInvoices||[]).some(p=>(p.items||[]).some(it=>String(it.name||'').trim().toUpperCase()===target.toUpperCase()));
+      // Always synchronize the in-memory purchase list with the persisted master list
+      // before deciding whether this is orphan/test stock. Older patches could leave
+      // window.dbPurchaseInvoices stale even after the Saved Purchase Invoices List
+      // was empty.
+      let purchaseMaster=[];
+      try{ purchaseMaster=JSON.parse(localStorage.getItem('ht_purchase_invoices')||'[]'); if(!Array.isArray(purchaseMaster))purchaseMaster=[]; }catch(e){ purchaseMaster=[]; }
+      window.dbPurchaseInvoices=purchaseMaster;
+      if(typeof dbPurchaseInvoices!=='undefined') dbPurchaseInvoices=purchaseMaster;
+      const hasPurchase=purchaseMaster.some(p=>(p.items||[]).some(it=>String(it.name||'').trim().toUpperCase()===target.toUpperCase()));
       if(hasPurchase){ alert('This product still has a saved purchase invoice. Delete the exact purchase invoice from Saved Purchase Invoices List first.'); return; }
+      // No saved purchase invoice exists: this is orphan/test stock, so it is safe
+      // to remove the stock master row directly from the Stock Report.
       const st=(dbStock||[]).find(x=>String(x.name||'').trim().toUpperCase()===target.toUpperCase());
       if(!st){alert('Stock record not found.');return;}
       const qty=Number(st.qty)||0;
