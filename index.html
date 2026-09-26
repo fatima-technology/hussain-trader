@@ -1923,6 +1923,9 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         <li class="nav-item" data-perm="backup"><a class="nav-link" onclick="openTab('backup', this)"><span class="nav-text">💾 Backup & Day End</span></a></li>
         <li id="ftBusinessSettingsNav" class="nav-item" style="display:none"><a class="nav-link" onclick="ftOpenOwnerStudio()"><span class="nav-text">⚙️ Business / Company Settings</span></a></li>
     </ul>
+    <div id="ftBusinessSettingsFixed" class="ft-business-settings-fixed" style="display:none;">
+      <button type="button" onclick="ftOpenOwnerStudio()">⚙️ <span>Business / Company Settings</span></button>
+    </div>
 </div>
 
 <!-- MAIN WORKSPACE -->
@@ -1981,6 +1984,11 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             <div class="bubble-card" onclick="openTab('recoveryEntry')">
                 <h3>Approved Recovery</h3>
                 <p id="dashTodayRecovery" style="color:#00f2fe;">Rs. 0</p>
+            </div>
+            <div class="bubble-card ft-purchase-kpi" onclick="openTab('purchaseInvoiceListTab');setTimeout(function(){if(typeof renderPurchaseInvoicesList==='function')renderPurchaseInvoicesList();},40)">
+                <h3>Purchase Stock Amount</h3>
+                <p id="dashPurchaseAmount" style="color:#f59e0b;">Rs. 0</p>
+                <small class="ft-kpi-note">Tap to open all purchase invoices</small>
             </div>
             <div class="bubble-card ft-cash-kpi" onclick="openCashFlowReport()">
                 <h3>Today's Cash Flow</h3>
@@ -2813,6 +2821,21 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <tbody id="purInvoicesListTbody"></tbody>
             </table>
         </div>
+
+    <!-- PURCHASE INVOICE ACTIONS FROM STOCK REPORT -->
+    <div id="ftPurchaseInvoiceActionsPanel" class="section-box" style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+            <h4 style="margin:0;color:var(--primary-blue);">🧾 Purchase Invoices — Edit / Delete</h4>
+            <span style="font-size:12px;font-weight:700;opacity:.8;">Delete the exact purchase invoice here. Stock and Finance will recalculate.</span>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead><tr><th>#</th><th>Invoice No.</th><th>Date</th><th>Supplier</th><th>Products</th><th>Total</th><th>Paid Now</th><th>Due</th><th>Actions</th></tr></thead>
+                <tbody id="ftPurchaseInvoiceActionsTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
     </div>
 
     <!-- PURCHASE STOCK REPORT -->
@@ -2834,20 +2857,6 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                     </tr>
                 </thead>
                 <tbody id="purStockReportTbody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- PURCHASE INVOICE ACTIONS FROM STOCK REPORT -->
-    <div id="ftPurchaseInvoiceActionsPanel" class="section-box" style="margin-top:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-            <h4 style="margin:0;color:var(--primary-blue);">🧾 Purchase Invoices — Edit / Delete</h4>
-            <span style="font-size:12px;font-weight:700;opacity:.8;">Delete the exact purchase invoice here. Stock and Finance will recalculate.</span>
-        </div>
-        <div class="table-responsive">
-            <table>
-                <thead><tr><th>#</th><th>Invoice No.</th><th>Date</th><th>Supplier</th><th>Products</th><th>Total</th><th>Paid Now</th><th>Due</th><th>Actions</th></tr></thead>
-                <tbody id="ftPurchaseInvoiceActionsTbody"></tbody>
             </table>
         </div>
     </div>
@@ -3283,6 +3292,10 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
     <!-- USER MANAGEMENT WITH EDIT CAPABILITY AND GRANULAR ACCESS CONTROLS -->
     <div id="users" class="tab-content">
         <h3>⚙️ User Management & Module Access Permissions</h3>
+        <div class="section-box" style="border-left:4px solid #7c3aed;background:#faf7ff;">
+            <strong style="color:#6d28d9;">🛠️ Developer Access</strong>
+            <p style="margin:6px 0 0;font-size:12px;color:#475569;">Separate Developer login with full module access, modification/configuration rights and Business / Company Settings. It is a separate role from Admin. Default testing login: <strong>developer</strong> / <strong>Dev@2026</strong>. Change the password from this User Management screen.</p>
+        </div>
         <div class="section-box">
             <h4 style="color:var(--primary-blue); margin-bottom:6px;" id="userFormTitle">Add / Edit User Access</h4>
             <input type="hidden" id="editingUserIndex" value="-1">
@@ -3291,6 +3304,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <input type="password" id="newUserPass" placeholder="Password">
                 <select id="newUserRole">
                     <option value="Admin">Admin</option>
+                    <option value="Developer">Developer</option>
                     <option value="Order Booker">Order Booker</option>
                     <option value="KPO">KPO</option>
                     <option value="Supply Man">Supply Man</option>
@@ -3424,6 +3438,19 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
     ];
     // Remove legacy demo names from the login list without touching business data.
     dbUsers = dbUsers.filter(u => !['shiraz','aftab'].includes(String(u.username).trim().toLowerCase()));
+    // Dedicated Developer login: separate from Admin and intentionally full-access.
+    // The password can be changed later from User Roles.
+    try {
+        const dev = dbUsers.find(u => String(u.username).trim().toLowerCase() === 'developer');
+        if (!dev) {
+            dbUsers.push({ username:'developer', pass:'Dev@2026', role:'Developer', permissions:['ALL'], isDeveloper:true });
+        } else {
+            dev.role='Developer';
+            dev.permissions=['ALL'];
+            dev.isDeveloper=true;
+            if (!dev.pass) dev.pass='Dev@2026';
+        }
+    } catch(e) {}
     // Keep the built-in demo Admin login consistent on desktop and mobile.
     // Only migrate the untouched legacy demo password; custom user passwords are not changed.
     try {
@@ -3558,7 +3585,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             if(nameEl) nameEl.innerText=String(currentUser.username).toUpperCase();
             if(roleEl) roleEl.innerText=currentUser.role || '';
             const ownerBtn=document.getElementById('ftOwnerStudioBtn');
-            if(ownerBtn) ownerBtn.style.display=(currentUser.isOwner || currentUser.role==='Admin')?'inline-flex':'none';
+            if(ownerBtn) ownerBtn.style.display=(currentUser.isOwner || ['Admin','Developer'].includes(currentUser.role))?'inline-flex':'none';
             applyUserAccessPermissions();
             applyUniversalMobileMode();
             if(typeof renderDashboard==='function') renderDashboard();
@@ -3617,7 +3644,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             const btn = document.getElementById('ftOwnerStudioBtn');
             if(btn) btn.style.display = 'none';
             const side = document.getElementById('ftBusinessSettingsNav');
-            if(side) side.style.display = (found.isOwner || found.role === 'Admin') ? '' : 'none';
+            if(side) side.style.display = (found.isOwner || ['Admin','Developer'].includes(found.role)) ? '' : 'none';
             applyUserAccessPermissions();
             if(typeof showBusinessSettings === 'function') showBusinessSettings();
             persistLoginSession();
@@ -3634,7 +3661,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         
         document.querySelectorAll('[data-perm]').forEach(el => {
             const reqPerm = el.getAttribute('data-perm');
-            if(currentUser.role === 'Admin' || perms.includes('ALL') || perms.includes(reqPerm)) {
+            if(['Admin','Developer'].includes(currentUser.role) || perms.includes('ALL') || perms.includes(reqPerm)) {
                 el.style.display = '';
             } else {
                 el.style.display = 'none';
@@ -3655,7 +3682,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
 
     function openTab(tabId, btn) {
         // Mobile/desktop app-style navigation: one screen at a time.
-        if(currentUser && currentUser.role !== 'Admin' && currentUser.permissions && !currentUser.permissions.includes('ALL') && !currentUser.permissions.includes(tabId)) {
+        if(currentUser && !['Admin','Developer'].includes(currentUser.role) && currentUser.permissions && !currentUser.permissions.includes('ALL') && !currentUser.permissions.includes(tabId)) {
             return alert('آپ کے پاس اس ماڈیول تک رسائی کا اختیار نہیں ہے!');
         }
         try{sessionStorage.setItem('ft_active_tab',tabId);}catch(e){}
@@ -4256,7 +4283,7 @@ The expense cannot make Cash negative.`);
   }
 
   window.ftOpenOwnerStudio=function(){
-    if(typeof currentUser === 'undefined' || !currentUser || !(currentUser.isOwner || currentUser.role==='Admin')) return alert('Admin/Owner access only.');
+    if(typeof currentUser === 'undefined' || !currentUser || !(currentUser.isOwner || ['Admin','Developer'].includes(currentUser.role))) return alert('Admin/Owner access only.');
     const s=load();
     document.getElementById("ftCompanyName").value=s.companyName;
     document.getElementById("ftCompanyPhone").value=s.phone;
@@ -4272,7 +4299,7 @@ The expense cannot make Cash negative.`);
     const oa=getFatimaTechOwnerAuth();
     if(document.getElementById("ftOwnerUsername")) document.getElementById("ftOwnerUsername").value=oa.username;
     if(document.getElementById("ftOwnerPassword")) document.getElementById("ftOwnerPassword").value="";
-    const isAdmin=currentUser && currentUser.role==='Admin' && !currentUser.isOwner;
+    const isAdmin=currentUser && ['Admin','Developer'].includes(currentUser.role) && !currentUser.isOwner;
     const title=document.getElementById("ftOwnerModalTitle");
     const subtitle=document.getElementById("ftOwnerModalSubtitle");
     const security=document.getElementById("ftOwnerSecurityCard");
@@ -4307,7 +4334,7 @@ The expense cannot make Cash negative.`);
         cartonPrice:Math.max(0,Number(document.getElementById("ftCartonPrice").value)||0)
       };
       localStorage.setItem(KEY,JSON.stringify(s));
-    if(!(currentUser && currentUser.role==='Admin' && !currentUser.isOwner)){
+    if(!(currentUser && ['Admin','Developer'].includes(currentUser.role) && !currentUser.isOwner)){
       const oldAuth=getFatimaTechOwnerAuth();
       const ownerUsername=(document.getElementById("ftOwnerUsername")?.value||oldAuth.username).trim() || "fatimatech";
       const ownerPassword=(document.getElementById("ftOwnerPassword")?.value||oldAuth.pass).trim();
@@ -5274,7 +5301,7 @@ function addNewUser() {
         if(!username || !pass) return alert('یوزر کی معلومات درج کریں!');
 
         let perms = [];
-        if(role === 'Admin') {
+        if(role === 'Admin' || role === 'Developer') {
             perms = ['ALL'];
         } else {
             document.querySelectorAll('#permissionCheckboxes input[type="checkbox"]:checked').forEach(cb => {
@@ -5340,7 +5367,7 @@ function renderUsersTable() {
                 <td><strong>${u.username}</strong></td>
                 <td>${u.role}</td>
                 <td>${u.role === 'Supply Man' ? (u.assignedBooker || '<span style="color:#dc3545;">Not Assigned</span>') : '—'}</td>
-                <td>${u.permissions.includes('ALL') ? '<strong style="color:#38ef7d;">Full Access (Admin)</strong>' : u.permissions.length + ' Modules Allowed'}</td>
+                <td>${u.permissions.includes('ALL') ? `<strong style="color:#38ef7d;">Full Access (${u.role})</strong>` : u.permissions.length + ' Modules Allowed'}</td>
                 <td>
                     <button class="btn-edit" onclick="editUserRecord(${i})">Edit ✏️</button>
                     <button class="btn-delete" onclick="dbUsers.splice(${i},1);localStorage.setItem('ht_users',JSON.stringify(dbUsers));renderUsersTable();populateLoginUserDropdown();populateUserDropdowns();">Delete</button>
@@ -5547,8 +5574,8 @@ function savePosInvoice(print) {
             const available=Number(st?.qty||0),need=getPosItemTotalPieces(item);
             if(!st || need>available)stockShortages.push(`${item.name}: Need ${need} pcs, Available ${available} pcs`);
         });
-        if(stockShortages.length && !['Admin','KPO'].includes(currentUser?.role))return alert('Sale blocked because stock is insufficient.\n\n'+stockShortages.join('\n'));
-        if(stockShortages.length && ['Admin','KPO'].includes(currentUser?.role) && !confirm('Stock is insufficient for one or more products. Continue with an authorized negative-stock override?\n\n'+stockShortages.join('\n')))return;
+        if(stockShortages.length && !['Admin','Developer','KPO'].includes(currentUser?.role))return alert('Sale blocked because stock is insufficient.\n\n'+stockShortages.join('\n'));
+        if(stockShortages.length && ['Admin','Developer','KPO'].includes(currentUser?.role) && !confirm('Stock is insufficient for one or more products. Continue with an authorized negative-stock override?\n\n'+stockShortages.join('\n')))return;
 
         dbInvoices.push(newInvoice);
 
@@ -5654,7 +5681,7 @@ function printDualA5Invoice(inv) {
 
 function isOrderBookerUser(){ return !!(currentUser && String(currentUser.role||'').toLowerCase()==='order booker'); }
 function getBookerAccountEntries(username){ return (dbBookerAccounts||[]).filter(x=>String(x.booker||'').toLowerCase()===String(username||'').toLowerCase()).sort((a,b)=>String(a.date+' '+(a.createdAt||'')).localeCompare(String(b.date+' '+(b.createdAt||'')))); }
-function addBookerAccountEntry(){ if(!currentUser || !(currentUser.isOwner || currentUser.role==='Admin')) return alert('Admin/Owner access only.'); const booker=document.getElementById('adminBookerLedgerUser')?.value||''; const date=document.getElementById('adminBookerLedgerDate')?.value||new Date().toISOString().slice(0,10); const type=document.getElementById('adminBookerLedgerType')?.value||'Advance Given'; const amount=Number(document.getElementById('adminBookerLedgerAmount')?.value||0); const note=document.getElementById('adminBookerLedgerNote')?.value||''; if(!booker||amount<=0)return alert('Please select a booker and enter a valid amount.'); dbBookerAccounts.push({id:'BACC_'+Date.now(),date,booker,type,amount,note,createdAt:new Date().toISOString(),createdBy:currentUser.username}); localStorage.setItem('ht_booker_accounts',JSON.stringify(dbBookerAccounts)); if(typeof dbAuditLog!=='undefined'){dbAuditLog.push({id:'AUD_'+Date.now(),date:new Date().toISOString(),user:currentUser.username,action:'Booker Account Entry',reference:booker,details:`${type} Rs. ${amount} — ${note}`});localStorage.setItem('ht_audit_log',JSON.stringify(dbAuditLog));} document.getElementById('adminBookerLedgerAmount').value='';document.getElementById('adminBookerLedgerNote').value=''; renderBookerDashboard(); alert('Booker ledger entry saved.'); }
+function addBookerAccountEntry(){ if(!currentUser || !(currentUser.isOwner || ['Admin','Developer'].includes(currentUser.role))) return alert('Admin/Owner access only.'); const booker=document.getElementById('adminBookerLedgerUser')?.value||''; const date=document.getElementById('adminBookerLedgerDate')?.value||new Date().toISOString().slice(0,10); const type=document.getElementById('adminBookerLedgerType')?.value||'Advance Given'; const amount=Number(document.getElementById('adminBookerLedgerAmount')?.value||0); const note=document.getElementById('adminBookerLedgerNote')?.value||''; if(!booker||amount<=0)return alert('Please select a booker and enter a valid amount.'); dbBookerAccounts.push({id:'BACC_'+Date.now(),date,booker,type,amount,note,createdAt:new Date().toISOString(),createdBy:currentUser.username}); localStorage.setItem('ht_booker_accounts',JSON.stringify(dbBookerAccounts)); if(typeof dbAuditLog!=='undefined'){dbAuditLog.push({id:'AUD_'+Date.now(),date:new Date().toISOString(),user:currentUser.username,action:'Booker Account Entry',reference:booker,details:`${type} Rs. ${amount} — ${note}`});localStorage.setItem('ht_audit_log',JSON.stringify(dbAuditLog));} document.getElementById('adminBookerLedgerAmount').value='';document.getElementById('adminBookerLedgerNote').value=''; renderBookerDashboard(); alert('Booker ledger entry saved.'); }
 function populateAdminBookerLedgerUsers(){ const el=document.getElementById('adminBookerLedgerUser');if(!el)return;const names=getBookerNames();el.innerHTML=names.map(n=>`<option value="${String(n).replace(/"/g,'&quot;')}">${n}</option>`).join('')||'<option value="">No booker found</option>';const d=document.getElementById('adminBookerLedgerDate');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10); }
 function renderBookerDashboard(){ const adminView=document.getElementById('adminDashboardView'),bookerView=document.getElementById('bookerDashboardView');if(!adminView||!bookerView)return;const booker=isOrderBookerUser();adminView.style.display=booker?'none':'';bookerView.style.display=booker?'block':'none';const adminPanel=document.getElementById('adminBookerLedgerPanel');if(adminPanel)adminPanel.style.display=(!booker&&currentUser&&(currentUser.isOwner||currentUser.role==='Admin'))?'block':'none';if(!booker){populateAdminBookerLedgerUsers();return;}const name=currentUser.username;const shops=dbShops.filter(s=>String(s.booker||'').toLowerCase()===String(name).toLowerCase());const shopNames=new Set(shops.map(s=>s.name));const invoices=dbInvoices.filter(i=>shopNames.has(i.shop)&&String(i.booker||name).toLowerCase()===String(name).toLowerCase());const returns=dbReturns.filter(r=>shopNames.has(r.shop));const recoveries=dbRecoveries.filter(r=>String(r.booker||'').toLowerCase()===String(name).toLowerCase()&&r.status==='Approved');const sales=invoices.reduce((a,i)=>a+Number(i.currentBillTotal||0),0);const ret=returns.reduce((a,r)=>a+Number(r.totalRefund||0),0);const disc=invoices.reduce((a,i)=>a+Number(i.itemDiscounts||0),0);const rec=recoveries.reduce((a,r)=>a+Number(r.amount||0),0);const credit=shops.reduce((a,s)=>a+Number(getShopPreviousBalance(s.name)||0),0);const account=getBookerAccountEntries(name);let running=0;account.forEach(x=>{running+=x.type==='Returned / Settled'?-Number(x.amount||0):Number(x.amount||0)});const resp=(dbStaffResponsibilities||[]).filter(x=>String(x.person||'').toLowerCase()===String(name).toLowerCase()&&String(x.status||'Open').toLowerCase()!=='closed').reduce((a,x)=>a+Number(x.amount||0),0);const due=running+resp;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('bookerDashName',name);set('bookerKpiShops',shops.length.toLocaleString());set('bookerKpiSales','Rs. '+sales.toLocaleString());set('bookerKpiCredit','Rs. '+credit.toLocaleString());set('bookerKpiReturns','Rs. '+ret.toLocaleString());set('bookerKpiDiscounts','Rs. '+disc.toLocaleString());set('bookerKpiRecovery','Rs. '+rec.toLocaleString());set('bookerKpiDue','Rs. '+due.toLocaleString());set('bookerKpiInvoices',invoices.length.toLocaleString());const tbody=document.getElementById('bookerShopLedgerTbody');if(tbody)tbody.innerHTML=shops.map((s,i)=>{const si=invoices.filter(x=>x.shop===s.name);const ss=si.reduce((a,x)=>a+Number(x.currentBillTotal||0),0);const bal=getShopPreviousBalance(s.name);return `<tr><td>${i+1}</td><td><strong>${s.name}</strong></td><td>${s.route||'--'}</td><td>${si.length}</td><td>Rs. ${ss.toLocaleString()}</td><td><strong>Rs. ${Number(bal).toLocaleString()}</strong></td><td><button class="btn-print" type="button" onclick="showBookerShopLedger('${String(s.name).replace(/'/g,"\\'")}')">View Ledger 📖</button></td></tr>`}).join('')||'<tr><td colspan="7">No shops assigned.</td></tr>';const own=document.getElementById('bookerOwnLedgerTbody');let run=0;const entries=[...account];(dbStaffResponsibilities||[]).filter(x=>String(x.person||'').toLowerCase()===String(name).toLowerCase()).forEach(x=>entries.push({date:x.date||'',type:'Staff Responsibility',id:x.id,amount:Number(x.amount||0),note:x.reason||'',_resp:true}));entries.sort((a,b)=>String(a.date+' '+(a.createdAt||'')).localeCompare(String(b.date+' '+(b.createdAt||''))));if(own)own.innerHTML=entries.map(x=>{const debit=x._resp?Number(x.amount||0):(x.type==='Returned / Settled'?0:Number(x.amount||0));const credit=x._resp?0:(x.type==='Returned / Settled'?Number(x.amount||0):0);run+=debit-credit;return `<tr><td>${x.date||'--'}</td><td>${x.type}</td><td>${x.id||'--'}</td><td>${debit?'Rs. '+debit.toLocaleString():'--'}</td><td>${credit?'Rs. '+credit.toLocaleString():'--'}</td><td><strong>Rs. ${run.toLocaleString()}</strong></td><td>${x.note||'--'}</td></tr>`}).join('')||'<tr><td colspan="7">No advance/responsibility entries.</td></tr>'; }
 function showBookerShopLedger(shopName){ if(!isOrderBookerUser())return; const panel=document.getElementById('bookerDashboardDetail'), credit=document.getElementById('bookerMarketCreditDetail'); if(!panel||!credit)return; const shop=dbShops.find(s=>s.name===shopName); const inv=dbInvoices.filter(i=>i.shop===shopName&&String(i.booker||currentUser.username).toLowerCase()===String(currentUser.username).toLowerCase()); const rec=dbRecoveries.filter(r=>r.shop===shopName&&r.status==='Approved'); let ledger=[]; inv.forEach(i=>ledger.push({date:i.date,type:'Sale Invoice',ref:i.invNum,debit:Number(i.currentBillTotal||0),credit:Number(i.paidAmount||0),note:'Invoice'})); rec.forEach(r=>ledger.push({date:r.date,type:'Recovery',ref:r.id,debit:0,credit:Number(r.amount||0),note:r.method||'Approved recovery'})); ledger.sort((a,b)=>String(a.date).localeCompare(String(b.date))); let run=0; const rows=ledger.map(x=>{run+=x.debit-x.credit;return `<tr><td>${x.date}</td><td>${x.type}</td><td>${x.ref}</td><td>${x.debit?'Rs. '+x.debit.toLocaleString():'--'}</td><td>${x.credit?'Rs. '+x.credit.toLocaleString():'--'}</td><td><strong>Rs. ${run.toLocaleString()}</strong></td><td>${x.note||'--'}</td></tr>`}).join('')||'<tr><td colspan="7">No transactions found.</td></tr>'; credit.innerHTML=`<div class="ft-booker-detail-head"><div><h3>📖 ${shopName} — Shop Ledger</h3><p>Route: ${shop?shop.route||'--':'--'} | Current Outstanding: <strong>Rs. ${Number(getShopPreviousBalance(shopName)||0).toLocaleString()}</strong></p></div><button class="btn-edit" type="button" onclick="ftOpenBookerMarketCredit()">← Back to My Credit</button></div><div class="table-responsive"><table><thead><tr><th>Date</th><th>Transaction</th><th>Reference</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div>`; panel.style.display='block'; document.getElementById('bookerOwnLedgerDetail').style.display='none'; credit.style.display='block'; panel.scrollIntoView({behavior:'smooth',block:'start'}); }
@@ -6156,7 +6183,7 @@ function renderShops() {
 
   // Only ticked records can be approved. No Approve-All action exists.
   window.approveSelectedRecoveries=function(){
-    if(!currentUser || !(['Admin','KPO','Fatima Tech Owner'].includes(currentUser.role) || currentUser.isOwner)){
+    if(!currentUser || !(['Admin','Developer','KPO','Fatima Tech Owner'].includes(currentUser.role) || currentUser.isOwner)){
       return alert('Only Admin/KPO can approve recoveries.');
     }
 
@@ -6333,7 +6360,7 @@ function renderShops() {
     if(master) master.checked=!!checked;
   };
   window.approveAllPendingRecoveries=function(){
-    if(!currentUser || !['Admin','KPO','Fatima Tech Owner'].includes(currentUser.role) && !currentUser.isOwner){
+    if(!currentUser || !['Admin','Developer','KPO','Fatima Tech Owner'].includes(currentUser.role) && !currentUser.isOwner){
       return alert('Only Admin/KPO can approve recoveries.');
     }
     const pending=(dbRecoveries||[]).filter(r=>String(r.status||'Pending')==='Pending');
@@ -6508,12 +6535,12 @@ function protectedEl(el){return !el||['script','style','textarea','option'].incl
 function translateTextFinal(root,lang){const d=dict(lang),keys=Object.keys(d).filter(Boolean).sort((a,b)=>b.length-a.length),w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(protectedEl(n.parentElement))continue;let raw=n.nodeValue||'';if(!raw.trim())continue;for(const k of keys)if(raw.includes(k))raw=raw.split(k).join(d[k]);n.nodeValue=raw}}
 function translateAttrsFinal(lang){const d=dict(lang),keys=Object.keys(d).filter(Boolean).sort((a,b)=>b.length-a.length);document.querySelectorAll('input,button,select,textarea,[aria-label]').forEach(el=>['placeholder','title','aria-label'].forEach(attr=>{let v=el.getAttribute(attr);if(!v)return;for(const k of keys)if(v.includes(k))v=v.split(k).join(d[k]);el.setAttribute(attr,v)}))}
 window.applyLanguage=function(lang){lang=lang==='ur'?'ur':'en';try{snapshotEnglishNode(document.body);snapshotAttributes();restoreEnglish()}catch(e){}document.documentElement.lang=lang==='ur'?'ur':'en';document.documentElement.dir=lang==='ur'?'rtl':'ltr';document.body.classList.toggle('lang-urdu',lang==='ur');document.body.classList.toggle('lang-english',lang==='en');if(lang==='ur'){translateTextFinal(document.body,'ur');translateAttrsFinal('ur')}localStorage.setItem(FT_LANG_KEY,lang);if(typeof updateSwitch==='function')updateSwitch()};
-function showBusinessSettings(){const nav=document.getElementById('ftBusinessSettingsNav');if(nav)nav.style.display=(typeof currentUser!=='undefined'&&currentUser&&(currentUser.isOwner||currentUser.role==='Admin'))?'':'none'}
+function showBusinessSettings(){const nav=document.getElementById('ftBusinessSettingsNav');if(nav)nav.style.display=(typeof currentUser!=='undefined'&&currentUser&&(currentUser.isOwner||['Admin','Developer'].includes(currentUser.role)))?'':'none'}
 function isoToday(){return new Date().toISOString().slice(0,10)}
 function dashboardShopBalanceAsOf(shop,to){let b=0;(dbInvoices||[]).filter(i=>i.shop===shop&&(!to||i.date<=to)).forEach(i=>{b+=Number(i.currentBillTotal??i.remainingSubtotal??0)||0;b-=Number(i.paidAmount||0)||0});(dbReturns||[]).filter(r=>r.shop===shop&&(!to||r.date<=to)).forEach(r=>b-=Number(r.totalRefund||0)||0);(dbRecoveries||[]).filter(r=>r.shop===shop&&r.status==='Approved'&&(!to||r.date<=to)).forEach(r=>b-=Number(r.amount||0)||0);(dbLedgerAdjustments||[]).filter(a=>a.shop===shop&&(!to||a.date<=to)).forEach(a=>b+=a.type==='Debit'?(Number(a.amount)||0):-(Number(a.amount)||0));return b}
 function dashDate(){return document.getElementById('dashAsOfDate')?.value||isoToday()}
 window.ftDashboardResetDate=function(){const e=document.getElementById('dashAsOfDate');if(e)e.value=isoToday();renderDashboard()};window.ftDashboardDateChanged=function(){renderDashboard()};
-window.renderDashboard=function(){const asOf=dashDate(),ins=(dbInvoices||[]).filter(i=>!asOf||i.date<=asOf),rets=(dbReturns||[]).filter(r=>!asOf||r.date<=asOf),recs=(dbRecoveries||[]).filter(r=>r.status==='Approved'&&(!asOf||r.date<=asOf)),exps=(dbExpenses||[]).filter(e=>!asOf||e.date<=asOf),claims=(dbCompanyClaims||[]).filter(c=>!asOf||c.date<=asOf);const gross=ins.reduce((a,i)=>a+Number(i.currentBillTotal||0),0),rv=rets.reduce((a,r)=>a+Number(r.totalRefund||0),0),sales=Math.max(0,gross-rv),rec=recs.reduce((a,r)=>a+Number(r.amount||0),0),exp=exps.reduce((a,e)=>a+Number(e.amount||0),0),disc=ins.reduce((a,i)=>a+Number(i.itemDiscounts||0),0),claim=claims.reduce((a,c)=>a+Number(c.totalVal||0),0),cash=typeof cashState==='function'?cashState(asOf).cash:Number(dbCashInHand||0),market=(dbShops||[]).reduce((a,s)=>a+dashboardShopBalanceAsOf(s.name,asOf),0);const today=isoToday(),todayFlow=typeof cashMovementForDate==='function'?cashMovementForDate(today).cash:0;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText='Rs. '+Math.round(v).toLocaleString()};set('dashTotalUdhaar',market);set('dashTodaySales',sales);set('dashTodayRecovery',rec);set('dashTodayCashFlow',asOf===today?todayFlow:0);set('dashCashInHand',cash);set('dashReservedStockVal',claim);set('dashTotalExpenses',exp);set('dashTotalReturns',rv);set('dashTotalDiscounts',disc);const f=document.getElementById('dashBookerSummaryTable');if(f){const names=new Set();(dbUsers||[]).filter(u=>u.role==='Order Booker').forEach(u=>names.add(u.username));(dbShops||[]).forEach(s=>{if(s.booker)names.add(s.booker)});ins.forEach(i=>{if(i.booker)names.add(i.booker)});f.innerHTML=[...names].filter(Boolean).sort().map((b,i)=>{const bi=ins.filter(x=>x.booker===b),bs=bi.reduce((a,x)=>a+Number(x.currentBillTotal||0),0)-rets.filter(r=>r.booker===b).reduce((a,r)=>a+Number(r.totalRefund||0),0),bc=bi.reduce((a,x)=>a+(String(x.payType||'').toLowerCase()==='credit'?Number(x.currentBillTotal||0)-Number(x.paidAmount||0):0),0),br=recs.filter(r=>r.booker===b).reduce((a,r)=>a+Number(r.amount||0),0);return `<tr><td>${i+1}</td><td>${b}</td><td>${(dbShops||[]).filter(s=>s.booker===b).length}</td><td>Rs. ${Math.round(bs).toLocaleString()}</td><td>Rs. ${Math.round(bc).toLocaleString()}</td><td>Rs. ${Math.round(br).toLocaleString()}</td></tr>`}).join('')||'<tr><td colspan="6">No data for selected date.</td></tr>'}try{snapshotEnglishNode(document.body);snapshotAttributes();if((localStorage.getItem(FT_LANG_KEY)||'en')==='ur')window.applyLanguage('ur')}catch(e){}};
+window.renderDashboard=function(){const asOf=dashDate(),ins=(dbInvoices||[]).filter(i=>!asOf||i.date<=asOf),rets=(dbReturns||[]).filter(r=>!asOf||r.date<=asOf),recs=(dbRecoveries||[]).filter(r=>r.status==='Approved'&&(!asOf||r.date<=asOf)),exps=(dbExpenses||[]).filter(e=>!asOf||e.date<=asOf),claims=(dbCompanyClaims||[]).filter(c=>!asOf||c.date<=asOf);const gross=ins.reduce((a,i)=>a+Number(i.currentBillTotal||0),0),rv=rets.reduce((a,r)=>a+Number(r.totalRefund||0),0),sales=Math.max(0,gross-rv),rec=recs.reduce((a,r)=>a+Number(r.amount||0),0),exp=exps.reduce((a,e)=>a+Number(e.amount||0),0),disc=ins.reduce((a,i)=>a+Number(i.itemDiscounts||0),0),claim=claims.reduce((a,c)=>a+Number(c.totalVal||0),0),purchaseAmt=(dbPurchaseInvoices||[]).filter(p=>!asOf||p.date<=asOf).reduce((a,p)=>a+Number(p.totalAmt||0),0),cash=typeof cashState==='function'?cashState(asOf).cash:Number(dbCashInHand||0),market=(dbShops||[]).reduce((a,s)=>a+dashboardShopBalanceAsOf(s.name,asOf),0);const today=isoToday(),todayFlow=typeof cashMovementForDate==='function'?cashMovementForDate(today).cash:0;const set=(id,v)=>{const e=document.getElementById(id);if(e)e.innerText='Rs. '+Math.round(v).toLocaleString()};set('dashTotalUdhaar',market);set('dashTodaySales',sales);set('dashTodayRecovery',rec);set('dashPurchaseAmount',purchaseAmt);set('dashTodayCashFlow',asOf===today?todayFlow:0);set('dashCashInHand',cash);set('dashReservedStockVal',claim);set('dashTotalExpenses',exp);set('dashTotalReturns',rv);set('dashTotalDiscounts',disc);const f=document.getElementById('dashBookerSummaryTable');if(f){const names=new Set();(dbUsers||[]).filter(u=>u.role==='Order Booker').forEach(u=>names.add(u.username));(dbShops||[]).forEach(s=>{if(s.booker)names.add(s.booker)});ins.forEach(i=>{if(i.booker)names.add(i.booker)});f.innerHTML=[...names].filter(Boolean).sort().map((b,i)=>{const bi=ins.filter(x=>x.booker===b),bs=bi.reduce((a,x)=>a+Number(x.currentBillTotal||0),0)-rets.filter(r=>r.booker===b).reduce((a,r)=>a+Number(r.totalRefund||0),0),bc=bi.reduce((a,x)=>a+(String(x.payType||'').toLowerCase()==='credit'?Number(x.currentBillTotal||0)-Number(x.paidAmount||0):0),0),br=recs.filter(r=>r.booker===b).reduce((a,r)=>a+Number(r.amount||0),0);return `<tr><td>${i+1}</td><td>${b}</td><td>${(dbShops||[]).filter(s=>s.booker===b).length}</td><td>Rs. ${Math.round(bs).toLocaleString()}</td><td>Rs. ${Math.round(bc).toLocaleString()}</td><td>Rs. ${Math.round(br).toLocaleString()}</td></tr>`}).join('')||'<tr><td colspan="6">No data for selected date.</td></tr>'}try{snapshotEnglishNode(document.body);snapshotAttributes();if((localStorage.getItem(FT_LANG_KEY)||'en')==='ur')window.applyLanguage('ur')}catch(e){}};
 function ensureDashboardDateBar(){const dash=document.getElementById('dashboard');if(!dash||document.getElementById('ftDashboardDateBar'))return;const cards=dash.querySelector('.summary-cards');if(!cards)return;const bar=document.createElement('div');bar.id='ftDashboardDateBar';bar.className='ft-dashboard-datebar';bar.innerHTML='<label for="dashAsOfDate">As of Date</label><input id="dashAsOfDate" type="date" onchange="ftDashboardDateChanged()"><button type="button" class="ft-date-reset" onclick="ftDashboardResetDate()">Today</button><span id="ftDashboardDateHint" style="font-size:10px;color:#64748b;font-weight:700">Data shown through selected date</span>';dash.insertBefore(bar,cards);document.getElementById('dashAsOfDate').value=isoToday();try{snapshotEnglishNode(bar);snapshotAttributes();if((localStorage.getItem(FT_LANG_KEY)||'en')==='ur')window.applyLanguage('ur')}catch(e){}}
 window.addEventListener('load',function(){ensureDashboardDateBar();showBusinessSettings();setInterval(showBusinessSettings,1000);setTimeout(function(){const l=localStorage.getItem(FT_LANG_KEY)||'en';window.applyLanguage(l);renderDashboard()},40)});
 })();
@@ -7871,7 +7898,7 @@ function staffList(){
   return all;
 }
 function isAdminLike(){
-  return !!currentUser && ['Admin','KPO','Fatima Tech Owner'].includes(currentUser.role);
+  return !!currentUser && ['Admin','Developer','KPO','Fatima Tech Owner'].includes(currentUser.role);
 }
 function allowedStaff(){
   if(isAdminLike())return staffList();
@@ -8429,7 +8456,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     'ht_capital_entries','ht_cash_ledger','ht_finance_transactions'
   ];
   window.ftStartCompletelyFresh=function(){
-    if(typeof currentUser==='undefined'||!currentUser||!['Admin','Owner'].includes(String(currentUser.role)))return alert('Only Admin/Owner can start a new business file.');
+    if(typeof currentUser==='undefined'||!currentUser||!['Admin','Developer','Owner'].includes(String(currentUser.role)))return alert('Only Admin/Owner can start a new business file.');
     if(!confirm('START COMPLETELY FRESH?\n\nThis will permanently remove ALL demo/business transactions, stock, shops, invoices, investments, investors, expenses, recoveries, salary records and financial history.\n\nUsers, roles and company/application settings will remain.\n\nContinue?'))return;
     KEYS.forEach(k=>localStorage.removeItem(k));
     // Reset in-memory arrays too.
@@ -8480,7 +8507,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     try{
       var user=window.currentUser || null;
       var role=String(user && user.role || '').toLowerCase();
-      var all=!!(user && ((user.permissions||[]).includes('ALL') || role==='admin' || role==='fatima tech owner' || role==='kpo'));
+      var all=!!(user && ((user.permissions||[]).includes('ALL') || role==='admin' || role==='developer' || role==='fatima tech owner' || role==='kpo'));
       document.querySelectorAll('.sidebar [data-perm]').forEach(function(el){
         var p=el.getAttribute('data-perm');
         if(all) el.style.display='';
@@ -9519,10 +9546,13 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     try{
       const nav=document.getElementById('ftBusinessSettingsNav');
       if(nav){
-        const u=window.currentUser;
-        nav.style.display=(u && (u.role==='Admin' || u.isOwner===true))?'':'none';
+        // currentUser is declared as a top-level variable in this HTML; it is
+        // not guaranteed to be exposed as window.currentUser.
+        const u=(typeof currentUser!=='undefined')?currentUser:null;
+        const allowed=!!(u && (['Admin','Developer'].includes(u.role) || u.isOwner===true));
+        nav.style.display=allowed?'':'none';
         nav.style.order='999';
-        nav.style.visibility=(u && (u.role==='Admin' || u.isOwner===true))?'visible':'hidden';
+        nav.style.visibility=allowed?'visible':'hidden';
       }
     }catch(e){}
   }
@@ -10129,3 +10159,66 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 </html>
+
+
+<!-- FATIMA TECH v54 — Dashboard purchase KPI + Company Settings visibility repair -->
+<style id="ft-v54-dashboard-purchase-settings-css">
+#ftBusinessSettingsNav{order:999!important}
+#ftPurchaseInvoiceActionsPanel{margin-top:14px}
+.ft-purchase-kpi{cursor:pointer}
+.ft-business-settings-fixed{position:absolute;left:0;right:0;bottom:0;padding:8px 10px;background:#0f172a;border-top:1px solid #334155;z-index:50;box-sizing:border-box}
+.ft-business-settings-fixed button{width:100%;border:1px solid #2563eb;background:linear-gradient(135deg,#1d4ed8,#0284c7);color:#fff;border-radius:9px;padding:10px 9px;font-weight:800;font-size:12px;cursor:pointer;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.ft-business-settings-fixed button:hover{filter:brightness(1.08)}
+@media(max-width:900px){.ft-business-settings-fixed{position:sticky;bottom:0;margin-top:8px}}
+</style>
+<script id="ft-v54-dashboard-purchase-settings-js">
+(function(){
+  'use strict';
+  function adminUser(){return (typeof currentUser!=='undefined')?currentUser:null;}
+  function fixCompanySettings(){
+    const nav=document.getElementById('ftBusinessSettingsNav');
+    const fixed=document.getElementById('ftBusinessSettingsFixed');
+    const u=adminUser();
+    const allowed=!!(u && (['Admin','Developer'].includes(u.role)||u.isOwner===true));
+    if(nav){
+      nav.style.setProperty('display',allowed?'list-item':'none','important');
+      nav.style.setProperty('visibility',allowed?'visible':'hidden','important');
+      nav.style.setProperty('order','999','important');
+    }
+    if(fixed) fixed.style.setProperty('display',allowed?'block':'none','important');
+  }
+  window.ftEnsureAdminCompanySettings=fixCompanySettings;
+
+  function renderPurchaseDashboardKpi(){
+    const el=document.getElementById('dashPurchaseAmount');
+    if(!el)return;
+    const asOf=(typeof dashDate==='function')?dashDate():(new Date().toISOString().slice(0,10));
+    const rows=Array.isArray(window.dbPurchaseInvoices)?window.dbPurchaseInvoices:[];
+    const total=rows.filter(p=>!asOf||String(p.date||'')<=String(asOf)).reduce((a,p)=>a+(Number(p.totalAmt)||0),0);
+    el.textContent='Rs. '+Math.round(total).toLocaleString();
+  }
+  window.ftRenderPurchaseDashboardKpi=renderPurchaseDashboardKpi;
+
+  // If an older dashboard renderer overwrites the KPI, restore its value after render.
+  const oldDash=window.renderDashboard;
+  if(typeof oldDash==='function'&&!window.__ftV54DashPatch){
+    window.renderDashboard=function(){
+      const r=oldDash.apply(this,arguments);
+      setTimeout(function(){renderPurchaseDashboardKpi();fixCompanySettings();},0);
+      return r;
+    };
+    window.__ftV54DashPatch=true;
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    fixCompanySettings();
+    renderPurchaseDashboardKpi();
+    setTimeout(fixCompanySettings,100);
+    setTimeout(fixCompanySettings,500);
+    setTimeout(fixCompanySettings,1200);
+    setTimeout(renderPurchaseDashboardKpi,300);
+  });
+  window.addEventListener('load',function(){fixCompanySettings();renderPurchaseDashboardKpi();});
+  setInterval(fixCompanySettings,1000);
+})();
+</script>
