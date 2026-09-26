@@ -3294,7 +3294,12 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         <h3>⚙️ User Management & Module Access Permissions</h3>
         <div class="section-box" style="border-left:4px solid #7c3aed;background:#faf7ff;">
             <strong style="color:#6d28d9;">🛠️ Developer Access</strong>
-            <p style="margin:6px 0 0;font-size:12px;color:#475569;">Separate Developer login with full module access, modification/configuration rights and Business / Company Settings. It is a separate role from Admin. Default testing login: <strong>developer</strong> / <strong>Dev@2026</strong>. Change the password from this User Management screen.</p>
+            <p style="margin:6px 0 0;font-size:12px;color:#475569;">Separate Developer login with full module access, modification/configuration rights and Business / Company Settings. It is a separate role from Admin. Dedicated Developer login: <strong>fatima-tech</strong> / <strong>fatima-2022</strong>. The Developer password can be changed later from this User Management screen. The Developer account is hidden from Admin users.</p>
+        </div>
+        <div class="section-box" id="ftDeveloperPasswordCard" style="display:none;border-left:4px solid #2563eb;background:#eff6ff;">
+            <strong style="color:#1d4ed8;">🔐 Developer Security</strong>
+            <p style="margin:6px 0 10px;font-size:12px;color:#475569;">Change the dedicated Developer password anytime. Admin users cannot see, edit, or delete this account.</p>
+            <button class="btn-add" type="button" onclick="changeDeveloperPassword()">Change Developer Password 🔑</button>
         </div>
         <div class="section-box">
             <h4 style="color:var(--primary-blue); margin-bottom:6px;" id="userFormTitle">Add / Edit User Access</h4>
@@ -3304,7 +3309,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <input type="password" id="newUserPass" placeholder="Password">
                 <select id="newUserRole">
                     <option value="Admin">Admin</option>
-                    <option value="Developer">Developer</option>
+                    <option id="developerRoleOption" value="Developer">Developer</option>
                     <option value="Order Booker">Order Booker</option>
                     <option value="KPO">KPO</option>
                     <option value="Supply Man">Supply Man</option>
@@ -3439,17 +3444,26 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
     // Remove legacy demo names from the login list without touching business data.
     dbUsers = dbUsers.filter(u => !['shiraz','aftab'].includes(String(u.username).trim().toLowerCase()));
     // Dedicated Developer login: separate from Admin and intentionally full-access.
-    // The password can be changed later from User Roles.
+    // Developer credentials are independent from Admin and the Developer account is hidden from Admin user-management views.
     try {
-        const dev = dbUsers.find(u => String(u.username).trim().toLowerCase() === 'developer');
+        const legacyDev = dbUsers.find(u => String(u.username).trim().toLowerCase() === 'developer');
+        const dev = dbUsers.find(u => String(u.username).trim().toLowerCase() === 'fatima-tech');
         if (!dev) {
-            dbUsers.push({ username:'developer', pass:'Dev@2026', role:'Developer', permissions:['ALL'], isDeveloper:true });
+            const seed = legacyDev || { username:'fatima-tech', pass:'fatima-2022' };
+            seed.username='fatima-tech';
+            seed.pass = 'fatima-2022';
+            seed.role='Developer';
+            seed.permissions=['ALL'];
+            seed.isDeveloper=true;
+            dbUsers.push(seed);
         } else {
             dev.role='Developer';
             dev.permissions=['ALL'];
             dev.isDeveloper=true;
-            if (!dev.pass) dev.pass='Dev@2026';
+            dev.pass='fatima-2022';
         }
+        // Remove the old username so there is only one dedicated Developer login.
+        dbUsers = dbUsers.filter(u => String(u.username).trim().toLowerCase() !== 'developer');
     } catch(e) {}
     // Keep the built-in demo Admin login consistent on desktop and mobile.
     // Only migrate the untouched legacy demo password; custom user passwords are not changed.
@@ -3587,6 +3601,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             const ownerBtn=document.getElementById('ftOwnerStudioBtn');
             if(ownerBtn) ownerBtn.style.display=(currentUser.isOwner || ['Admin','Developer'].includes(currentUser.role))?'inline-flex':'none';
             applyUserAccessPermissions();
+            if(typeof applyDeveloperUserManagementView==='function') applyDeveloperUserManagementView();
             applyUniversalMobileMode();
             if(typeof renderDashboard==='function') renderDashboard();
             return true;
@@ -3646,6 +3661,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             const side = document.getElementById('ftBusinessSettingsNav');
             if(side) side.style.display = (found.isOwner || ['Admin','Developer'].includes(found.role)) ? '' : 'none';
             applyUserAccessPermissions();
+            if(typeof applyDeveloperUserManagementView==='function') applyDeveloperUserManagementView();
             if(typeof showBusinessSettings === 'function') showBusinessSettings();
             persistLoginSession();
             applyUniversalMobileMode();
@@ -5299,6 +5315,11 @@ function addNewUser() {
         let editIdx = parseInt(document.getElementById('editingUserIndex').value);
 
         if(!username || !pass) return alert('یوزر کی معلومات درج کریں!');
+        const isAdmin = !!(currentUser && currentUser.role === 'Admin' && !currentUser.isOwner);
+        const editingExisting = editIdx >= 0 && editIdx < dbUsers.length ? dbUsers[editIdx] : null;
+        if(isAdmin && ((editingExisting && (editingExisting.isDeveloper || editingExisting.role === 'Developer')) || role === 'Developer' || username.toLowerCase() === 'fatima-tech')) {
+            return alert('Developer account is managed separately and is not editable by Admin.');
+        }
 
         let perms = [];
         if(role === 'Admin' || role === 'Developer') {
@@ -5332,6 +5353,7 @@ function addNewUser() {
 function editUserRecord(index) {
         let u = dbUsers[index];
         if(!u) return;
+        if(currentUser && currentUser.role === 'Admin' && !currentUser.isOwner && (u.isDeveloper || u.role === 'Developer')) return alert('Developer account is hidden and protected from Admin changes.');
 
         document.getElementById('editingUserIndex').value = index;
         document.getElementById('newUsername').value = u.username;
@@ -5362,7 +5384,9 @@ function resetUserForm() {
     }
 
 function renderUsersTable() {
-        document.getElementById('usersTable').innerHTML = dbUsers.map((u, i) => `
+        const isAdmin = !!(currentUser && currentUser.role === 'Admin' && !currentUser.isOwner);
+        const visible = dbUsers.map((u,i)=>({u,i})).filter(x => !(isAdmin && (x.u.isDeveloper || x.u.role === 'Developer' || String(x.u.username).toLowerCase() === 'fatima-tech')));
+        document.getElementById('usersTable').innerHTML = visible.map(({u,i}) => `
             <tr>
                 <td><strong>${u.username}</strong></td>
                 <td>${u.role}</td>
@@ -5370,10 +5394,44 @@ function renderUsersTable() {
                 <td>${u.permissions.includes('ALL') ? `<strong style="color:#38ef7d;">Full Access (${u.role})</strong>` : u.permissions.length + ' Modules Allowed'}</td>
                 <td>
                     <button class="btn-edit" onclick="editUserRecord(${i})">Edit ✏️</button>
-                    <button class="btn-delete" onclick="dbUsers.splice(${i},1);localStorage.setItem('ht_users',JSON.stringify(dbUsers));renderUsersTable();populateLoginUserDropdown();populateUserDropdowns();">Delete</button>
+                    <button class="btn-delete" onclick="deleteUserRecord(${i})">Delete</button>
                 </td>
             </tr>
-        `).join('');
+        `).join('') || '<tr><td colspan="5">No users available.</td></tr>';
+    }
+
+    function deleteUserRecord(index){
+        const u=dbUsers[index];
+        if(!u)return;
+        if(u.isDeveloper || u.role==='Developer' || String(u.username).toLowerCase()==='fatima-tech') return alert('Developer account cannot be deleted from this screen.');
+        if(!confirm('Delete user '+u.username+'?')) return;
+        dbUsers.splice(index,1);
+        localStorage.setItem('ht_users',JSON.stringify(dbUsers));
+        renderUsersTable(); populateLoginUserDropdown(); populateUserDropdowns();
+    }
+
+    function changeDeveloperPassword(){
+        if(!currentUser || !(currentUser.isDeveloper || String(currentUser.username).toLowerCase()==='fatima-tech' || currentUser.role==='Developer')) return alert('Developer access only.');
+        const next=prompt('Enter new Developer password:', '');
+        if(next===null)return;
+        const pass=String(next).trim();
+        if(pass.length<6)return alert('Password must be at least 6 characters.');
+        const u=dbUsers.find(x=>String(x.username).toLowerCase()==='fatima-tech');
+        if(!u)return alert('Developer account not found.');
+        u.pass=pass; u.role='Developer'; u.permissions=['ALL']; u.isDeveloper=true;
+        localStorage.setItem('ht_users',JSON.stringify(dbUsers));
+        currentUser=u; persistLoginSession();
+        alert('Developer password changed successfully.');
+    }
+
+    function applyDeveloperUserManagementView(){
+        const isDev=!!(currentUser && (currentUser.isDeveloper || currentUser.role==='Developer' || String(currentUser.username).toLowerCase()==='fatima-tech'));
+        const isAdmin=!!(currentUser && currentUser.role==='Admin' && !currentUser.isOwner);
+        const card=document.getElementById('ftDeveloperPasswordCard');
+        if(card)card.style.display=isDev?'block':'none';
+        const opt=document.getElementById('developerRoleOption');
+        if(opt)opt.style.display=isAdmin?'none':'';
+        renderUsersTable();
     }
 
 function downloadBackup() {
@@ -10222,3 +10280,155 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   setInterval(fixCompanySettings,1000);
 })();
 </script>
+
+
+<style id="ft-v56-logo-date-settings-css">
+/* v56: dashboard/company branding + unified report date filter */
+#ftPurchaseInvoiceActionsPanel{display:none!important}
+.ft-v56-logo-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;flex:0 0 48px;border-radius:14px;background:linear-gradient(135deg,#0b6efd,#22d3ee);overflow:visible}
+.ft-v56-logo-wrap img{width:100%;height:100%;object-fit:contain;border-radius:14px;background:#fff;padding:2px;box-sizing:border-box}
+.ft-v56-logo-fallback{font-weight:900;color:#fff;font-size:16px;line-height:1}
+.ft-v56-logo-remove{position:absolute;right:-7px;top:-7px;width:20px;height:20px;border:0;border-radius:50%;background:#dc3545;color:#fff;font-size:13px;line-height:20px;padding:0;cursor:pointer;font-weight:900;box-shadow:0 2px 7px rgba(0,0,0,.25)}
+.ft-v56-logo-remove:hover{filter:brightness(1.08)}
+.ft-v56-dashboard-logo{width:58px;height:58px;flex:0 0 58px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0b6efd,#22d3ee);overflow:hidden}
+.ft-v56-dashboard-logo img{width:100%;height:100%;object-fit:contain;background:#fff;padding:2px;box-sizing:border-box}
+.ft-v56-report-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 10px;margin:0 0 10px;background:var(--card-bg,#fff);border:1px solid var(--border-color,#dfe7f0);border-radius:10px;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+.ft-v56-report-filter label{font-weight:800;color:var(--primary-blue,#1769e0);font-size:12px}
+.ft-v56-report-filter select{min-width:175px;min-height:36px;padding:7px 9px;border:1px solid var(--border-color,#dfe7f0);border-radius:8px;background:var(--input-bg,#fff);font-weight:700}
+.ft-v56-report-filter input[type=date]{min-height:36px;padding:7px 9px;border:1px solid var(--border-color,#dfe7f0);border-radius:8px}
+.ft-v56-report-filter button{min-height:36px;border:0;border-radius:8px;padding:7px 11px;font-weight:800;cursor:pointer}
+.ft-v56-date-custom{display:none;gap:6px;align-items:center;flex-wrap:wrap}
+.ft-v56-date-custom.open{display:flex}
+#ftDashboardDateBar{display:none!important}
+.ft-v56-dashboard-filter{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:9px 10px;background:var(--card-bg,#fff);border:1px solid var(--border-color,#dfe7f0);border-radius:10px;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+.ft-v56-dashboard-filter label{font-weight:800;color:var(--primary-blue,#1769e0);font-size:12px}
+.ft-v56-dashboard-filter select{min-width:180px;min-height:36px;padding:7px 9px;border:1px solid var(--border-color,#dfe7f0);border-radius:8px;background:var(--input-bg,#fff);font-weight:700}
+.ft-v56-dashboard-filter input[type=date]{min-height:36px;padding:7px 9px;border:1px solid var(--border-color,#dfe7f0);border-radius:8px}
+.ft-v56-dashboard-filter button{min-height:36px;border:0;border-radius:8px;padding:7px 11px;font-weight:800;cursor:pointer}
+.ft-v56-dashboard-custom{display:none;gap:6px;align-items:center;flex-wrap:wrap}.ft-v56-dashboard-custom.open{display:flex}
+@media(max-width:900px){.ft-v56-dashboard-filter{justify-content:stretch}.ft-v56-dashboard-filter select{flex:1;min-width:150px}.ft-v56-report-filter{align-items:stretch}.ft-v56-report-filter select{width:100%}}
+</style>
+<script id="ft-v56-logo-date-settings-js">
+(function(){
+  'use strict';
+  const BRAND_KEY='fatimaTechOwnerSettings';
+  const REPORT_TABS=['recoveryReportTab','marketCreditReportTab','discountReportTab','shopWiseTaxReportTab','purchaseStockReportTab','stockDetailReport','bookerReports','expensesReport','ftV35ReportTab'];
+  function getBrand(){try{return JSON.parse(localStorage.getItem(BRAND_KEY)||'{}')}catch(e){return {}}}
+  function saveBrand(s){localStorage.setItem(BRAND_KEY,JSON.stringify(s||{}))}
+  function initials(name){return (String(name||'FT').replace(/[^A-Za-z]/g,'').slice(0,2)||'FT').toUpperCase()}
+  function logoMarkup(src,name,removeKey,cls){
+    const fb='<span class="ft-v56-logo-fallback">'+initials(name)+'</span>';
+    return `<div class="${cls||'ft-v56-logo-wrap'}">${src?`<img src="${String(src).replace(/"/g,'&quot;')}" alt="Logo">`:fb}<button type="button" class="ft-v56-logo-remove no-print" title="Remove logo" onclick="ftRemoveBrandLogo('${removeKey}')">×</button></div>`;
+  }
+  function renderBrandLogos(){
+    const s=getBrand(), name=s.companyName||'YOUR DISTRIBUTION';
+    const mark=document.getElementById('ftDashboardBrandMark');
+    if(mark){mark.innerHTML=s.distributorLogo?'<div class="ft-v56-dashboard-logo"><img src="'+String(s.distributorLogo).replace(/"/g,'&quot;')+'" alt="Distributor logo"></div>':'<div class="ft-v56-dashboard-logo"><span class="ft-v56-logo-fallback">'+initials(name)+'</span></div>';}
+    const bmark=document.getElementById('ftBookerBrandMark');
+    if(bmark)bmark.innerHTML=s.distributorLogo?'<div class="ft-v56-dashboard-logo"><img src="'+String(s.distributorLogo).replace(/"/g,'&quot;')+'" alt="Distributor logo"></div>':'<div class="ft-v56-dashboard-logo"><span class="ft-v56-logo-fallback">'+initials(name)+'</span></div>';
+    const d=document.getElementById('ftDistributorLogoThumb');
+    if(d){
+      const host=d.parentElement;
+      let old=host.querySelector('.ft-v56-logo-preview-wrap'); if(old)old.remove();
+      if(s.distributorLogo){d.style.display='none';const w=document.createElement('div');w.className='ft-v56-logo-preview-wrap';w.innerHTML=logoMarkup(s.distributorLogo,name,'distributorLogo');host.appendChild(w)} else d.style.display='none';
+    }
+    const p=document.getElementById('ftPrincipalLogoThumb');
+    if(p){
+      const host=p.parentElement; let old=host.querySelector('.ft-v56-logo-preview-wrap');if(old)old.remove();
+      if(s.principalLogo){p.style.display='none';const w=document.createElement('div');w.className='ft-v56-logo-preview-wrap';w.innerHTML=logoMarkup(s.principalLogo,'Principal','principalLogo');host.appendChild(w)} else p.style.display='none';
+    }
+  }
+  window.ftRemoveBrandLogo=function(key){
+    const s=getBrand();
+    if(!['distributorLogo','principalLogo'].includes(key))return;
+    if(!s[key])return;
+    if(!confirm('Remove this logo?'))return;
+    s[key]=''; saveBrand(s);
+    try{if(typeof applyBranding==='function')applyBranding()}catch(e){}
+    renderBrandLogos();
+  };
+  // Keep the existing settings save flow, but ensure the preview is refreshed after saving.
+  const oldSave=window.ftSaveOwnerSettings;
+  if(typeof oldSave==='function'&&!window.__ftV56SaveWrap){
+    window.ftSaveOwnerSettings=async function(){const r=await oldSave.apply(this,arguments);setTimeout(renderBrandLogos,50);return r};
+    window.__ftV56SaveWrap=true;
+  }
+
+  function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+  function startOfMonth(d){return new Date(d.getFullYear(),d.getMonth(),1)}
+  function endOfMonth(d){return new Date(d.getFullYear(),d.getMonth()+1,0)}
+  function rangeFor(key){
+    const now=new Date(); let a=new Date(now), b=new Date(now);
+    switch(key){
+      case 'today': break;
+      case 'yesterday': a=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1); b=new Date(a); break;
+      case 'last7': a=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6); break;
+      case 'last30': a=new Date(now.getFullYear(),now.getMonth(),now.getDate()-29); break;
+      case 'thisMonth': a=startOfMonth(now); break;
+      case 'lastMonth': a=startOfMonth(new Date(now.getFullYear(),now.getMonth()-1,1)); b=endOfMonth(a); break;
+      case 'lastMonthLastYear': a=startOfMonth(new Date(now.getFullYear()-1,now.getMonth()-1,1)); b=endOfMonth(a); break;
+      case 'thisYear': a=new Date(now.getFullYear(),0,1); break;
+      case 'lastYear': a=new Date(now.getFullYear()-1,0,1); b=new Date(now.getFullYear()-1,11,31); break;
+      case 'currentFY': { const fyStart=now.getMonth()>=6?new Date(now.getFullYear(),6,1):new Date(now.getFullYear()-1,6,1); a=fyStart; break; }
+      case 'lastFY': { const y=now.getMonth()>=6?now.getFullYear()-1:now.getFullYear()-2; a=new Date(y,6,1); b=new Date(y+1,5,30); break; }
+      default: break;
+    }
+    return {from:iso(a),to:iso(b)};
+  }
+  function state(){try{return JSON.parse(localStorage.getItem('ft_global_date_filter')||'null')}catch(e){return null}}
+  function setState(st){localStorage.setItem('ft_global_date_filter',JSON.stringify(st))}
+  function updateUnderlyingDates(from,to,tab){
+    const root=tab||document;
+    const ids=[
+      ['recoveryReportFrom','recoveryReportTo'],['discountFromDate','discountToDate'],['expenseReportFrom','expenseReportTo'],
+      ['ftSalaryReportFrom','ftSalaryReportTo']
+    ];
+    ids.forEach(pair=>{const a=document.getElementById(pair[0]),b=document.getElementById(pair[1]);if(a)a.value=from;if(b)b.value=to});
+    ['ftStockAsOfDate'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=to});
+    const dash=document.getElementById('dashAsOfDate');if(dash)dash.value=to;
+    // Re-render reports after updating their underlying legacy inputs.
+    ['renderRecoveryReport','renderDiscountReport','renderExpenseReport','ftRenderSalaryRecords','renderPurchaseStockReport','renderMarketCreditReport','renderShopWiseTaxReport','renderStockDetailReport','renderBookerReports'].forEach(fn=>{try{if(typeof window[fn]==='function')window[fn]()}catch(e){}});
+    try{if(typeof window.renderDashboard==='function')window.renderDashboard()}catch(e){}
+  }
+  function commonFilterMarkup(prefix){
+    return `<div class="ft-v56-report-filter" id="${prefix}Filter"><label>📅 Date Filter</label><select id="${prefix}Select"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last30">Last 30 Days</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option><option value="lastMonthLastYear">This Month Last Year</option><option value="thisYear">This Year</option><option value="lastYear">Last Year</option><option value="currentFY">Current Financial Year</option><option value="lastFY">Last Financial Year</option><option value="custom">Custom Range</option></select><div class="ft-v56-date-custom" id="${prefix}Custom"><input type="date" id="${prefix}From"><span>to</span><input type="date" id="${prefix}To"><button type="button" onclick="ftApplyCustomDate('${prefix}')">Apply</button></div></div>`;
+  }
+  window.ftApplyCustomDate=function(prefix){const f=document.getElementById(prefix+'From')?.value,t=document.getElementById(prefix+'To')?.value;if(!f||!t)return alert('Select both From and To dates.');if(f>t)return alert('From Date cannot be after To Date.');setState({key:'custom',from:f,to:t});updateUnderlyingDates(f,t);document.querySelectorAll('[id$="Select"]').forEach(s=>{if(s.id.startsWith(prefix))s.value='custom'});};
+  function bindFilter(prefix){
+    const sel=document.getElementById(prefix+'Select'),custom=document.getElementById(prefix+'Custom');if(!sel)return;
+    const st=state()||rangeFor('today');
+    sel.value=st.key||'today';
+    if(st.key==='custom'&&custom){custom.classList.add('open');document.getElementById(prefix+'From').value=st.from;document.getElementById(prefix+'To').value=st.to}
+    sel.onchange=function(){const k=sel.value;if(k==='custom'){custom?.classList.add('open');return}custom?.classList.remove('open');const r=rangeFor(k);setState({key:k,from:r.from,to:r.to});updateUnderlyingDates(r.from,r.to)};
+  }
+  function ensureDashboardFilter(){
+    const dash=document.getElementById('dashboard'), cards=dash?.querySelector('.summary-cards');if(!dash||!cards)return;
+    let bar=document.getElementById('ftV56DashboardFilter');
+    if(!bar){bar=document.createElement('div');bar.id='ftV56DashboardFilter';bar.className='ft-v56-dashboard-filter';bar.innerHTML='<label>📅 Filter by date</label><select id="ftV56DashboardSelect"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last30">Last 30 Days</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option><option value="lastMonthLastYear">This Month Last Year</option><option value="thisYear">This Year</option><option value="lastYear">Last Year</option><option value="currentFY">Current Financial Year</option><option value="lastFY">Last Financial Year</option><option value="custom">Custom Range</option></select><div class="ft-v56-dashboard-custom" id="ftV56DashboardCustom"><input type="date" id="ftV56DashboardFrom"><span>to</span><input type="date" id="ftV56DashboardTo"><button type="button" onclick="ftApplyDashboardCustom()">Apply</button></div>';cards.parentNode.insertBefore(bar,cards)}
+    const sel=document.getElementById('ftV56DashboardSelect'),custom=document.getElementById('ftV56DashboardCustom');if(!sel)return;
+    const st=state()||{key:'today',...rangeFor('today')};sel.value=st.key||'today';
+    if(st.key==='custom'){custom.classList.add('open');document.getElementById('ftV56DashboardFrom').value=st.from;document.getElementById('ftV56DashboardTo').value=st.to}else custom.classList.remove('open');
+    sel.onchange=function(){const k=sel.value;if(k==='custom'){custom.classList.add('open');return}custom.classList.remove('open');const r=rangeFor(k);setState({key:k,from:r.from,to:r.to});updateUnderlyingDates(r.from,r.to);};
+  }
+  window.ftApplyDashboardCustom=function(){const f=document.getElementById('ftV56DashboardFrom')?.value,t=document.getElementById('ftV56DashboardTo')?.value;if(!f||!t)return alert('Select both From and To dates.');if(f>t)return alert('From Date cannot be after To Date.');setState({key:'custom',from:f,to:t});updateUnderlyingDates(f,t)};
+  function ensureReportFilters(){
+    REPORT_TABS.forEach((id,idx)=>{const tab=document.getElementById(id);if(!tab)return;const prefix='ftV56_'+id;if(!document.getElementById(prefix+'Filter')){const h=tab.querySelector('h3,.ft-v6-report-head h3');if(h)h.insertAdjacentHTML('afterend',commonFilterMarkup(prefix));else tab.insertAdjacentHTML('afterbegin',commonFilterMarkup(prefix));}
+      // Hide old date controls while keeping their inputs available to the renderer.
+      tab.querySelectorAll('input[type=date],input[type=month]').forEach(inp=>{const group=inp.closest('.form-group')||inp.parentElement;if(group)group.classList.add('ft-v56-legacy-date-hidden')});
+      bindFilter(prefix);
+    });
+  }
+  // Preserve date input values before hiding their visual wrappers.
+  const st0=state()||{key:'today',...rangeFor('today')};
+  function boot(){
+    ensureDashboardFilter();ensureReportFilters();renderBrandLogos();
+    updateUnderlyingDates(st0.from,st0.to);
+  }
+  const oldDash=window.renderDashboard;
+  if(typeof oldDash==='function'&&!window.__ftV56DashWrap){window.renderDashboard=function(){ensureDashboardFilter();renderBrandLogos();return oldDash.apply(this,arguments)};window.__ftV56DashWrap=true}
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,80));
+  window.addEventListener('load',()=>setTimeout(boot,100));
+  setInterval(()=>{try{ensureDashboardFilter();ensureReportFilters();renderBrandLogos()}catch(e){}},2000);
+})();
+</script>
+<style id="ft-v56-legacy-date-hide">.ft-v56-legacy-date-hidden{display:none!important}</style>
