@@ -6200,7 +6200,7 @@ function renderShops() {
     if(!w)return alert('Please allow pop-ups for report printing.');
     const css='@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111;margin:0}.ft-report-print-area{padding:4mm}.ft-report-print-area table{width:100%;border-collapse:collapse}.ft-report-print-area th,.ft-report-print-area td{border:1px solid #999;padding:5px;font-size:9px}.ft-report-print-area th{background:#e5e7eb}.report-meta{font-size:10px;color:#555;margin-bottom:8px}h1{font-size:18px;margin:0}h2{font-size:14px}';
     w.document.open();
-    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body></html>');
+    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body>');
 
     w.document.close();
     w.focus();
@@ -6488,7 +6488,8 @@ function renderShops() {
     w.document.write(`<!doctype html><html><head><title>${esc(shopName)} Ledger</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111}h1{margin:0 0 4px}h2{margin:0 0 8px;font-size:16px}.summary{margin:8px 0;font-size:11px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #888;padding:5px;font-size:8px;vertical-align:top}th{background:#e9edf3}</style></head><body><h1>Fatima Tech — Distribution ERP</h1><h2>Shop Ledger: ${esc(shopName)}</h2><div class="summary">Bills: <b>${s.bills}</b> | Total Sales: <b>Rs. ${s.sales.toLocaleString()}</b> | Invoice Cash: <b>Rs. ${s.invoiceCash.toLocaleString()}</b> | Recovery: <b>Rs. ${s.recovery.toLocaleString()}</b> | Outstanding: <b>Rs. ${s.outstanding.toLocaleString()}</b></div><table><thead><tr><th>#</th><th>Date</th><th>Transaction</th><th>Reference</th><th>Products / Quantity</th><th>Debit</th><th>Credit</th><th>Status / Note</th></tr></thead><tbody>${rows||'<tr><td colspan="8">No transactions</td></tr>'}</tbody></table>
 
 
-</body></html>`);w.document.close();setTimeout(()=>{w.focus();w.print();},250);
+</body>
+`);w.document.close();setTimeout(()=>{w.focus();w.print();},250);
   };
   window.pdfShopLedger=function(shopName){
     const data=buildShopLedgerData(shopName);if(!window.jspdf?.jsPDF)return alert('PDF library is not loaded.');const{jsPDF}=window.jspdf,doc=new jsPDF('landscape','mm','a4'),s=ledgerSummary(shopName);doc.setFontSize(16);doc.text('Fatima Tech — Distribution ERP',14,12);doc.setFontSize(12);doc.text('Shop Ledger: '+String(shopName),14,19);doc.setFontSize(8);doc.text(`Bills: ${s.bills} | Sales: Rs. ${s.sales.toLocaleString()} | Recovery: Rs. ${s.recovery.toLocaleString()} | Outstanding: Rs. ${s.outstanding.toLocaleString()}`,14,25);const body=data.map(e=>[e.date,e.type,e.ref,String(e.items).replace(/<br>/g,' | ').replace(/<[^>]+>/g,''),e.debit?`Rs. ${e.debit.toLocaleString()}`:'—',e.credit?`Rs. ${e.credit.toLocaleString()}`:'—',e.note]);doc.autoTable({head:[['Date','Transaction','Reference','Products / Quantity','Debit','Credit','Note']],body,startY:30,theme:'grid',styles:{fontSize:6,cellPadding:1.5}});doc.save('Shop_Ledger_'+String(shopName).replace(/[^a-z0-9]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
@@ -6847,7 +6848,8 @@ function reportWindow(title,html){
   w.document.write(`<!doctype html><html><head><title>${ftesc(title)}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#172033;margin:0}.wrap{padding:4mm}h1{font-size:20px;text-align:center;margin:0 0 4px}h2{font-size:14px;text-align:center;margin:0 0 12px;color:#214c86}.meta{text-align:center;font-size:10px;color:#64748b;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}.card{border:1px solid #cbd5e1;border-radius:7px;padding:7px;text-align:center}.card small{display:block;color:#64748b}.card b{font-size:15px}.section{margin-top:10px}.section h3{font-size:12px;margin:5px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aab4c3;padding:5px;font-size:9px}th{background:#e9eef6}tfoot th{background:#f2f4f8}.sig{margin-top:20px;display:flex;justify-content:space-between;font-size:10px}@media print{.wrap{padding:0}}</style></head><body><div class="wrap"><h1>Fatima Tech — Distribution ERP</h1><h2>${ftesc(title)}</h2>${html}</div>
 
 
-</body></html>`);
+</body>
+`);
   w.document.close();setTimeout(()=>{w.focus();w.print();},250);
 }
 window.printExpenseReport=function(){
@@ -7623,7 +7625,8 @@ document.addEventListener('DOMContentLoaded',function(){
     w.document.write(`<html><head><title>Investor Statement</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}</style></head><body>${html}<script>window.print();<\/script>
 
 
-</body></html>`);w.document.close();
+</body>
+`);w.document.close();
   };
   function init(){
     const d=today();
@@ -8109,7 +8112,8 @@ function printHtml(title,body){
 </head><body>${body}
 
 
-</body></html>`);
+</body>
+`);
   w.document.close();w.focus();setTimeout(()=>w.print(),250);
 }
 window.ftPrintCurrentSalarySlip=function(){
@@ -10216,7 +10220,8 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   });
 })();
 </script>
-</html>
+
+
 
 
 <!-- FATIMA TECH v54 — Dashboard purchase KPI + Company Settings visibility repair -->
@@ -10360,6 +10365,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   function rangeFor(key){
     const now=new Date(); let a=new Date(now), b=new Date(now);
     switch(key){
+      case 'any': return {from:'',to:''};
       case 'today': break;
       case 'yesterday': a=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1); b=new Date(a); break;
       case 'last7': a=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6); break;
@@ -10391,7 +10397,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     try{if(typeof window.renderDashboard==='function')window.renderDashboard()}catch(e){}
   }
   function commonFilterMarkup(prefix){
-    return `<div class="ft-v56-report-filter" id="${prefix}Filter"><label>📅 Date Filter</label><select id="${prefix}Select"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last30">Last 30 Days</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option><option value="lastMonthLastYear">This Month Last Year</option><option value="thisYear">This Year</option><option value="lastYear">Last Year</option><option value="currentFY">Current Financial Year</option><option value="lastFY">Last Financial Year</option><option value="custom">Custom Range</option></select><div class="ft-v56-date-custom" id="${prefix}Custom"><input type="date" id="${prefix}From"><span>to</span><input type="date" id="${prefix}To"><button type="button" onclick="ftApplyCustomDate('${prefix}')">Apply</button></div></div>`;
+    return `<div class="ft-v56-report-filter" id="${prefix}Filter"><label>📅 Date Filter</label><select id="${prefix}Select"><option value="any">Any / All Dates</option><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last30">Last 30 Days</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option><option value="lastMonthLastYear">This Month Last Year</option><option value="thisYear">This Year</option><option value="lastYear">Last Year</option><option value="currentFY">Current Financial Year</option><option value="lastFY">Last Financial Year</option><option value="custom">Custom Range</option></select><div class="ft-v56-date-custom" id="${prefix}Custom"><input type="date" id="${prefix}From"><span>to</span><input type="date" id="${prefix}To"><button type="button" onclick="ftApplyCustomDate('${prefix}')">Apply</button></div></div>`;
   }
   window.ftApplyCustomDate=function(prefix){const f=document.getElementById(prefix+'From')?.value,t=document.getElementById(prefix+'To')?.value;if(!f||!t)return alert('Select both From and To dates.');if(f>t)return alert('From Date cannot be after To Date.');setState({key:'custom',from:f,to:t});updateUnderlyingDates(f,t);document.querySelectorAll('[id$="Select"]').forEach(s=>{if(s.id.startsWith(prefix))s.value='custom'});};
   function bindFilter(prefix){
@@ -10404,7 +10410,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   function ensureDashboardFilter(){
     const dash=document.getElementById('dashboard'), cards=dash?.querySelector('.summary-cards');if(!dash||!cards)return;
     let bar=document.getElementById('ftV56DashboardFilter');
-    if(!bar){bar=document.createElement('div');bar.id='ftV56DashboardFilter';bar.className='ft-v56-dashboard-filter';bar.innerHTML='<label>📅 Filter by date</label><select id="ftV56DashboardSelect"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last30">Last 30 Days</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option><option value="lastMonthLastYear">This Month Last Year</option><option value="thisYear">This Year</option><option value="lastYear">Last Year</option><option value="currentFY">Current Financial Year</option><option value="lastFY">Last Financial Year</option><option value="custom">Custom Range</option></select><div class="ft-v56-dashboard-custom" id="ftV56DashboardCustom"><input type="date" id="ftV56DashboardFrom"><span>to</span><input type="date" id="ftV56DashboardTo"><button type="button" onclick="ftApplyDashboardCustom()">Apply</button></div>';cards.parentNode.insertBefore(bar,cards)}
+    if(!bar){bar=document.createElement('div');bar.id='ftV56DashboardFilter';bar.className='ft-v56-dashboard-filter';bar.innerHTML='<label>📅 Filter by date</label><select id="ftV56DashboardSelect"><option value="any">Any / All Dates</option><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="last7">Last 7 Days</option><option value="last30">Last 30 Days</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option><option value="lastMonthLastYear">This Month Last Year</option><option value="thisYear">This Year</option><option value="lastYear">Last Year</option><option value="currentFY">Current Financial Year</option><option value="lastFY">Last Financial Year</option><option value="custom">Custom Range</option></select><div class="ft-v56-dashboard-custom" id="ftV56DashboardCustom"><input type="date" id="ftV56DashboardFrom"><span>to</span><input type="date" id="ftV56DashboardTo"><button type="button" onclick="ftApplyDashboardCustom()">Apply</button></div>';cards.parentNode.insertBefore(bar,cards)}
     const sel=document.getElementById('ftV56DashboardSelect'),custom=document.getElementById('ftV56DashboardCustom');if(!sel)return;
     const st=state()||{key:'today',...rangeFor('today')};sel.value=st.key||'today';
     if(st.key==='custom'){custom.classList.add('open');document.getElementById('ftV56DashboardFrom').value=st.from;document.getElementById('ftV56DashboardTo').value=st.to}else custom.classList.remove('open');
@@ -10432,3 +10438,272 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 <style id="ft-v56-legacy-date-hide">.ft-v56-legacy-date-hidden{display:none!important}</style>
+
+<!-- FATIMA TECH — SAFE USER-REQUESTED FIXES ONLY -->
+<style id="ft-safe-date-settings-fix">
+  /* 1) Keep the requested date filters compact without changing report/data logic. */
+  .ft-v56-report-filter,
+  .ft-v56-dashboard-filter{
+    padding:4px 6px !important;
+    margin:0 0 6px !important;
+    gap:4px !important;
+    border-radius:6px !important;
+  }
+  .ft-v56-report-filter label,
+  .ft-v56-dashboard-filter label{
+    font-size:9px !important;
+    line-height:1.1 !important;
+    white-space:nowrap !important;
+  }
+  .ft-v56-report-filter select,
+  .ft-v56-dashboard-filter select{
+    min-width:105px !important;
+    width:auto !important;
+    min-height:26px !important;
+    height:26px !important;
+    padding:2px 6px !important;
+    font-size:9px !important;
+    border-radius:5px !important;
+  }
+  .ft-v56-report-filter input[type="date"],
+  .ft-v56-dashboard-filter input[type="date"]{
+    min-height:26px !important;
+    height:26px !important;
+    padding:2px 5px !important;
+    font-size:9px !important;
+    width:112px !important;
+    border-radius:5px !important;
+  }
+  .ft-v56-report-filter button,
+  .ft-v56-dashboard-filter button{
+    min-height:26px !important;
+    height:26px !important;
+    padding:2px 7px !important;
+    font-size:9px !important;
+    border-radius:5px !important;
+  }
+  .ft-v56-date-custom,
+  .ft-v56-dashboard-custom{gap:3px !important;}
+  .ft-v56-report-filter .ft-v56-date-custom span,
+  .ft-v56-dashboard-filter .ft-v56-dashboard-custom span{font-size:9px !important;}
+
+  /* The old large Dashboard As-of-Date bar is no longer needed because
+     the compact global filter already controls the dashboard date. */
+  #ftDashboardDateBar{display:none !important;}
+
+  /* Business / Company Settings must not remain visually active/highlighted. */
+  #ftBusinessSettingsNav > .nav-link,
+  #ftBusinessSettingsNav > .nav-link:hover,
+  #ftBusinessSettingsNav > .nav-link.active,
+  #ftBusinessSettingsNav > .nav-link:focus{
+    background:transparent !important;
+    color:#b8c3d4 !important;
+    border:0 !important;
+    box-shadow:none !important;
+    transform:none !important;
+    outline:none !important;
+  }
+</style>
+<script id="ft-safe-date-settings-fix-js">
+(function(){
+  'use strict';
+
+  /* 2) Make Dashboard "Any / All Dates" truly mean no upper-date limit.
+        Existing report filter logic already supports key="any"; only the
+        legacy dashboard dashDate() fallback needed a safe override. */
+  window.dashDate = function(){
+    try{
+      const st = JSON.parse(localStorage.getItem('ft_global_date_filter') || 'null');
+      if(st && String(st.key).toLowerCase() === 'any') return '';
+    }catch(e){}
+    const el = document.getElementById('dashAsOfDate');
+    return el && el.value ? el.value : (typeof isoToday === 'function' ? isoToday() : new Date().toISOString().slice(0,10));
+  };
+
+  /* Keep the legacy Today reset correct when the compact filter is in use. */
+  window.ftDashboardResetDate = function(){
+    try{ localStorage.setItem('ft_global_date_filter', JSON.stringify({key:'today',from:(typeof isoToday==='function'?isoToday():new Date().toISOString().slice(0,10)),to:(typeof isoToday==='function'?isoToday():new Date().toISOString().slice(0,10))})); }catch(e){}
+    const e=document.getElementById('dashAsOfDate');
+    if(e) e.value=(typeof isoToday==='function'?isoToday():new Date().toISOString().slice(0,10));
+    if(typeof window.renderDashboard==='function') window.renderDashboard();
+  };
+
+  /* If Any is selected, also clear the hidden legacy date input. */
+  function syncAny(){
+    const s=document.getElementById('ftV56DashboardSelect');
+    const d=document.getElementById('dashAsOfDate');
+    if(s && String(s.value).toLowerCase()==='any' && d) d.value='';
+  }
+
+  /* 3) Business/Company Settings is an action, not a selected navigation tab.
+        Remove stale active classes without touching permissions or data. */
+  function clearSettingsHighlight(){
+    const nav=document.getElementById('ftBusinessSettingsNav');
+    if(nav){
+      nav.classList.remove('active');
+      const a=nav.querySelector('.nav-link');
+      if(a) a.classList.remove('active');
+    }
+    syncAny();
+  }
+
+  document.addEventListener('DOMContentLoaded', clearSettingsHighlight);
+  window.addEventListener('load', clearSettingsHighlight);
+  document.addEventListener('click', function(e){
+    const nav=e.target && e.target.closest ? e.target.closest('#ftBusinessSettingsNav') : null;
+    if(nav) setTimeout(clearSettingsHighlight,0);
+  }, true);
+  setInterval(clearSettingsHighlight,1500);
+})();
+</script>
+</body>
+</html>
+
+<!-- FATIMA TECH — USER REQUESTED BRAND LOGO SYNC ONLY -->
+<style id="ft-v57-brand-logo-sync-css">
+  /* Business / Company Settings is an action, not an active navigation tab. */
+  #ftBusinessSettingsNav,
+  #ftBusinessSettingsNav > .nav-link,
+  #ftBusinessSettingsNav > .nav-link:hover,
+  #ftBusinessSettingsNav > .nav-link:focus,
+  #ftBusinessSettingsNav > .nav-link:active,
+  #ftBusinessSettingsNav > .nav-link.active {
+    background:transparent !important;
+    background-color:transparent !important;
+    color:#b8c3d4 !important;
+    border:0 !important;
+    border-left:0 !important;
+    box-shadow:none !important;
+    transform:none !important;
+    outline:none !important;
+  }
+  #ftBusinessSettingsNav:hover > .nav-link {
+    background:transparent !important;
+    background-color:transparent !important;
+    color:#b8c3d4 !important;
+  }
+
+  /* One saved distributor logo is reused in the login and sidebar. */
+  .ft-v57-sidebar-logo {
+    width:54px;height:54px;margin:0 auto 8px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    background:#fff;border:1px solid rgba(255,255,255,.18);
+    box-shadow:0 8px 22px rgba(0,0,0,.20);
+  }
+  .ft-v57-sidebar-logo img {width:100%;height:100%;object-fit:contain;padding:3px;display:block;background:#fff}
+  .ft-v57-sidebar-logo .ft-v57-logo-fallback {font-size:17px;font-weight:900;color:#fff;background:linear-gradient(135deg,#1769e0,#22d3ee);width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+
+  #loginOverlay .ft-v57-login-logo {
+    width:72px;height:72px;margin:0 auto 15px;border-radius:20px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    background:#fff;border:1px solid rgba(255,255,255,.20);
+    box-shadow:0 15px 35px rgba(23,105,224,.28);
+  }
+  #loginOverlay .ft-v57-login-logo img {width:100%;height:100%;object-fit:contain;padding:3px;display:block;background:#fff}
+  #loginOverlay .ft-v57-login-logo .ft-v57-logo-fallback {font-size:27px;font-weight:900;color:#fff;background:linear-gradient(145deg,#1769e0,#06b6d4);width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+
+  /* Dashboard welcome/company card: only Welcome + company name. */
+  #ftDashboardBusinessIdentity .ft-v57-welcome {font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#8ee7ff;margin-bottom:3px}
+  #ftDashboardBusinessIdentity .ft-dashboard-business-name {font-size:18px;font-weight:900;line-height:1.15;color:#fff}
+  #ftDashboardBusinessIdentity .ft-dashboard-business-copy > div:nth-child(2),
+  #ftDashboardBusinessIdentity .ft-dashboard-business-copy > div:nth-child(3) {display:none !important}
+  @media(max-width:900px){
+    .ft-v57-sidebar-logo{width:50px;height:50px}
+    #loginOverlay .ft-v57-login-logo{width:64px;height:64px;border-radius:18px}
+    #ftDashboardBusinessIdentity .ft-dashboard-business-name{font-size:15px}
+  }
+</style>
+<script id="ft-v57-brand-logo-sync-js">
+(function(){
+  'use strict';
+  const BRAND_KEY='fatimaTechOwnerSettings';
+  function getBrand(){try{return JSON.parse(localStorage.getItem(BRAND_KEY)||'{}')}catch(e){return {}}}
+  function esc(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  function initials(name){return (String(name||'FT').replace(/[^A-Za-z]/g,'').slice(0,2)||'FT').toUpperCase()}
+
+  function syncBrandLogo(){
+    const s=getBrand();
+    const logo=s.distributorLogo||'';
+    const name=s.companyName||'YOUR DISTRIBUTION';
+
+    /* Login */
+    const loginOld=document.querySelector('#loginOverlay .brand-logo-badge');
+    if(loginOld){
+      let box=document.getElementById('ftV57LoginLogo');
+      if(!box){
+        box=document.createElement('div');
+        box.id='ftV57LoginLogo';
+        box.className='ft-v57-login-logo';
+        loginOld.replaceWith(box);
+      }
+      box.innerHTML=logo
+        ? '<img src="'+esc(logo)+'" alt="Company logo">'
+        : '<span class="ft-v57-logo-fallback">'+esc(initials(name))+'</span>';
+    }
+
+    /* Sidebar top */
+    const sidebarBrand=document.querySelector('.sidebar .sidebar-brand');
+    if(sidebarBrand){
+      let box=document.getElementById('ftV57SidebarLogo');
+      if(!box){
+        box=document.createElement('div');
+        box.id='ftV57SidebarLogo';
+        box.className='ft-v57-sidebar-logo';
+        sidebarBrand.insertBefore(box,sidebarBrand.firstChild);
+      }
+      box.innerHTML=logo
+        ? '<img src="'+esc(logo)+'" alt="Company logo">'
+        : '<span class="ft-v57-logo-fallback">'+esc(initials(name))+'</span>';
+    }
+
+    /* Dashboard welcome/company card */
+    const card=document.getElementById('ftDashboardBusinessIdentity');
+    if(card){
+      let copy=card.querySelector('.ft-dashboard-business-copy');
+      if(!copy){
+        copy=document.createElement('div');
+        copy.className='ft-dashboard-business-copy';
+        card.appendChild(copy);
+      }
+      let welcome=copy.querySelector('.ft-v57-welcome');
+      if(!welcome){
+        welcome=document.createElement('div');
+        welcome.className='ft-v57-welcome';
+        copy.insertBefore(welcome,copy.firstChild);
+      }
+      welcome.textContent='Welcome';
+      const nameEl=document.getElementById('ftDashboardBusinessName');
+      if(nameEl) nameEl.textContent=name;
+      const meta=document.getElementById('ftDashboardBusinessMeta');
+      const contact=document.getElementById('ftDashboardBusinessContact');
+      if(meta) meta.textContent='';
+      if(contact) contact.textContent='';
+    }
+  }
+
+  const oldSave=window.ftSaveOwnerSettings;
+  if(typeof oldSave==='function'&&!window.__ftV57SaveWrap){
+    window.ftSaveOwnerSettings=async function(){
+      const result=await oldSave.apply(this,arguments);
+      setTimeout(syncBrandLogo,50);
+      setTimeout(syncBrandLogo,250);
+      return result;
+    };
+    window.__ftV57SaveWrap=true;
+  }
+
+  const oldRender=window.renderDashboard;
+  if(typeof oldRender==='function'&&!window.__ftV57DashWrap){
+    window.renderDashboard=function(){
+      const result=oldRender.apply(this,arguments);
+      setTimeout(syncBrandLogo,0);
+      return result;
+    };
+    window.__ftV57DashWrap=true;
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(syncBrandLogo,100);setTimeout(syncBrandLogo,500)});
+  window.addEventListener('load',function(){setTimeout(syncBrandLogo,150)});
+  setInterval(syncBrandLogo,2000);
+})();
+</script>
