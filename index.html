@@ -1802,8 +1802,456 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
 <style id="ft-purchase-edit-style">
 .btn-edit{border:1px solid #2563eb;background:#eef5ff;color:#1456b8;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-weight:700}.btn-edit:hover{background:#dbeafe}.btn-secondary{border:1px solid #94a3b8;background:#fff;color:#334155;border-radius:6px;padding:4px 9px;cursor:pointer;font-weight:700}
 </style>
-<style id="ft-v47-stock-actions">#purchaseStockReportTab .btn-delete{padding:5px 8px;font-size:11px;white-space:nowrap}</style></head>
+<style id="ft-v47-stock-actions">#purchaseStockReportTab .btn-delete{padding:5px 8px;font-size:11px;white-space:nowrap}</style>
+<!-- FATIMA TECH — REFRESH SESSION BOOT GATE -->
+<script id="ft-refresh-session-boot-head">
+(function(){
+  try{
+    if(localStorage.getItem('ft_active_session')) document.documentElement.classList.add('ft-refresh-session');
+  }catch(e){}
+})();
+</script>
+<style id="ft-refresh-session-boot-css">
+  /* Refresh must be completely seamless: no login flash and NO loading gate.
+     The already-authenticated ERP remains visible while Firebase sync runs silently. */
+  html.ft-refresh-session #loginOverlay{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}
+  html.ft-refresh-session #ftCleanLoader{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}
+</style>
+</head>
 <body>
+
+<!-- FATIMA TECH: HI-TECH WALLPAPER + 3-SECOND LOADER + DEVELOPER LOGIN MEDIA -->
+<style id="ft-clean-visual-media-css">
+  #ftCleanWallpaper{
+    position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+    background:
+      radial-gradient(circle at 12% 20%,rgba(0,229,255,.15),transparent 30%),
+      radial-gradient(circle at 88% 15%,rgba(124,58,237,.18),transparent 32%),
+      linear-gradient(135deg,#020817,#071a2d 52%,#020713);
+  }
+  #ftCleanWallpaper .grid{
+    position:absolute;inset:-30%;opacity:.30;
+    background:linear-gradient(rgba(34,211,238,.06) 1px,transparent 1px),
+               linear-gradient(90deg,rgba(34,211,238,.06) 1px,transparent 1px);
+    background-size:52px 52px;
+    transform:perspective(700px) rotateX(60deg);
+    animation:ftCleanGrid 11s linear infinite;
+  }
+  @keyframes ftCleanGrid{to{background-position:0 52px,52px 0}}
+  #ftCleanWallpaper .cube{
+    position:absolute;width:78px;height:78px;border:1px solid rgba(80,225,255,.48);
+    background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(124,58,237,.06));
+    box-shadow:0 0 28px rgba(34,211,238,.13),inset 0 0 24px rgba(34,211,238,.06);
+    animation:ftCleanCube 15s ease-in-out infinite;
+  }
+  #ftCleanWallpaper .cube:before,#ftCleanWallpaper .cube:after{
+    content:"";position:absolute;inset:11px;border:1px solid rgba(255,255,255,.12)
+  }
+  #ftCleanWallpaper .cube:after{inset:25px;border-color:rgba(34,211,238,.14)}
+  @keyframes ftCleanCube{
+    0%{transform:translate3d(0,50px,0) rotateX(0) rotateY(0) rotateZ(0)}
+    50%{transform:translate3d(90px,-75px,35px) rotateX(180deg) rotateY(210deg) rotateZ(70deg)}
+    100%{transform:translate3d(-30px,35px,0) rotateX(360deg) rotateY(360deg) rotateZ(150deg)}
+  }
+  #ftCleanWallpaper .a{left:7%;top:15%;animation-duration:18s}
+  #ftCleanWallpaper .b{left:27%;top:68%;width:48px;height:48px;animation-delay:-5s}
+  #ftCleanWallpaper .c{left:48%;top:18%;width:94px;height:94px;animation-duration:21s;animation-delay:-8s}
+  #ftCleanWallpaper .d{right:12%;top:27%;width:62px;height:62px;animation-delay:-3s}
+  #ftCleanWallpaper .e{right:28%;bottom:4%;width:44px;height:44px;animation-duration:12s;animation-delay:-7s}
+
+  /* Login remains the original ERP login; only its visual layer is enhanced. */
+  #loginOverlay{z-index:99999!important;background:rgba(1,8,20,.78)!important;backdrop-filter:blur(2px)}
+  #loginOverlay .login-card{position:relative;overflow:hidden}
+  #loginOverlay .login-card::after{
+    content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+    box-shadow:inset 0 0 45px rgba(34,211,238,.05)
+  }
+
+  /* Login advertisement/media area */
+  .ft-login-media-slot{
+    display:none;width:210px;min-height:170px;position:absolute;right:-235px;top:0;
+    border:1px solid rgba(86,218,255,.25);border-radius:18px;overflow:hidden;
+    background:rgba(4,14,28,.86);box-shadow:0 20px 55px rgba(0,0,0,.35)
+  }
+  .ft-login-media-slot.show{display:block}
+  .ft-login-media-slot img,.ft-login-media-slot video{width:100%;height:170px;display:block;object-fit:cover}
+  .ft-login-media-caption{padding:8px 10px;color:#dbeafe;font-size:10px;text-align:center}
+  @media(max-width:1050px){.ft-login-media-slot{position:relative;right:auto;top:auto;width:100%;min-height:0;margin:12px 0 0}.ft-login-media-slot img,.ft-login-media-slot video{height:145px}}
+  @media(max-width:700px){#ftCleanWallpaper .cube{transform:scale(.65)}}
+
+  #ftCleanLoader{
+    position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;
+    background:rgba(1,7,18,.97);backdrop-filter:blur(12px);color:#fff
+  }
+  #ftCleanLoader.show{display:flex}
+  #ftCleanLoader .box{
+    width:min(590px,90vw);padding:34px 28px;text-align:center;border-radius:24px;
+    background:rgba(7,18,35,.97);border:1px solid rgba(67,211,255,.26);
+    box-shadow:0 30px 100px rgba(0,0,0,.60)
+  }
+  #ftCleanLoader .ring{
+    width:72px;height:72px;margin:auto;border-radius:50%;
+    border:3px solid rgba(255,255,255,.08);border-top-color:#22d3ee;border-right-color:#8b5cf6;
+    animation:ftLoaderSpin 1s linear infinite
+  }
+  @keyframes ftLoaderSpin{to{transform:rotate(360deg)}}
+  #ftCleanLoader .quote{
+    margin:20px auto 5px;min-height:76px;padding:13px 18px;border-radius:14px;
+    background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);
+    font-family:"Noto Nastaliq Urdu",serif;font-size:18px;line-height:2
+  }
+  #ftCleanLoader .status{color:#67e8f9;font-size:12px;margin-top:12px}
+  #ftCleanLoader .author{color:#94a3b8;font-size:10px}
+  #ftCleanLoader .bar{height:4px;background:#17243a;border-radius:10px;overflow:hidden;margin-top:22px}
+  #ftCleanLoader .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#8b5cf6);animation:ftLoaderBar 3s linear forwards}
+  @keyframes ftLoaderBar{to{width:100%}}
+</style>
+
+<div id="ftCleanWallpaper" aria-hidden="true">
+  <div class="grid"></div>
+  <i class="cube a"></i><i class="cube b"></i><i class="cube c"></i><i class="cube d"></i><i class="cube e"></i>
+</div>
+
+<div id="ftCleanLoader" class="no-print" aria-hidden="true">
+  <div class="box">
+    <div class="ring"></div>
+    <div style="font-size:22px;font-weight:900;margin-top:18px">FATIMA TECH</div>
+    <div id="ftCleanLoaderStatus" class="status">Authenticating secure workspace…</div>
+    <div id="ftCleanLoaderQuote" class="quote"></div>
+    <div id="ftCleanLoaderAuthor" class="author"></div>
+    <div class="bar"><i></i></div>
+  </div>
+</div>
+
+<!-- FATIMA TECH — Firebase cloud media support for login advertisements -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script>
+(function(){
+  try{
+    if(!window.firebase || !firebase.apps.length){
+      firebase.initializeApp({
+        apiKey:"AIzaSyDUtWLG1IYnv9FMO0AyMbGgj0S-m1limpQ",
+        authDomain:"alqadirtrader-fdab9.firebaseapp.com",
+        databaseURL:"https://alqadirtrader-fdab9-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId:"alqadirtrader-fdab9",
+        storageBucket:"alqadirtrader-fdab9.firebasestorage.app",
+        messagingSenderId:"801494365780",
+        appId:"1:801494365780:web:0a7b265ff3b245dc39fc1"
+      });
+    }
+    window.ftCloudDb=firebase.database();
+    window.ftCloudStorage=firebase.storage();
+    window.ftCloudReady=true;
+  }catch(e){window.ftCloudReady=false;console.warn("Firebase cloud media unavailable; local media fallback remains active.",e)}
+})();
+</script>
+
+<!-- FATIMA TECH — Cloud database sync during login loading -->
+<script id="ft-cloud-database-sync-js">
+(function(){
+  'use strict';
+  const STATE_KEY='ft_cloud_sync_state_v1';
+  const EXCLUDE=new Set([
+    'ht_users',                 // passwords stay local; do not upload credentials
+    'ft_active_session',        // session stays local to this browser
+    'fatimaTechOwnerAuth',      // owner password stays local
+    'fatimaTechLoginMediaDB',
+    'ft_global_date_filter',
+    'ft_theme_mode',
+    'ft_language'
+  ]);
+  const MAX_WAIT=9000;
+
+  function companyKey(){
+    try{
+      const s=JSON.parse(localStorage.getItem('fatimaTechOwnerSettings')||'{}');
+      return String(s.companyName||s.distributorName||s.businessName||'default-company').trim().toLowerCase()||'default-company';
+    }catch(e){return 'default-company'}
+  }
+  function cloudPath(){return 'erpDatabase/'+encodeURIComponent(companyKey());}
+  function readState(){try{return JSON.parse(localStorage.getItem(STATE_KEY)||'{}')}catch(e){return {}}}
+  function writeState(v){try{localStorage.setItem(STATE_KEY,JSON.stringify(v))}catch(e){}}
+  function safeClone(v){
+    try{return JSON.parse(JSON.stringify(v))}catch(e){return v}
+  }
+  function snapshot(){
+    const data={};
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(!k||EXCLUDE.has(k))continue;
+      // Business data and company configuration only. Never copy browser/session secrets.
+      if(!(k.startsWith('ht_')||k.startsWith('ft_')||k==='fatimaTechOwnerSettings'))continue;
+      try{
+        const raw=localStorage.getItem(k);
+        if(raw===null)continue;
+        try{data[k]=JSON.parse(raw)}catch(e){data[k]=raw}
+      }catch(e){}
+    }
+    return data;
+  }
+  function stable(v){
+    if(v===null||typeof v!=='object')return JSON.stringify(v);
+    if(Array.isArray(v))return '['+v.map(stable).join(',')+']';
+    return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}';
+  }
+  function hash(str){
+    let h=2166136261;
+    for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}
+    return (h>>>0).toString(16);
+  }
+  function localHash(data){return hash(stable(data));}
+  function setStatus(msg){
+    const el=document.getElementById('ftCleanLoaderStatus');
+    if(el)el.textContent=msg;
+  }
+  function setProgress(p){
+    const bar=document.querySelector('#ftCleanLoader .bar i');
+    if(bar){bar.style.animation='none';bar.style.width=Math.max(0,Math.min(100,p))+'%'}
+  }
+
+  async function syncCloudDatabase(){
+    if(!window.ftCloudReady||!window.ftCloudDb){
+      setStatus('Cloud unavailable — using local database');
+      return {ok:false,mode:'local'};
+    }
+    const root=window.ftCloudDb.ref(cloudPath());
+    const data=snapshot();
+    const currentHash=localHash(data);
+    const state=readState();
+    try{
+      setStatus('Checking cloud database…');setProgress(15);
+      const metaSnap=await root.child('meta').once('value');
+      const meta=metaSnap.val()||{};
+      const cloudHash=meta.hash||'';
+
+      // If this browser has not changed since its last successful sync and the
+      // cloud contains a newer snapshot, safely pull that snapshot down.
+      if(meta.snapshot && cloudHash && state.hash===currentHash && state.hash!==cloudHash){
+        setStatus('Downloading latest cloud data…');setProgress(35);
+        const snap=await root.child('snapshot').once('value');
+        const cloudData=snap.val()||{};
+        Object.keys(cloudData).forEach(k=>{
+          if(EXCLUDE.has(k))return;
+          const v=cloudData[k];
+          localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
+        });
+        const pulledHash=localHash(cloudData);
+        writeState({hash:pulledHash,cloudUpdatedAt:meta.updatedAt||Date.now(),device:state.device||('browser-'+Math.random().toString(36).slice(2))});
+        setStatus('Cloud database synchronized ✓');setProgress(100);
+        return {ok:true,mode:'download'};
+      }
+
+      // Otherwise publish the current local database snapshot. This is a safe
+      // backup point and avoids overwriting a cloud change when this browser
+      // has not been changed since its last synchronization.
+      setStatus('Uploading database backup…');setProgress(55);
+      const now=Date.now();
+      const payload={
+        snapshot:data,
+        meta:{hash:currentHash,updatedAt:now,companyKey:companyKey(),source:'Fatima Tech ERP',version:1}
+      };
+      await root.update(payload);
+      writeState({hash:currentHash,cloudUpdatedAt:now,device:state.device||('browser-'+Math.random().toString(36).slice(2))});
+      setStatus('Cloud database synchronized ✓');setProgress(100);
+      return {ok:true,mode:'upload'};
+    }catch(e){
+      console.warn('Fatima Tech cloud database sync failed:',e);
+      setStatus('Cloud sync unavailable — local data kept safe');setProgress(100);
+      return {ok:false,mode:'error',error:e};
+    }
+  }
+  window.ftSyncCloudDatabase=syncCloudDatabase;
+  window.ftCloudSyncMaxWait=MAX_WAIT;
+})();
+</script>
+
+<script id="ft-clean-visual-media-js">
+(function(){
+  'use strict';
+  const DB='fatimaTechLoginMediaDB', STORE='media', QUOTES=[
+    'محنت کبھی ضائع نہیں جاتی، وقت لگ سکتا ہے مگر نتیجہ ضرور آتا ہے۔',
+    'کامیابی اُنہی کو ملتی ہے جو کوشش کرنا نہیں چھوڑتے۔',
+    'وقت کی قدر کرو، یہی زندگی کا سب سے قیمتی سرمایہ ہے۔',
+    'ایمانداری وہ دولت ہے جو انسان کے کردار کو بلند کرتی ہے۔',
+    'آج کی محنت کل کی کامیابی کی بنیاد بنتی ہے۔',
+    'نظم و ضبط کامیابی کی خاموش طاقت ہے۔',
+    'مشکل وقت انسان کو مضبوط بناتا ہے، اگر وہ ہمت نہ ہارے۔',
+    'اچھا کردار انسان کی سب سے بڑی پہچان ہے۔'
+  ];
+  let lastQ=-1, qTimer=null;
+
+  function companyKey(){
+    try{
+      const s=JSON.parse(localStorage.getItem('fatimaTechOwnerSettings')||'{}');
+      return String(s.companyName||s.distributorName||s.businessName||'default-company').trim().toLowerCase()||'default-company';
+    }catch(e){return 'default-company'}
+  }
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      if(!window.indexedDB)return resolve(null);
+      const r=indexedDB.open(DB,1);
+      r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'})};
+      r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+    });
+  }
+  async function putMedia(file,title){
+    const key=companyKey();
+    // Cloud-first: store the actual media in Firebase Storage and metadata in Realtime Database.
+    if(window.ftCloudReady && window.ftCloudStorage && window.ftCloudDb){
+      try{
+        const safeName=String(file.name||'ad').replace(/[^a-zA-Z0-9._-]/g,'_');
+        const path='fatimaTech/loginAdvertisements/'+encodeURIComponent(key)+'/'+Date.now()+'_'+safeName;
+        const ref=window.ftCloudStorage.ref(path);
+        await ref.put(file,{contentType:file.type||'application/octet-stream'});
+        const url=await ref.getDownloadURL();
+        const oldSnap=await window.ftCloudDb.ref('loginAdvertisements/'+encodeURIComponent(key)).once('value');
+        const old=oldSnap.val();
+        if(old && old.storagePath && old.storagePath!==path){try{await window.ftCloudStorage.ref(old.storagePath).delete()}catch(e){}}
+        await window.ftCloudDb.ref('loginAdvertisements/'+encodeURIComponent(key)).set({
+          title:title||file.name,type:file.type,name:file.name,url,storagePath:path,updatedAt:Date.now()
+        });
+        return true;
+      }catch(e){
+        console.warn('Firebase advertisement save failed; using local fallback.',e);
+      }
+    }
+    const db=await openDB();if(!db)return false;
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(STORE,'readwrite'),st=tx.objectStore(STORE);
+      st.put({id:key,title:title||file.name,type:file.type,name:file.name,blob:file,updatedAt:Date.now()});
+      tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=()=>reject(tx.error);
+    });
+  }
+  async function getMedia(){
+    const key=companyKey();
+    if(window.ftCloudReady && window.ftCloudDb){
+      try{
+        const snap=await window.ftCloudDb.ref('loginAdvertisements/'+encodeURIComponent(key)).once('value');
+        const v=snap.val();
+        if(v && v.url)return v;
+      }catch(e){console.warn('Firebase advertisement read failed; trying local fallback.',e)}
+    }
+    const db=await openDB();if(!db)return null;
+    return new Promise((resolve)=>{
+      const tx=db.transaction(STORE,'readonly'),req=tx.objectStore(STORE).get(key);
+      req.onsuccess=()=>{const v=req.result;db.close();resolve(v||null)};req.onerror=()=>{db.close();resolve(null)};
+    });
+  }
+  async function removeMedia(){
+    const key=companyKey();
+    if(window.ftCloudReady && window.ftCloudDb){
+      try{
+        const ref=window.ftCloudDb.ref('loginAdvertisements/'+encodeURIComponent(key));
+        const snap=await ref.once('value'); const v=snap.val();
+        if(v && v.storagePath){try{await window.ftCloudStorage.ref(v.storagePath).delete()}catch(e){}}
+        await ref.remove();
+      }catch(e){console.warn('Firebase advertisement removal failed.',e)}
+    }
+    const db=await openDB();if(!db)return;
+    await new Promise(resolve=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(key);tx.oncomplete=resolve;tx.onerror=resolve});
+    db.close();
+  }
+  function renderLoginMedia(m){
+    const card=document.querySelector('#loginOverlay .login-card');if(!card)return;
+    let slot=document.getElementById('ftLoginMediaSlot');
+    if(!slot){slot=document.createElement('div');slot.id='ftLoginMediaSlot';slot.className='ft-login-media-slot';card.appendChild(slot)}
+    if(!m){slot.classList.remove('show');slot.innerHTML='';return}
+    const url=m.url || (m.blob ? URL.createObjectURL(m.blob) : '');
+    const isVideo=/^video\//.test(m.type),isImage=/^image\//.test(m.type);
+    if(!url || (!isVideo&&!isImage)){slot.classList.remove('show');return}
+    slot.classList.add('show');
+    slot.innerHTML=(isVideo?'<video autoplay muted loop playsinline></video>':'<img alt="Company Advertisement">')+
+      '<div class="ft-login-media-caption">'+String(m.title||m.name||'Company Advertisement').replace(/[<>&"]/g,'')+'</div>';
+    const el=slot.querySelector(isVideo?'video':'img');el.src=url;
+  }
+  async function refreshMedia(){try{renderLoginMedia(await getMedia())}catch(e){}}
+
+  function dev(){
+    try{return !!(typeof currentUser!=='undefined'&&currentUser&&(currentUser.role==='Developer'||currentUser.isDeveloper===true||String(currentUser.username).toLowerCase()==='fatima-tech'))}catch(e){return false}
+  }
+  function installDeveloperMediaStudio(){
+    const panel=document.getElementById('ftDeveloperFormatStudio');if(!panel||panel.querySelector('#ftLoginAdStudio'))return;
+    const box=document.createElement('div');box.id='ftLoginAdStudio';box.style.cssText='margin-top:12px;padding:12px;border:1px solid #bfdbfe;border-radius:12px;background:#f8fbff';
+    box.innerHTML='<h4 style="margin:0 0 6px;color:#1d4ed8">🎬 Login Advertisement / Company Promo</h4>'+
+      '<div style="font-size:10px;color:#64748b;line-height:1.6">Developer-only. Upload one company-specific image, GIF or video. It will appear beside the login screen for this company. The original ERP login/authentication is unchanged.</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'+
+      '<input id="ftLoginAdTitle" placeholder="Advertisement title">'+
+      '<input id="ftLoginAdFile" type="file" accept="image/*,video/*"></div>'+
+      '<div id="ftLoginAdStatus" style="font-size:10px;color:#64748b;margin-top:6px"></div>'+
+      '<div style="display:flex;gap:7px;margin-top:8px"><button type="button" class="btn-add" id="ftLoginAdSave">Save Login Advertisement</button><button type="button" class="btn-delete" id="ftLoginAdRemove">Remove Advertisement</button></div>';
+    panel.appendChild(box);
+    box.querySelector('#ftLoginAdSave').onclick=async()=>{
+      if(!dev())return alert('Developer access only.');
+      const f=box.querySelector('#ftLoginAdFile').files[0];if(!f)return alert('Select an image, GIF or video.');
+      if(f.size>30*1024*1024)return alert('Please keep the advertisement under 30 MB.');
+      await putMedia(f,box.querySelector('#ftLoginAdTitle').value.trim()||f.name);
+      box.querySelector('#ftLoginAdStatus').textContent='Saved for this company.';
+      refreshMedia();
+    };
+    box.querySelector('#ftLoginAdRemove').onclick=async()=>{if(!dev())return alert('Developer access only.');await removeMedia();box.querySelector('#ftLoginAdStatus').textContent='Advertisement removed.';refreshMedia()};
+  }
+  function syncStudio(){
+    if(dev())installDeveloperMediaStudio();
+  }
+
+  function nextQuote(){
+    let n=Math.floor(Math.random()*QUOTES.length);if(QUOTES.length>1&&n===lastQ)n=(n+1)%QUOTES.length;lastQ=n;
+    const q=document.getElementById('ftCleanLoaderQuote'),a=document.getElementById('ftCleanLoaderAuthor');
+    if(q)q.textContent='“'+QUOTES[n]+'”';if(a)a.textContent='— قولِ زریں';
+  }
+  function sound(out){
+    try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C(),o=c.createOscillator(),g=c.createGain();o.frequency.value=out?420:760;g.gain.value=.045;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.18)}catch(e){}
+  }
+  function loader(show,logout){
+    const el=document.getElementById('ftCleanLoader');if(!el)return;
+    if(!show){el.classList.remove('show');clearInterval(qTimer);return}
+    el.classList.add('show');nextQuote();let i=0;
+    const st=document.getElementById('ftCleanLoaderStatus');
+    if(st)st.textContent=logout?'Closing secure workspace…':'Authenticating secure workspace…';
+    clearInterval(qTimer);qTimer=setInterval(()=>{nextQuote();i++;if(st)st.textContent=logout?'Closing secure workspace…':['Authenticating user…','Loading permissions…','Preparing dashboard…','Synchronizing workspace…'][i%4]},7000);
+  }
+
+  function hook(){
+    if(typeof window.attemptLogin==='function'&&!window.__ftVisualLoginWrapped){
+      const old=window.attemptLogin;
+      window.attemptLogin=function(){
+        const before=(typeof currentUser!=='undefined'&&currentUser)?currentUser:null;
+        const r=old.apply(this,arguments);
+        setTimeout(async()=>{
+          const now=(typeof currentUser!=='undefined'&&currentUser)?currentUser:null;
+          if(now&&!before){
+            sound(false);loader(true,false);
+            const syncPromise=(typeof window.ftSyncCloudDatabase==='function')?window.ftSyncCloudDatabase():Promise.resolve();
+            const minimumLoader=new Promise(resolve=>setTimeout(resolve,3000));
+            const maxWait=new Promise(resolve=>setTimeout(resolve,window.ftCloudSyncMaxWait||9000));
+            await Promise.race([Promise.all([syncPromise,minimumLoader]),maxWait]);
+            setTimeout(()=>loader(false,false),250);
+          }
+        },80);
+        return r;
+      };
+      window.__ftVisualLoginWrapped=true;
+    }
+    if(typeof window.logout==='function'&&!window.__ftVisualLogoutWrapped){
+      const old=window.logout;
+      window.logout=function(){sound(true);try{old.apply(this,arguments)}catch(e){}loader(true,true);setTimeout(()=>loader(false,true),3000)};
+      window.__ftVisualLogoutWrapped=true;
+    }
+    if(typeof window.ftHardLogout==='function'&&!window.__ftVisualHardLogoutWrapped){
+      const old=window.ftHardLogout;
+      window.ftHardLogout=function(){sound(true);try{old.apply(this,arguments)}catch(e){}loader(true,true);setTimeout(()=>loader(false,true),3000)};
+      window.__ftVisualHardLogoutWrapped=true;
+    }
+    syncStudio();
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{refreshMedia();setTimeout(hook,500);setInterval(hook,1000)});
+  window.addEventListener('load',()=>{refreshMedia();hook()});
+})();
+</script>
+
 <!-- MOBILE ERP NAVIGATION -->
 <button id="ftMobileMenuBtn" class="ft-mobile-menu-btn no-print" type="button" onclick="toggleMobileNav()" aria-label="Open menu">☰</button>
 <div id="ftMobileNavBackdrop" class="ft-mobile-nav-backdrop no-print" onclick="closeMobileNav()"></div>
@@ -3292,7 +3740,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
     <!-- USER MANAGEMENT WITH EDIT CAPABILITY AND GRANULAR ACCESS CONTROLS -->
     <div id="users" class="tab-content">
         <h3>⚙️ User Management & Module Access Permissions</h3>
-        <div class="section-box" style="border-left:4px solid #7c3aed;background:#faf7ff;">
+        <div id="ftDeveloperAccessNotice" class="section-box" style="border-left:4px solid #7c3aed;background:#faf7ff;display:none;">
             <strong style="color:#6d28d9;">🛠️ Developer Access</strong>
             <p style="margin:6px 0 0;font-size:12px;color:#475569;">Separate Developer login with full module access, modification/configuration rights and Business / Company Settings. It is a separate role from Admin. Dedicated Developer login: <strong>fatima-tech</strong> / <strong>fatima-2022</strong>. The Developer password can be changed later from this User Management screen. The Developer account is hidden from Admin users.</p>
         </div>
@@ -3604,6 +4052,8 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             if(typeof applyDeveloperUserManagementView==='function') applyDeveloperUserManagementView();
             applyUniversalMobileMode();
             if(typeof renderDashboard==='function') renderDashboard();
+            // On a restored session, synchronize quietly after the app is ready.
+            setTimeout(()=>{try{if(typeof window.ftSyncCloudDatabase==='function')window.ftSyncCloudDatabase()}catch(e){}},120);
             return true;
         } catch(e) { localStorage.removeItem('ft_active_session'); return false; }
     }
@@ -6229,12 +6679,31 @@ function renderShops() {
     if(!w)return alert('Please allow pop-ups for report printing.');
     const css='@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111;margin:0}.ft-report-print-area{padding:4mm}.ft-report-print-area table{width:100%;border-collapse:collapse}.ft-report-print-area th,.ft-report-print-area td{border:1px solid #999;padding:5px;font-size:9px}.ft-report-print-area th{background:#e5e7eb}.report-meta{font-size:10px;color:#555;margin-bottom:8px}h1{font-size:18px;margin:0}h2{font-size:14px}';
     w.document.open();
-    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body>');
-
+    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body></html>');
     w.document.close();
     w.focus();
     setTimeout(()=>w.print(),250);
 };
+})();
+</script>
+<!-- FATIMA TECH — SILENT REFRESH CLOUD SYNC (NO LOADER) -->
+<script id="ft-refresh-cloud-sync-gate">
+(function(){
+  'use strict';
+  /* On refresh: keep the existing ERP visible immediately. Firebase sync is
+     deliberately silent and must never show the login/loader overlay. */
+  document.addEventListener('DOMContentLoaded',function(){
+    var hadSession=false;
+    try{hadSession=!!localStorage.getItem('ft_active_session')}catch(e){}
+    if(!hadSession)return;
+    document.documentElement.classList.add('ft-refresh-session');
+    var loader=document.getElementById('ftCleanLoader');
+    if(loader){loader.classList.remove('show');loader.style.display='none';}
+    try{document.body.classList.remove('ft-logged-out')}catch(e){}
+    if(typeof window.ftSyncCloudDatabase==='function'){
+      Promise.resolve(window.ftSyncCloudDatabase()).catch(function(e){console.warn('Silent background cloud sync:',e);});
+    }
+  },{once:true});
 })();
 </script>
 <script id="ft-recovery-selected-approval-final">
@@ -10650,58 +11119,285 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   setInterval(sync,1500);
 })();
 </script>
-</body>
-
-
-<!-- FATIMA TECH — FINAL CLEAN OVERRIDE: remove duplicate settings button + FT pseudo logo -->
-<style id="ft-final-clean-visual-fix">
-  /* The blue fixed Business / Company Settings button is a duplicate of the real
-     sidebar item. It must never render. */
-  #ftBusinessSettingsFixed,
-  .ft-business-settings-fixed { display:none !important; visibility:hidden !important; }
-
-  /* The old FT badge was generated by CSS ::before. Once a real company logo is
-     uploaded, that artificial badge must not appear above it. */
-  .sidebar-brand::before,
-  .sidebar-brand:before { display:none !important; content:none !important; }
-
-  /* If the real logo is present, let it be the only branding mark in the sidebar. */
-  .sidebar-brand .ft-v57-sidebar-logo,
-  .sidebar-brand .ft-v56-logo-wrap,
-  .sidebar-brand .ft-v56-dashboard-logo { margin-left:auto !important; margin-right:auto !important; }
+<!-- FATIMA TECH — LOGIN WALLPAPER LAYER SAFETY -->
+<style id="ft-login-wallpaper-safety">
+  #ftCleanWallpaper{z-index:0 !important;pointer-events:none !important;}
+  #loginOverlay{z-index:2147483645 !important;}
+  #ftCleanLoader{z-index:2147483646 !important;}
+  .sidebar,.main-wrapper,.top-bar,.ft-mobile-menu-btn,.ft-mobile-nav-backdrop{position:relative;z-index:2;}
 </style>
-<script id="ft-final-clean-visual-fix-js">
+
+<!-- FATIMA TECH FINAL UI POLISH: sidebar logo, settings, theme, cursor, readable quotes -->
+<style id="ft-final-ui-polish">
+  #ftV57SidebarLogo{display:none !important;}
+  #ftBusinessSettingsNav{display:none !important;}
+  .ft-business-settings-fixed{background:transparent !important;border-top:1px solid rgba(148,163,184,.18) !important;padding:8px 10px !important;}
+  .ft-business-settings-fixed button{width:100% !important;border:1px solid rgba(148,163,184,.30) !important;background:rgba(255,255,255,.035) !important;color:#cbd5e1 !important;border-radius:8px !important;padding:9px 10px !important;font-weight:700 !important;font-size:11px !important;box-shadow:none !important;transition:all .2s ease !important;}
+  .ft-business-settings-fixed button:hover,.ft-business-settings-fixed button:focus{background:rgba(34,211,238,.07) !important;border-color:rgba(34,211,238,.35) !important;color:#e2f8ff !important;outline:none !important;transform:none !important;}
+  body.ft-erp-cursor,body.ft-erp-cursor *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M4 2.8 19.2 14l-6.1 1.3 3.3 6.1-2.2 1.1-3.3-6.1-4.1 4.6Z' fill='%23ffffff' stroke='%230f172a' stroke-width='1.35' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2,auto !important;}
+  body.ft-erp-cursor input,body.ft-erp-cursor textarea,body.ft-erp-cursor select{cursor:text !important;}
+  body.ft-erp-cursor button,body.ft-erp-cursor a,body.ft-erp-cursor [onclick]{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M4 2.8 19.2 14l-6.1 1.3 3.3 6.1-2.2 1.1-3.3-6.1-4.1 4.6Z' fill='%23ffffff' stroke='%230f172a' stroke-width='1.35' stroke-linejoin='round'/%3E%3C/svg%3E") 3 2,pointer !important;}
+</style>
+<script id="ft-final-ui-polish-js">
 (function(){
-  'use strict';
-  function removeDuplicateSettingsButton(){
-    const fixed=document.getElementById('ftBusinessSettingsFixed');
-    if(fixed) fixed.remove();
-  }
-  function removeOldSidebarFTBadge(){
-    const styleSheets=document.querySelectorAll('style');
-    // CSS override above handles the pseudo-element; this function intentionally
-    // does not remove the real uploaded logo element.
-    document.querySelectorAll('.sidebar-brand').forEach(function(brand){
-      brand.style.setProperty('--ft-old-badge-disabled','1');
-    });
-  }
-  function clean(){
-    removeDuplicateSettingsButton();
-    removeOldSidebarFTBadge();
-  }
-  document.addEventListener('DOMContentLoaded',clean);
-  window.addEventListener('load',clean);
-  setTimeout(clean,50);
-  setTimeout(clean,300);
-  setTimeout(clean,1000);
-  setInterval(clean,1000);
-  const observer=new MutationObserver(function(){
-    if(document.getElementById('ftBusinessSettingsFixed')) removeDuplicateSettingsButton();
-  });
-  observer.observe(document.documentElement,{childList:true,subtree:true});
+'use strict';
+const THEME_KEY='fatimaTechTheme';
+function updateThemeLabels(mode){const text=mode==='light'?'☀️ Light Theme':mode==='system'?'🌓 System Theme':'🌙 Dark Theme';document.querySelectorAll('[onclick="toggleTheme()"]:not(.ft-profile-logout)').forEach(btn=>{btn.innerHTML='<span class="ft-theme-mode-label">'+text+'</span>';});}
+function applyTheme(mode){mode=mode||'dark';let light=false;if(mode==='light')light=true;else if(mode==='system')light=!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);document.body.classList.toggle('light-theme',light);document.documentElement.setAttribute('data-ft-theme',mode);try{localStorage.setItem(THEME_KEY,mode)}catch(e){}updateThemeLabels(mode);}
+window.toggleTheme=function(){let mode='dark';try{mode=localStorage.getItem(THEME_KEY)||'dark'}catch(e){}mode=mode==='dark'?'light':(mode==='light'?'system':'dark');applyTheme(mode);};
+function setLoggedCursor(on){document.body.classList.toggle('ft-erp-cursor',!!on);}window.ftSetLoggedCursor=setLoggedCursor;
+function detectLogin(){try{const u=(typeof currentUser!=='undefined')?currentUser:null;setLoggedCursor(!!u);const nav=document.getElementById('ftBusinessSettingsNav');if(nav)nav.style.setProperty('display','none','important');if(typeof window.ftEnsureAdminCompanySettings==='function')window.ftEnsureAdminCompanySettings();const fixed=document.getElementById('ftBusinessSettingsFixed');if(fixed&&u)fixed.style.display=(u.role==='Developer'||u.isDeveloper===true)?'block':'none';}catch(e){}}
+try{applyTheme(localStorage.getItem(THEME_KEY)||'dark')}catch(e){applyTheme('dark')}
+window.addEventListener('load',detectLogin);document.addEventListener('DOMContentLoaded',function(){detectLogin();setTimeout(detectLogin,300);setTimeout(detectLogin,1200);});setInterval(detectLogin,1500);
+try{const mq=window.matchMedia('(prefers-color-scheme: light)');const fn=function(){try{if(localStorage.getItem(THEME_KEY)==='system')applyTheme('system')}catch(e){}};if(mq.addEventListener)mq.addEventListener('change',fn);else if(mq.addListener)mq.addListener(fn);}catch(e){}
 })();
 </script>
 
+<!-- FATIMA TECH FINAL LOGIN / DEVELOPER / CURSOR REPAIR -->
+<style id="ft-final-login-developer-repair">
+  /* The animated wallpaper belongs to the login screen only. Never leave it
+     underneath the ERP dashboard after a successful login. */
+  #ftCleanWallpaper{display:none !important;}
+  body:not(.ft-logged-in) #ftCleanWallpaper{display:block !important;}
+  #ftCleanWallpaper{z-index:0 !important;}
+  #loginOverlay{z-index:2147483645 !important;}
+  #ftCleanLoader{z-index:2147483646 !important;background:#020817 !important;}
+  /* Keep the login advertisement visible on the real login screen. */
+  #loginOverlay .ft-login-media-slot{z-index:5;}
+  /* Developer-only explanation must never be exposed to Admin/Booker/KPO/etc. */
+  #ftDeveloperAccessNotice{display:none !important;}
+  body.ft-developer-user #ftDeveloperAccessNotice{display:block !important;}
+</style>
+<script id="ft-final-login-developer-repair-js">
+(function(){
+  'use strict';
+  function syncFinalState(){
+    try{
+      const u=(typeof currentUser!=='undefined')?currentUser:null;
+      const logged=!!u;
+      document.body.classList.toggle('ft-logged-in',logged);
+      const isDev=!!(u && (u.role==='Developer'||u.isDeveloper===true||String(u.username||'').toLowerCase()==='fatima-tech'));
+      document.body.classList.toggle('ft-developer-user',isDev);
+      const notice=document.getElementById('ftDeveloperAccessNotice');
+      if(notice) notice.style.setProperty('display',isDev?'block':'none','important');
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',syncFinalState);
+  window.addEventListener('load',syncFinalState);
+  setInterval(syncFinalState,500);
+})();
+</script>
+
+
+<!-- FATIMA TECH — ONE-TIME FRESH TEST DATA RESET -->
+<script id="ft-one-time-fresh-test-reset">
+(function(){
+  'use strict';
+  /*
+     The current build is being prepared as a completely fresh test system.
+     Remove all demo/business transactions locally AND remove this company's
+     cloud ERP snapshot so an old purchase amount cannot come back on sync.
+     Users/roles, company settings, login advertisement and theme remain.
+  */
+  const RESET_FLAG='ft_fresh_test_reset_20260926_v1';
+  const RESET_KEYS=[
+    'ht_invoices','ht_purchase_invoices','ht_shops','ht_stock','ht_recoveries',
+    'ht_recovery_adjustments','ht_staff_responsibilities','ht_booker_accounts',
+    'ht_kpo_logs','ht_expenses','ht_returns','ht_company_claims','ht_ledger_adjustments',
+    'ht_generated_picklists','ht_cash_in_hand','ht_audit_log','ht_day_end_log',
+    'ft_investments','ft_investors','ft_investor_txns','ft_profit_distributions',
+    'ft_staff_advances','ft_salary_records','ft_salary_settings','ft_staff_attendance',
+    'ht_supplier_payments','ht_supplier_dues','ht_purchase_payments',
+    'ht_capital_entries','ht_cash_ledger','ht_finance_transactions',
+    'ft_cloud_sync_state_v1'
+  ];
+  function companyKey(){
+    try{
+      const s=JSON.parse(localStorage.getItem('fatimaTechOwnerSettings')||'{}');
+      return String(s.companyName||s.distributorName||s.businessName||'default-company').trim().toLowerCase()||'default-company';
+    }catch(e){return 'default-company'}
+  }
+  function clearLocal(){
+    RESET_KEYS.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+    try{
+      if(typeof dbInvoices!=='undefined')dbInvoices=[];
+      if(typeof dbPurchaseInvoices!=='undefined')dbPurchaseInvoices=[];
+      if(typeof dbShops!=='undefined')dbShops=[];
+      if(typeof dbStock!=='undefined')dbStock=[];
+      if(typeof dbRecoveries!=='undefined')dbRecoveries=[];
+      if(typeof dbRecoveryAdjustments!=='undefined')dbRecoveryAdjustments=[];
+      if(typeof dbStaffResponsibilities!=='undefined')dbStaffResponsibilities=[];
+      if(typeof dbBookerAccounts!=='undefined')dbBookerAccounts=[];
+      if(typeof dbKpoLogs!=='undefined')dbKpoLogs=[];
+      if(typeof dbExpenses!=='undefined')dbExpenses=[];
+      if(typeof dbReturns!=='undefined')dbReturns=[];
+      if(typeof dbCompanyClaims!=='undefined')dbCompanyClaims=[];
+      if(typeof dbLedgerAdjustments!=='undefined')dbLedgerAdjustments=[];
+      if(typeof dbGeneratedPicklists!=='undefined')dbGeneratedPicklists=[];
+      if(typeof dbCashInHand!=='undefined')dbCashInHand=0;
+      if(typeof dbAuditLog!=='undefined')dbAuditLog=[];
+      if(typeof dbInvestments!=='undefined')dbInvestments=[];
+      if(window.ftFinance)window.ftFinance.investments=[];
+      if(typeof currentPosItems!=='undefined')currentPosItems=[];
+      if(typeof currentPurInvoiceItems!=='undefined')currentPurInvoiceItems=[];
+    }catch(e){}
+    try{localStorage.setItem('ht_cash_in_hand','0')}catch(e){}
+  }
+  async function resetCloud(){
+    if(!window.ftCloudReady||!window.ftCloudDb)return true;
+    try{
+      await window.ftCloudDb.ref('erpDatabase/'+encodeURIComponent(companyKey())).remove();
+      return true;
+    }catch(e){
+      console.warn('Fresh-test cloud reset could not complete:',e);
+      return false;
+    }
+  }
+  async function run(){
+    if(localStorage.getItem(RESET_FLAG)==='done')return;
+    clearLocal();
+    const cloudOk=await resetCloud();
+    if(cloudOk){
+      localStorage.setItem(RESET_FLAG,'done');
+      /* Reload once so every in-memory module starts from the empty dataset. */
+      location.reload();
+    }else{
+      /* Do not mark complete if cloud could not be cleared; otherwise the old
+         cloud snapshot could be downloaded back on the next startup. */
+      console.warn('Fresh test reset waiting for Firebase permission. Local data was cleared.');
+    }
+  }
+  window.ftFreshResetPromise=run();
+})();
+</script>
+
+
+<!-- FATIMA TECH — FINAL STARTUP/LOGOUT BEHAVIOR PATCH -->
+<style id="ft-final-session-behavior-css">
+  /* Refresh: keep the existing ERP visible; never show the login loader. */
+  html.ft-refresh-session #ftCleanLoader{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}
+  /* Logout: never leave dashboard/user data visible behind the login screen. */
+  body.ft-logged-out .sidebar,
+  body.ft-logged-out .main-wrapper,
+  body.ft-logged-out .top-bar,
+  body.ft-logged-out .ft-mobile-menu-btn,
+  body.ft-logged-out .ft-mobile-nav-backdrop{display:none !important;visibility:hidden !important;opacity:0 !important;}
+  body.ft-logged-out #loginOverlay{display:flex !important;visibility:visible !important;opacity:1 !important;z-index:2147483000 !important;}
+  body.ft-logged-out #ftCleanWallpaper{z-index:2147482990 !important;}
+</style>
+<script id="ft-final-session-behavior-js">
+(function(){
+  'use strict';
+  function hideErpForLogout(){
+    try{
+      document.body.classList.add('ft-logged-out');
+      document.documentElement.classList.remove('ft-refresh-session');
+      var ov=document.getElementById('loginOverlay');
+      if(ov){ov.style.display='flex';ov.style.visibility='visible';ov.style.opacity='1';ov.style.pointerEvents='auto';}
+    }catch(e){}
+  }
+  function showErpAfterLogin(){
+    try{
+      document.body.classList.remove('ft-logged-out');
+      var ov=document.getElementById('loginOverlay');
+      if(ov && (typeof currentUser!=='undefined') && currentUser){
+        ov.style.display='none';ov.style.visibility='hidden';ov.style.opacity='0';ov.style.pointerEvents='none';
+      }
+    }catch(e){}
+  }
+
+  /* Existing login wrapper may already exist. Replace it once with a short,
+     non-blocking login sync: 1.5s maximum, not 3–9s. */
+  function patchLogin(){
+    if(typeof window.attemptLogin!=='function' || window.__ftFinalLoginPatch)return;
+    var old=window.attemptLogin;
+    window.attemptLogin=function(){
+      var before=(typeof currentUser!=='undefined'&&currentUser)?currentUser:null;
+      var r=old.apply(this,arguments);
+      setTimeout(function(){
+        var now=(typeof currentUser!=='undefined'&&currentUser)?currentUser:null;
+        if(now && !before){
+          showErpAfterLogin();
+          var loader=document.getElementById('ftCleanLoader');
+          if(loader)loader.classList.add('show');
+          var st=document.getElementById('ftCleanLoaderStatus');
+          if(st)st.textContent='Synchronizing cloud database…';
+          var sync=(typeof window.ftSyncCloudDatabase==='function') ? window.ftSyncCloudDatabase() : Promise.resolve();
+          Promise.race([Promise.resolve(sync),new Promise(function(resolve){setTimeout(resolve,1500)})])
+            .catch(function(){})
+            .finally(function(){setTimeout(function(){if(loader)loader.classList.remove('show');},120);});
+        }
+      },80);
+      return r;
+    };
+    window.__ftFinalLoginPatch=true;
+  }
+
+  /* Refresh: absolutely NO visual loader. Keep the ERP on screen and let
+     Firebase sync silently in the background. */
+  function patchRefresh(){
+    try{
+      if(!localStorage.getItem('ft_active_session'))return;
+      document.documentElement.classList.add('ft-refresh-session');
+      var loader=document.getElementById('ftCleanLoader');
+      if(loader){loader.classList.remove('show');loader.style.display='none';}
+      document.body.classList.remove('ft-logged-out');
+      /* Never wait for cloud sync and never display a loader on Ctrl+R. */
+      if(typeof window.ftSyncCloudDatabase==='function'){
+        Promise.resolve(window.ftSyncCloudDatabase()).catch(function(e){console.warn('Silent background cloud sync:',e);});
+      }
+    }catch(e){}
+  }
+
+  /* Logout: hide ERP first, then show the login page. The wallpaper/ad remains
+     behind it; no dashboard/user information can remain visible. */
+  function patchLogout(){
+    if(typeof window.logout==='function'&&!window.__ftFinalLogoutPatch){
+      var old=window.logout;
+      window.logout=function(){
+        hideErpForLogout();
+        try{old.apply(this,arguments)}catch(e){}
+        hideErpForLogout();
+        var loader=document.getElementById('ftCleanLoader');
+        if(loader)loader.classList.add('show');
+        var st=document.getElementById('ftCleanLoaderStatus');
+        if(st)st.textContent='Secure logout…';
+        setTimeout(function(){
+          if(loader)loader.classList.remove('show');
+          hideErpForLogout();
+        },1200);
+      };
+      window.__ftFinalLogoutPatch=true;
+    }
+    if(typeof window.ftHardLogout==='function'&&!window.__ftFinalHardLogoutPatch){
+      var oldH=window.ftHardLogout;
+      window.ftHardLogout=function(){
+        hideErpForLogout();
+        try{oldH.apply(this,arguments)}catch(e){}
+        hideErpForLogout();
+        var loader=document.getElementById('ftCleanLoader');
+        if(loader)loader.classList.add('show');
+        var st=document.getElementById('ftCleanLoaderStatus');
+        if(st)st.textContent='Secure logout…';
+        setTimeout(function(){if(loader)loader.classList.remove('show');hideErpForLogout();},1200);
+      };
+      window.__ftFinalHardLogoutPatch=true;
+    }
+  }
+
+  function init(){
+    patchRefresh();
+    patchLogin();
+    patchLogout();
+    setTimeout(patchLogin,300);
+    setTimeout(patchLogout,300);
+    setTimeout(patchLogin,1000);
+    setTimeout(patchLogout,1000);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+</body>
 </html>
 
 <!-- FATIMA TECH — USER REQUESTED BRAND LOGO SYNC ONLY -->
@@ -10850,5 +11546,59 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
   document.addEventListener('DOMContentLoaded',function(){setTimeout(syncBrandLogo,100);setTimeout(syncBrandLogo,500)});
   window.addEventListener('load',function(){setTimeout(syncBrandLogo,150)});
   setInterval(syncBrandLogo,2000);
+})();
+</script>
+
+<!-- FATIMA TECH FINAL SIDEBAR CLEANUP v2 -->
+<style id="ft-sidebar-cleanup-v2">
+  /* Remove the old decorative FT pseudo-logo from the sidebar. */
+  .sidebar .sidebar-brand::before {
+    content:none !important;
+    display:none !important;
+  }
+  /* Keep only the single Business / Company Settings item inside the sidebar menu. */
+  #ftBusinessSettingsFixed {
+    display:none !important;
+    visibility:hidden !important;
+    height:0 !important;
+    min-height:0 !important;
+    padding:0 !important;
+    margin:0 !important;
+    border:0 !important;
+    overflow:hidden !important;
+  }
+  /* The in-menu settings item is an action, not an active page. */
+  #ftBusinessSettingsNav,
+  #ftBusinessSettingsNav > .nav-link,
+  #ftBusinessSettingsNav > .nav-link:hover,
+  #ftBusinessSettingsNav > .nav-link:focus,
+  #ftBusinessSettingsNav > .nav-link:active,
+  #ftBusinessSettingsNav > .nav-link.active {
+    box-shadow:none !important;
+    transform:none !important;
+  }
+</style>
+<script id="ft-sidebar-cleanup-v2-js">
+(function(){
+  'use strict';
+  function cleanSidebar(){
+    try{
+      const fixed=document.getElementById('ftBusinessSettingsFixed');
+      if(fixed){
+        fixed.style.setProperty('display','none','important');
+        fixed.style.setProperty('visibility','hidden','important');
+      }
+      const brand=document.querySelector('.sidebar .sidebar-brand');
+      if(brand){
+        brand.classList.add('ft-sidebar-brand-clean');
+      }
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',cleanSidebar);
+  window.addEventListener('load',cleanSidebar);
+  setTimeout(cleanSidebar,100);
+  setTimeout(cleanSidebar,500);
+  setTimeout(cleanSidebar,1200);
+  setInterval(cleanSidebar,1500);
 })();
 </script>
