@@ -9511,6 +9511,77 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
 })();
 </script>
 
+<!-- FATIMA TECH v52 — Admin Company Settings visibility + clean testing controls -->
+<script id="ft-v52-admin-clean-testing-fix">
+(function(){
+  'use strict';
+  function ensureAdminCompanySettings(){
+    try{
+      const nav=document.getElementById('ftBusinessSettingsNav');
+      if(nav){
+        const u=window.currentUser;
+        nav.style.display=(u && (u.role==='Admin' || u.isOwner===true))?'':'none';
+        nav.style.order='999';
+        nav.style.visibility=(u && (u.role==='Admin' || u.isOwner===true))?'visible':'hidden';
+      }
+    }catch(e){}
+  }
+  window.ftEnsureAdminCompanySettings=ensureAdminCompanySettings;
+  document.addEventListener('DOMContentLoaded',function(){
+    ensureAdminCompanySettings();
+    setTimeout(ensureAdminCompanySettings,150);
+    setTimeout(ensureAdminCompanySettings,500);
+    setTimeout(ensureAdminCompanySettings,1200);
+  });
+  setInterval(ensureAdminCompanySettings,1500);
+
+  // A separate, explicit fresh-install button: clears ALL business/test data,
+  // including shops and stock, while preserving Users/Roles and Business Settings.
+  window.ftStartFreshTesting=function(){
+    const u=window.currentUser;
+    if(!u || (u.role!=='Admin' && u.isOwner!==true)) return alert('Admin/Owner access only.');
+    const ok=confirm(
+      'START COMPLETELY FRESH TESTING?\n\n'+
+      'This will permanently clear ALL business/test data: Shops, Stock, Sales, Purchase Invoices, Recoveries, Expenses, Returns, Claims, Picklists, Investments, Investors, Finance/Cash history, Supplier Due and Activity Log.\n\n'+
+      'Users/Roles and Business/Company Settings will remain.\n\n'+
+      'Continue?'
+    );
+    if(!ok)return;
+    const keys=[
+      'ht_invoices','ht_purchase_invoices','ht_shops','ht_stock','ht_recoveries',
+      'ht_recovery_adjustments','ht_staff_responsibilities','ht_booker_accounts',
+      'ht_kpo_logs','ht_expenses','ht_returns','ht_company_claims','ht_ledger_adjustments',
+      'ht_generated_picklists','ht_cash_in_hand','ht_audit_log','ht_day_end_log',
+      'ft_investments','ft_investors','ft_investor_txns','ft_profit_distributions',
+      'ft_staff_advances','ft_salary_records','ft_salary_settings','ft_staff_attendance',
+      'ht_supplier_payments','ht_supplier_dues','ht_purchase_payments',
+      'ht_capital_entries','ht_cash_ledger','ht_finance_transactions'
+    ];
+    keys.forEach(k=>localStorage.setItem(k, k==='ht_cash_in_hand'?'0':'[]'));
+    try{
+      dbInvoices=[];dbPurchaseInvoices=[];dbShops=[];dbStock=[];dbRecoveries=[];
+      dbRecoveryAdjustments=[];dbStaffResponsibilities=[];dbBookerAccounts=[];dbKpoLogs=[];
+      dbExpenses=[];dbReturns=[];dbCompanyClaims=[];dbLedgerAdjustments=[];
+      dbGeneratedPicklists=[];dbCashInHand=0;dbAuditLog=[];dbInvestments=[];
+      if(window.ftFinance)window.ftFinance.investments=[];
+      currentPosItems=[];currentPurInvoiceItems=[];
+    }catch(e){}
+    alert('Fresh testing environment ready. All business/test data has been cleared.\nCash In Hand: Rs. 0');
+    location.reload();
+  };
+
+  function addFreshButton(){
+    const panel=document.getElementById('ftAdminResetPanel');
+    if(!panel || document.getElementById('ftFreshTestingBtn'))return;
+    const wrap=document.createElement('div');
+    wrap.style.cssText='margin-top:10px;padding-top:10px;border-top:1px dashed #fecaca;';
+    wrap.innerHTML='<button type="button" id="ftFreshTestingBtn" class="btn-delete" style="width:100%;background:#7f1d1d;color:#fff;border-color:#7f1d1d;" onclick="ftStartFreshTesting()">🧪 Start Completely Fresh Testing — Clear Shops + Stock + All Business Data</button>';
+    panel.appendChild(wrap);
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(addFreshButton,300);setTimeout(ensureAdminCompanySettings,400);});
+})();
+</script>
+
 <!-- FATIMA TECH v35 — Capital Cycle / Cash Flow / Net Cash authoritative engine -->
 <style id="ft-v35-capital-cycle-css">
 .ft-v35-report-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
@@ -9555,11 +9626,17 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     const profitPayments=txns().filter(x=>inTo(x.date,to)&&x.type==='Profit Payment');
     const cashInvestorOut=txns().filter(x=>inTo(x.date,to)&&['Capital Withdrawal','Profit Payment'].includes(x.type)&&String(x.method||'Cash')==='Cash').reduce((a,x)=>a+N(x.amount),0);
     const bankInvestorOut=txns().filter(x=>inTo(x.date,to)&&['Capital Withdrawal','Profit Payment'].includes(x.type)&&String(x.method||'Cash')==='Bank').reduce((a,x)=>a+N(x.amount),0);
-    const cash= cashInvestment+cashSales+cashRecovery-cashPurchase-expenses-cashInvestorOut;
-    const bank= bankInvestment+bankSales+bankRecovery-bankPurchase-bankInvestorOut;
+    const rawCash= cashInvestment+cashSales+cashRecovery-cashPurchase-expenses-cashInvestorOut;
+    const rawBank= bankInvestment+bankSales+bankRecovery-bankPurchase-bankInvestorOut;
+    // Cash/Bank are real available balances. They must never be shown as negative;
+    // any unpaid purchase amount belongs in Supplier Due rather than creating negative cash.
+    const cash=Math.max(0,rawCash);
+    const bank=Math.max(0,rawBank);
+    const cashShortfall=Math.max(0,-rawCash);
+    const bankShortfall=Math.max(0,-rawBank);
     const stockValue=(dbStock||[]).reduce((a,x)=>a+N(x.qty)*N(x.costPrice),0);
     const marketCredit=(dbShops||[]).reduce((a,x)=>a+N(typeof dashboardShopBalanceAsOf==='function'?dashboardShopBalanceAsOf(x.name,to):0),0);
-    return {grossCapital,capitalWithdrawals,netCapital,cashInvestment,bankInvestment,cashSales,bankSales,creditSales,cashRecovery,bankRecovery,purchaseTotal,cashPurchase,bankPurchase,supplierDue,expenses,profitPayments,cashInvestorOut,bankInvestorOut,cash,bank,stockValue,marketCredit};
+    return {grossCapital,capitalWithdrawals,netCapital,cashInvestment,bankInvestment,cashSales,bankSales,creditSales,cashRecovery,bankRecovery,purchaseTotal,cashPurchase,bankPurchase,supplierDue,expenses,profitPayments,cashInvestorOut,bankInvestorOut,rawCash,rawBank,cashShortfall,bankShortfall,cash,bank,stockValue,marketCredit};
   }
 
   function cashStateV35(toDate){
