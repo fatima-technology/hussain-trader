@@ -2341,6 +2341,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         <li class="nav-item" data-perm="supplyManTab"><a class="nav-link" onclick="openTab('supplyManTab', this)"><span class="nav-text">🚚 Supply Man Recovery & KPO</span></a></li>
         <li class="nav-item" data-perm="recoveryEntry"><a class="nav-link" onclick="openTab('recoveryEntry', this)"><span class="nav-text">💰 Market Recovery & Approval</span></a></li>
         <li class="nav-item" data-perm="expensesEntry"><a class="nav-link" onclick="openTab('expensesEntry', this)"><span class="nav-text">💸 Expense Entry</span></a></li>
+        <li class="nav-item" data-perm="paymentAccountsTab"><a class="nav-link" onclick="openTab('paymentAccountsTab', this)"><span class="nav-text">🏦 Payment Accounts</span></a></li>
         <li class="nav-item" data-perm="shops"><a class="nav-link" onclick="openTab('shops', this)"><span class="nav-text">🏪 Shops Management</span></a></li>
         
 
@@ -2804,6 +2805,13 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                     <option value="Cheque">Cheque (چیک)</option>
                     <option value="Online Transfer">Online Bank Transfer</option>
                 </select>
+            </div>
+            <div class="form-group"><label>Payment Account:</label>
+                <select id="recPaymentAccount" class="form-control">
+                    <option value="Cash">Cash In Hand</option>
+                    <option value="Bank">Bank</option>
+                </select>
+                <small style="color:var(--muted-text);">Approved recovery will be posted to this account.</small>
             </div>
             <button class="btn-add" style="width: 100%; margin-top:8px;" onclick="submitRecoveryEntry()">Submit Recovery For Approval 📤</button>
         </div>
@@ -3417,6 +3425,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             <div class="form-group"><label>Date:</label><input type="date" id="expDate"></div>
             <div class="form-group"><label>Title:</label><input type="text" id="expTitle" placeholder="Fuel, Tea, Rent"></div>
             <div class="form-group"><label>Amount (Rs):</label><input type="number" id="expAmount"></div>
+                <div class="form-group"><label>Payment Account:</label><select id="expPaymentMethod"><option value="Cash">Cash In Hand</option><option value="Bank">Bank</option></select></div>
             <button class="btn-add" style="width: 100%; margin-top:8px;" onclick="addExpenseRecord()">Save Expense 💾</button>
         </div>
     </div>
@@ -3629,6 +3638,66 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             </div>
         </div>
     </div>
+    <!-- PAYMENT ACCOUNTS / ACCOUNT BOOK / RECONCILIATION -->
+    <div id="paymentAccountsTab" class="tab-content">
+      <h3>🏦 Payment Accounts & Cash Control</h3>
+      <div class="section-box" style="border-left:4px solid var(--primary-blue);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div>
+            <h4 style="margin:0;color:var(--primary-blue);">Payment Accounts</h4>
+            <p style="margin:4px 0 0;color:var(--muted-text);font-size:12px;">Cash, bank and other payment accounts. Existing sales, recoveries, purchases, expenses and investments can be rebuilt into this ledger without changing the original records.</p>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn-add" type="button" onclick="ftRebuildPaymentLedger()">🔄 Rebuild From Existing Data</button>
+            <button class="btn-excel" type="button" onclick="ftExportPaymentAccounts()">📊 Export</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-cards" id="ftPaymentAccountCards"></div>
+
+      <div class="section-box">
+        <h4>➕ Add Account</h4>
+        <div class="form-grid">
+          <div class="form-group"><label>Account Name *</label><input id="ftNewAccountName" placeholder="e.g. JazzCash"></div>
+          <div class="form-group"><label>Account Type</label><select id="ftNewAccountType"><option value="Cash">Cash</option><option value="Bank">Bank</option><option value="Digital">Digital Wallet</option><option value="Other">Other</option></select></div>
+          <div class="form-group"><label>Opening Balance</label><input type="number" id="ftNewAccountOpening" min="0" step="0.01" value="0"></div>
+          <div class="form-group"><label>Opening Date</label><input type="date" id="ftNewAccountDate"></div>
+        </div>
+        <button class="btn-add" type="button" onclick="ftAddPaymentAccount()">Save Account</button>
+      </div>
+
+      <div class="section-box">
+        <h4>🔄 Transfer Between Accounts</h4>
+        <div class="form-grid">
+          <div class="form-group"><label>From Account</label><select id="ftTransferFrom"></select></div>
+          <div class="form-group"><label>To Account</label><select id="ftTransferTo"></select></div>
+          <div class="form-group"><label>Amount</label><input type="number" id="ftTransferAmount" min="0" step="0.01"></div>
+          <div class="form-group"><label>Date</label><input type="date" id="ftTransferDate"></div>
+          <div class="form-group"><label>Note</label><input id="ftTransferNote" placeholder="e.g. Cash deposited into bank"></div>
+        </div>
+        <button class="btn-edit" type="button" onclick="ftTransferPaymentAccount()">Transfer Amount</button>
+      </div>
+
+      <div class="section-box">
+        <h4>📒 Account Book</h4>
+        <div class="form-grid no-print">
+          <div class="form-group"><label>Account</label><select id="ftAccountBookFilter" onchange="ftRenderPaymentAccounts()"></select></div>
+          <div class="form-group"><label>From</label><input type="date" id="ftAccountFrom" onchange="ftRenderPaymentAccounts()"></div>
+          <div class="form-group"><label>To</label><input type="date" id="ftAccountTo" onchange="ftRenderPaymentAccounts()"></div>
+          <div class="form-group"><label>Search</label><input id="ftAccountSearch" placeholder="Transaction / reference" oninput="ftRenderPaymentAccounts()"></div>
+        </div>
+        <div class="table-responsive">
+          <table id="ftPaymentAccountLedgerTable">
+            <thead><tr><th>Date</th><th>Account</th><th>Transaction</th><th>Reference</th><th>In</th><th>Out</th><th>Balance</th><th>Note</th></tr></thead>
+            <tbody id="ftPaymentAccountLedgerTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-box" id="ftPaymentReconciliationBox"></div>
+    </div>
+
     <!-- FINANCE / INVESTMENT / CASH / PROFIT & LOSS -->
     <div id="financeTab" class="tab-content">
       <h3>💰 Finance, Actual Cash & Profit / Loss</h3>
@@ -3789,6 +3858,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
                 <label class="perm-item"><input type="checkbox" value="supplyManTab" checked> Supply Man & KPO</label>
                 <label class="perm-item"><input type="checkbox" value="recoveryEntry" checked> Market Recovery</label>
                 <label class="perm-item"><input type="checkbox" value="expensesEntry" checked> Expense Entry</label>
+                <label class="perm-item"><input type="checkbox" value="paymentAccountsTab" checked> Payment Accounts</label>
                 <label class="perm-item"><input type="checkbox" value="staffAdvanceTab" checked> Staff Advance / Loan</label>
                 <label class="perm-item"><input type="checkbox" value="staffSalaryTab" checked> Staff Salary & Attendance</label>
                 <label class="perm-item"><input type="checkbox" value="salaryRecordsTab" checked> Salary Records</label>
@@ -4419,6 +4489,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         const amount = parseFloat(document.getElementById('recAmount').value) || 0;
         const difference = Math.max(0, expected - amount);
         const method = document.getElementById('recPaymentMethod').value;
+        const accountId = document.getElementById('recPaymentAccount')?.value || (method==='Bank'?'Bank':'Cash');
         const adjustmentType = document.getElementById('recAdjustmentType')?.value || 'None';
         const responsiblePerson = document.getElementById('recResponsiblePerson')?.value.trim() || '';
         const adjustmentReason = document.getElementById('recAdjustmentReason')?.value.trim() || '';
@@ -4442,6 +4513,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             amount,
             difference,
             method,
+            accountId,
             adjustmentType,
             responsiblePerson,
             adjustmentReason,
@@ -4480,6 +4552,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
         let date = document.getElementById('expDate').value || new Date().toISOString().slice(0,10);
         let title = document.getElementById('expTitle').value.trim();
         let amount = parseFloat(document.getElementById('expAmount').value) || 0;
+        const paymentMethod = document.getElementById('expPaymentMethod')?.value || 'Cash';
         if(!title || amount <= 0) return alert('Expense description and amount are required.');
         const available=(typeof cashState==='function')?Math.max(0,Number(cashState(date).cash)||0):Math.max(0,Number(dbCashInHand)||0);
         if(amount>available+0.0001) return alert(`Expense blocked.
@@ -4488,7 +4561,7 @@ Expense: Rs. ${amount.toLocaleString()}
 Available Cash: Rs. ${available.toLocaleString()}
 
 The expense cannot make Cash negative.`);
-        dbExpenses.push({ date, title, amount });
+        dbExpenses.push({ date, title, amount, paymentMethod });
         localStorage.setItem('ht_expenses', JSON.stringify(dbExpenses));
         dbCashInHand=available-amount;localStorage.setItem('ht_cash_in_hand',dbCashInHand);
         alert('Expense saved successfully.');
@@ -6679,7 +6752,67 @@ function renderShops() {
     if(!w)return alert('Please allow pop-ups for report printing.');
     const css='@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111;margin:0}.ft-report-print-area{padding:4mm}.ft-report-print-area table{width:100%;border-collapse:collapse}.ft-report-print-area th,.ft-report-print-area td{border:1px solid #999;padding:5px;font-size:9px}.ft-report-print-area th{background:#e5e7eb}.report-meta{font-size:10px;color:#555;margin-bottom:8px}h1{font-size:18px;margin:0}h2{font-size:14px}';
     w.document.open();
-    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'</body></html>');
+    w.document.write('<!doctype html><html><head><title>Fatima Tech Report</title><style>'+css+'</style></head><body>'+html+'
+<script id="ft-v27-payment-accounts">
+(function(){
+  const KEY='ft_payment_accounts_v1', TXKEY='ft_payment_txns_v1';
+  const N=v=>Number(v)||0;
+  const M=v=>'Rs. '+Math.round(N(v)).toLocaleString();
+  const today=()=>typeof dateNow==='function'?dateNow():new Date().toISOString().slice(0,10);
+  function load(key,def){try{const x=JSON.parse(localStorage.getItem(key)||'');return Array.isArray(x)?x:def}catch(e){return def}}
+  let accounts=load(KEY,[]), txns=load(TXKEY,[]);
+  function save(){localStorage.setItem(KEY,JSON.stringify(accounts));localStorage.setItem(TXKEY,JSON.stringify(txns));window.ftPaymentAccounts=accounts;window.ftPaymentTxns=txns}
+  function ensure(){
+    if(!accounts.length){
+      accounts=[{id:'Cash',name:'Cash In Hand',type:'Cash',opening:0,openingDate:today(),active:true},{id:'Bank',name:'Bank',type:'Bank',opening:0,openingDate:today(),active:true}];save();
+    } else {
+      if(!accounts.some(a=>a.id==='Cash'))accounts.unshift({id:'Cash',name:'Cash In Hand',type:'Cash',opening:0,openingDate:today(),active:true});
+      if(!accounts.some(a=>a.id==='Bank'))accounts.push({id:'Bank',name:'Bank',type:'Bank',opening:0,openingDate:today(),active:true});
+      save();
+    }
+  }
+  function aidForMethod(method, explicit){
+    if(explicit && accounts.some(a=>a.id===explicit))return explicit;
+    const m=String(method||'Cash').toLowerCase();
+    if(m.includes('bank')||m.includes('online'))return 'Bank';
+    return 'Cash';
+  }
+  function push(date,accountId,direction,amount,transaction,reference,note){if(N(amount)<=0)return;txns.push({id:'PATX_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),date:date||today(),accountId,direction,amount:N(amount),transaction,reference:reference||'',note:note||''})}
+  function rebuild(){
+    ensure(); txns=[];
+    accounts.forEach(a=>{ if(N(a.opening)>0) push(a.openingDate||today(),a.id,'IN',N(a.opening),'Opening Balance','OPEN-'+a.id,'Account opening balance'); });
+    (dbInvestments||[]).forEach(x=>push(x.date,aidForMethod(x.method,x.accountId),'IN',N(x.amount),'Investment',x.id,x.remarks||'Owner investment'));
+    (dbInvoices||[]).forEach(x=>{const p=N(x.paidAmount); if(p>0)push(x.date,aidForMethod(x.payType,x.accountId),'IN',p,'Sale Payment',x.invNum||x.id,'Sales invoice payment');});
+    (dbRecoveries||[]).filter(x=>String(x.status||'Pending')==='Approved').forEach(x=>push(x.date,aidForMethod(x.method,x.accountId),'IN',N(x.amount),'Recovery',x.id,'Approved market recovery'));
+    (dbExpenses||[]).forEach(x=>push(x.date,aidForMethod(x.paymentMethod||'Cash',x.accountId),'OUT',N(x.amount),'Expense',x.id||x.title,x.title||'Expense'));
+    (dbPurchaseInvoices||[]).forEach(x=>{const p=N(x.paidNow!=null?x.paidNow:((String(x.paymentType||'Cash').includes('Due'))?0:x.totalAmt)); if(p>0)push(x.date,aidForMethod(x.paymentType,x.accountId),'OUT',p,'Purchase Payment',x.id||x.invoiceNo||'',x.supplier||'Purchase');});
+    try{JSON.parse(localStorage.getItem('ft_investor_txns')||'[]').forEach(x=>{if(['Capital Withdrawal','Profit Payment'].includes(x.type))push(x.date,aidForMethod(x.method,x.accountId),'OUT',N(x.amount),x.type,x.id||'',x.remarks||'Investor transaction')})}catch(e){}
+    txns.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id)));save();render();alert('Payment Account ledger rebuilt from the existing ERP records. Original sales, recovery, purchase and expense records were not changed.');
+  }
+  function balance(id,to){const a=accounts.find(x=>x.id===id);let b=N(a?.opening);txns.filter(t=>t.accountId===id&&(!to||t.date<=to)).forEach(t=>b+=t.direction==='OUT'?-N(t.amount):N(t.amount));return b}
+  function render(){
+    ensure();
+    const cards=document.getElementById('ftPaymentAccountCards'); if(cards)cards.innerHTML=accounts.filter(a=>a.active!==false).map(a=>`<div class="bubble-card"><h3>${esc(a.name)}</h3><p>${M(balance(a.id,''))}</p><small>${esc(a.type||'Other')}</small></div>`).join('');
+    const selects=['ftTransferFrom','ftTransferTo','ftAccountBookFilter','recPaymentAccount'];
+    selects.forEach(id=>{const el=document.getElementById(id);if(!el)return;const old=el.value;el.innerHTML=accounts.filter(a=>a.active!==false).map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');if([...el.options].some(o=>o.value===old))el.value=old;});
+    const d=document.getElementById('ftAccountTo'); if(d&&!d.value)d.value=today(); const fd=document.getElementById('ftAccountFrom'); if(fd&&!fd.value)d?.value;
+    const filter=document.getElementById('ftAccountBookFilter')?.value||'ALL', from=document.getElementById('ftAccountFrom')?.value||'', to=document.getElementById('ftAccountTo')?.value||'', q=(document.getElementById('ftAccountSearch')?.value||'').toLowerCase();
+    const rows=txns.filter(t=>(filter==='ALL'||t.accountId===filter)&&(!from||t.date>=from)&&(!to||t.date<=to)&&(!q||(`${t.transaction} ${t.reference} ${t.note}`).toLowerCase().includes(q))).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id)));
+    const tbody=document.getElementById('ftPaymentAccountLedgerTbody'); if(tbody){let running={};accounts.forEach(a=>running[a.id]=N(a.opening));const out=[];txns.filter(t=>!to||t.date<=to).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id))).forEach(t=>running[t.accountId]=(running[t.accountId]||0)+(t.direction==='OUT'?-N(t.amount):N(t.amount))); const shown=rows.slice(-500); tbody.innerHTML=shown.map(t=>{const b=balanceAt(t.accountId,t.id,t.date);const an=accounts.find(a=>a.id===t.accountId)?.name||t.accountId;return `<tr><td>${esc(t.date)}</td><td>${esc(an)}</td><td>${esc(t.transaction)}</td><td>${esc(t.reference)}</td><td>${t.direction==='IN'?M(t.amount):'—'}</td><td>${t.direction==='OUT'?M(t.amount):'—'}</td><td><strong>${M(b)}</strong></td><td>${esc(t.note)}</td></tr>`}).join('')||'<tr><td colspan="8">No account transactions found.</td></tr>';}
+    const recon=document.getElementById('ftPaymentReconciliationBox'); if(recon){const systemCash=typeof cashState==='function'?cashState(to||today()).cash:0;const accountCash=balance('Cash',to||today());const bank=balance('Bank',to||today());recon.innerHTML=`<h4>🔎 Cash & Account Reconciliation through ${esc(to||today())}</h4><div class="summary-cards"><div class="bubble-card"><h3>Cash Account</h3><p>${M(accountCash)}</p></div><div class="bubble-card"><h3>Existing Cash Calculation</h3><p>${M(systemCash)}</p></div><div class="bubble-card"><h3>Difference</h3><p>${M(accountCash-systemCash)}</p></div><div class="bubble-card"><h3>Bank Account</h3><p>${M(bank)}</p></div></div><small style="color:var(--muted-text);">The account ledger is a new accounting layer. Rebuild it after backup when you want historical transactions represented here.</small>`}
+  }
+  function balanceAt(id,txid,date){let b=N(accounts.find(a=>a.id===id)?.opening);txns.filter(t=>t.accountId===id&&String(t.date)<=String(date)).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id))).forEach(t=>{b+=t.direction==='OUT'?-N(t.amount):N(t.amount);if(t.id===txid){} });return b}
+  window.ftRebuildPaymentLedger=rebuild; window.ftRenderPaymentAccounts=render;
+  window.ftAddPaymentAccount=function(){const name=(document.getElementById('ftNewAccountName')?.value||'').trim();const type=document.getElementById('ftNewAccountType')?.value||'Other';const opening=N(document.getElementById('ftNewAccountOpening')?.value);const date=document.getElementById('ftNewAccountDate')?.value||today();if(!name)return alert('Account name is required.');if(accounts.some(a=>a.name.toLowerCase()===name.toLowerCase()))return alert('This account already exists.');accounts.push({id:'ACC_'+Date.now(),name,type,opening,openingDate:date,active:true});save();render();document.getElementById('ftNewAccountName').value='';document.getElementById('ftNewAccountOpening').value='0';alert('Payment account created successfully.');};
+  window.ftTransferPaymentAccount=function(){const f=document.getElementById('ftTransferFrom').value,t=document.getElementById('ftTransferTo').value,a=N(document.getElementById('ftTransferAmount').value),d=document.getElementById('ftTransferDate').value||today(),note=(document.getElementById('ftTransferNote').value||'').trim();if(!f||!t||f===t)return alert('Select two different accounts.');if(a<=0)return alert('Enter a valid transfer amount.');if(balance(f,d)<a)return alert('Transfer blocked: source account does not have enough balance.');push(d,f,'OUT',a,'Account Transfer',`TR-${Date.now()}`,note||'Transfer out');push(d,t,'IN',a,'Account Transfer',`TR-${Date.now()}`,note||'Transfer in');save();render();alert('Account transfer saved.');};
+  window.ftExportPaymentAccounts=function(){const data=[['Date','Account','Transaction','Reference','In','Out','Balance','Note']];txns.forEach(t=>data.push([t.date,accounts.find(a=>a.id===t.accountId)?.name||t.accountId,t.transaction,t.reference,t.direction==='IN'?t.amount:0,t.direction==='OUT'?t.amount:0,balanceAt(t.accountId,t.id,t.date),t.note]));const csv=data.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Fatima-Tech-Payment-Accounts.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+  const oldRender=window.ftRenderFinance; window.ftRenderFinance=function(){if(typeof oldRender==='function')oldRender();render();};
+  const oldOpen=window.openTab; if(typeof oldOpen==='function'&&!window.__ftV27PayWrapped){window.openTab=function(id){const r=oldOpen.apply(this,arguments);setTimeout(()=>{if(id==='paymentAccountsTab')render();},0);return r};window.__ftV27PayWrapped=true;}
+  document.addEventListener('DOMContentLoaded',()=>{ensure();setTimeout(render,500);});
+})();
+</script>
+
+</body></html>');
     w.document.close();
     w.focus();
     setTimeout(()=>w.print(),250);
@@ -7072,7 +7205,7 @@ function renderShops() {
   };
 
   // Full backup includes correction history, investments and branding settings.
-  window.downloadBackup=function(){const keys=['ht_invoices','ht_purchase_invoices','ht_shops','ht_stock','ht_recoveries','ht_kpo_logs','ht_expenses','ht_returns','ht_company_claims','ht_booker_accounts','ht_ledger_adjustments','ht_audit_log','ht_users','ht_cash_in_hand','ft_investments','ft_investors','ft_investor_txns','ft_profit_distributions','fatimaTechOwnerSettings'];const backup={};keys.forEach(k=>{try{backup[k]=JSON.parse(localStorage.getItem(k)||'null')}catch(e){backup[k]=localStorage.getItem(k)}});const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(backup));a.download='FatimaTech_ERP_Full_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();};
+  window.downloadBackup=function(){const keys=['ht_invoices','ht_purchase_invoices','ht_shops','ht_stock','ht_recoveries','ht_kpo_logs','ht_expenses','ht_returns','ht_company_claims','ht_booker_accounts','ht_ledger_adjustments','ht_audit_log','ht_users','ht_cash_in_hand','ft_investments','ft_investors','ft_investor_txns','ft_profit_distributions','fatimaTechOwnerSettings','ft_payment_accounts_v1','ft_payment_txns_v1'];const backup={};keys.forEach(k=>{try{backup[k]=JSON.parse(localStorage.getItem(k)||'null')}catch(e){backup[k]=localStorage.getItem(k)}});const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(backup));a.download='FatimaTech_ERP_Full_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();};
   const oldOpen=window.openTab;window.openTab=function(id,btn){const r=oldOpen.apply(this,arguments);if(id==='expensesReport')setTimeout(renderExpenseReport,20);if(id==='purchaseInvoiceListTab'&&typeof renderPurchaseInvoicesList==='function')setTimeout(renderPurchaseInvoicesList,20);return r;};
 })();
 </script>
@@ -7252,7 +7385,7 @@ window.performDayEnd=function(){
   if(c.pendingRecovery.length)return alert(`Day End blocked: ${c.pendingRecovery.length} recovery record(s) are still pending approval.`);
   if(!confirm(`Complete Day End for ${date}?\nA date-wise full backup will download automatically.`))return;
 
-  const keys=['ht_invoices','ht_purchase_invoices','ht_shops','ht_stock','ht_recoveries','ht_kpo_logs','ht_expenses','ht_returns','ht_company_claims','ht_users','ht_cash_in_hand','ht_generated_picklists','ht_ledger_adjustments','ht_recovery_adjustments','ht_staff_responsibilities','ht_booker_accounts','ht_audit_log','ht_day_end_log','ft_investments','fatimaTechOwnerSettings'];
+  const keys=['ht_invoices','ht_purchase_invoices','ht_shops','ht_stock','ht_recoveries','ht_kpo_logs','ht_expenses','ht_returns','ht_company_claims','ht_users','ht_cash_in_hand','ht_generated_picklists','ht_ledger_adjustments','ht_recovery_adjustments','ht_staff_responsibilities','ht_booker_accounts','ht_audit_log','ht_day_end_log','ft_investments','fatimaTechOwnerSettings','ft_payment_accounts_v1','ft_payment_txns_v1'];
   const backup={};
   keys.forEach(k=>{try{backup[k]=JSON.parse(localStorage.getItem(k)||'null')}catch(e){backup[k]=localStorage.getItem(k)}});
   backup.dayEnd={date,closedAt:new Date().toISOString(),closedBy:currentUser?.username||'ADMIN',checks:{invoices:c.invoices.length,missingDelivery:0,picklists:c.bookers.length,pendingRecovery:0}};
