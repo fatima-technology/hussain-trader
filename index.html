@@ -3659,7 +3659,7 @@ html,body{width:100%!important;max-width:100%!important;min-width:0!important;bo
             const btn = document.getElementById('ftOwnerStudioBtn');
             if(btn) btn.style.display = 'none';
             const side = document.getElementById('ftBusinessSettingsNav');
-            if(side) side.style.display = (found.isOwner || ['Admin','Developer'].includes(found.role)) ? '' : 'none';
+            if(side) side.style.display = (found.role==='Developer' || found.isDeveloper===true) ? '' : 'none';
             applyUserAccessPermissions();
             if(typeof applyDeveloperUserManagementView==='function') applyDeveloperUserManagementView();
             if(typeof showBusinessSettings === 'function') showBusinessSettings();
@@ -4182,6 +4182,35 @@ The expense cannot make Cash negative.`);
         </div>
       </div>
 
+      <div id="ftDeveloperFormatStudio" class="ft-owner-card" style="margin-top:10px;border:1px solid #c7d2fe;background:linear-gradient(180deg,#f8faff,#ffffff);display:none;">
+        <h3 style="color:#4338ca;">🛠️ Developer Format Studio</h3>
+        <div style="font-size:11px;color:#475569;line-height:1.6;margin-bottom:8px;">
+          Developer-only area. Upload a reference image for an Invoice, Report, Picklist, Dashboard card or any other print/view format. The image is saved separately from business data and can be used as the visual format reference.
+        </div>
+        <div class="ft-owner-grid" style="grid-template-columns:1fr 1fr;">
+          <div>
+            <label>Format Type</label>
+            <select id="ftDevFormatType">
+              <option value="invoice">Invoice</option>
+              <option value="report">Report</option>
+              <option value="picklist">Picklist</option>
+              <option value="dashboard">Dashboard</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Format Name</label>
+            <input id="ftDevFormatName" placeholder="e.g. New Invoice Design">
+          </div>
+          <div style="grid-column:1/-1;">
+            <label>Reference Format Image</label>
+            <input id="ftDevFormatFile" type="file" accept="image/png,image/jpeg,image/webp">
+            <div style="font-size:10px;color:#64748b;margin-top:5px;">PNG / JPG / WebP. This does not change invoices, reports or transaction data until the developer maps the reference to the required screen.</div>
+          </div>
+        </div>
+        <div id="ftDevFormatList" style="margin-top:10px;"></div>
+      </div>
+
       <div id="ftOwnerSecurityCard" class="ft-owner-card" style="margin-top:10px;">
         <h3>Fatima Tech Owner Security</h3>
         <div class="ft-owner-grid" style="grid-template-columns:1fr 1fr;">
@@ -4299,7 +4328,7 @@ The expense cannot make Cash negative.`);
   }
 
   window.ftOpenOwnerStudio=function(){
-    if(typeof currentUser === 'undefined' || !currentUser || !(currentUser.isOwner || ['Admin','Developer'].includes(currentUser.role))) return alert('Admin/Owner access only.');
+    if(typeof currentUser === 'undefined' || !currentUser || !(currentUser.role==='Developer' || currentUser.isDeveloper===true)) return alert('Developer access only.');
     const s=load();
     document.getElementById("ftCompanyName").value=s.companyName;
     document.getElementById("ftCompanyPhone").value=s.phone;
@@ -4315,12 +4344,12 @@ The expense cannot make Cash negative.`);
     const oa=getFatimaTechOwnerAuth();
     if(document.getElementById("ftOwnerUsername")) document.getElementById("ftOwnerUsername").value=oa.username;
     if(document.getElementById("ftOwnerPassword")) document.getElementById("ftOwnerPassword").value="";
-    const isAdmin=currentUser && ['Admin','Developer'].includes(currentUser.role) && !currentUser.isOwner;
+    const isAdmin=false;
     const title=document.getElementById("ftOwnerModalTitle");
     const subtitle=document.getElementById("ftOwnerModalSubtitle");
     const security=document.getElementById("ftOwnerSecurityCard");
-    if(title) title.textContent=isAdmin?"Business / Company Settings":"Fatima Tech • Owner Studio";
-    if(subtitle) subtitle.textContent=isAdmin?"Configure distributor identity, logos, letterhead and invoice branding":"Business identity, invoice branding & commercial configuration";
+    if(title) title.textContent='Fatima Tech • Developer Studio';
+    if(subtitle) subtitle.textContent='Developer-only business identity, invoice branding, report formats and visual templates';
     if(security) security.style.display=isAdmin?"none":"";
     document.getElementById("ftOwnerModal").classList.add("open");
     ftCalcUnitDemo();
@@ -6594,7 +6623,7 @@ function protectedEl(el){return !el||['script','style','textarea','option'].incl
 function translateTextFinal(root,lang){const d=dict(lang),keys=Object.keys(d).filter(Boolean).sort((a,b)=>b.length-a.length),w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(protectedEl(n.parentElement))continue;let raw=n.nodeValue||'';if(!raw.trim())continue;for(const k of keys)if(raw.includes(k))raw=raw.split(k).join(d[k]);n.nodeValue=raw}}
 function translateAttrsFinal(lang){const d=dict(lang),keys=Object.keys(d).filter(Boolean).sort((a,b)=>b.length-a.length);document.querySelectorAll('input,button,select,textarea,[aria-label]').forEach(el=>['placeholder','title','aria-label'].forEach(attr=>{let v=el.getAttribute(attr);if(!v)return;for(const k of keys)if(v.includes(k))v=v.split(k).join(d[k]);el.setAttribute(attr,v)}))}
 window.applyLanguage=function(lang){lang=lang==='ur'?'ur':'en';try{snapshotEnglishNode(document.body);snapshotAttributes();restoreEnglish()}catch(e){}document.documentElement.lang=lang==='ur'?'ur':'en';document.documentElement.dir=lang==='ur'?'rtl':'ltr';document.body.classList.toggle('lang-urdu',lang==='ur');document.body.classList.toggle('lang-english',lang==='en');if(lang==='ur'){translateTextFinal(document.body,'ur');translateAttrsFinal('ur')}localStorage.setItem(FT_LANG_KEY,lang);if(typeof updateSwitch==='function')updateSwitch()};
-function showBusinessSettings(){const nav=document.getElementById('ftBusinessSettingsNav');if(nav)nav.style.display=(typeof currentUser!=='undefined'&&currentUser&&(currentUser.isOwner||['Admin','Developer'].includes(currentUser.role)))?'':'none'}
+function showBusinessSettings(){const nav=document.getElementById('ftBusinessSettingsNav');const fixed=document.getElementById('ftBusinessSettingsFixed');const isDev=!!(typeof currentUser!=='undefined'&&currentUser&&(currentUser.role==='Developer'||currentUser.isDeveloper===true));if(nav)nav.style.display=isDev?'':'none';if(fixed)fixed.style.display=isDev?'':'none';}
 function isoToday(){return new Date().toISOString().slice(0,10)}
 function dashboardShopBalanceAsOf(shop,to){let b=0;(dbInvoices||[]).filter(i=>i.shop===shop&&(!to||i.date<=to)).forEach(i=>{b+=Number(i.currentBillTotal??i.remainingSubtotal??0)||0;b-=Number(i.paidAmount||0)||0});(dbReturns||[]).filter(r=>r.shop===shop&&(!to||r.date<=to)).forEach(r=>b-=Number(r.totalRefund||0)||0);(dbRecoveries||[]).filter(r=>r.shop===shop&&r.status==='Approved'&&(!to||r.date<=to)).forEach(r=>b-=Number(r.amount||0)||0);(dbLedgerAdjustments||[]).filter(a=>a.shop===shop&&(!to||a.date<=to)).forEach(a=>b+=a.type==='Debit'?(Number(a.amount)||0):-(Number(a.amount)||0));return b}
 function dashDate(){return document.getElementById('dashAsOfDate')?.value||isoToday()}
@@ -9611,7 +9640,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
         // currentUser is declared as a top-level variable in this HTML; it is
         // not guaranteed to be exposed as window.currentUser.
         const u=(typeof currentUser!=='undefined')?currentUser:null;
-        const allowed=!!(u && (['Admin','Developer'].includes(u.role) || u.isOwner===true));
+        const allowed=!!(u && (u.role==='Developer' || u.isDeveloper===true));
         nav.style.display=allowed?'':'none';
         nav.style.order='999';
         nav.style.visibility=allowed?'visible':'hidden';
@@ -10242,7 +10271,7 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     const nav=document.getElementById('ftBusinessSettingsNav');
     const fixed=document.getElementById('ftBusinessSettingsFixed');
     const u=adminUser();
-    const allowed=!!(u && (['Admin','Developer'].includes(u.role)||u.isOwner===true));
+    const allowed=!!(u && (u.role==='Developer'||u.isDeveloper===true));
     if(nav){
       nav.style.setProperty('display',allowed?'list-item':'none','important');
       nav.style.setProperty('visibility',allowed?'visible':'hidden','important');
@@ -10554,6 +10583,71 @@ if(typeof oldOpen==='function'&&!window.__ftV23OpenPatched){
     if(nav) setTimeout(clearSettingsHighlight,0);
   }, true);
   setInterval(clearSettingsHighlight,1500);
+})();
+</script>
+
+<!-- FATIMA TECH — DEVELOPER ONLY FORMAT LIBRARY -->
+<style id="ft-developer-format-library-css">
+#ftDeveloperFormatStudio .ft-dev-format-row{display:flex;gap:10px;align-items:center;border:1px solid #e2e8f0;border-radius:10px;padding:8px;margin-top:7px;background:#fff}
+#ftDeveloperFormatStudio .ft-dev-format-row img{width:110px;height:70px;object-fit:contain;border:1px solid #dbe3ef;border-radius:7px;background:#fff;padding:2px}
+#ftDeveloperFormatStudio .ft-dev-format-info{flex:1;min-width:0}
+#ftDeveloperFormatStudio .ft-dev-format-info strong{display:block;color:#1e293b;font-size:11px}
+#ftDeveloperFormatStudio .ft-dev-format-info small{display:block;color:#64748b;font-size:9px;margin-top:3px}
+#ftDeveloperFormatStudio .ft-dev-format-delete{border:1px solid #fecaca;background:#fff1f2;color:#b91c1c;border-radius:7px;padding:7px 9px;cursor:pointer;font-weight:800}
+@media(max-width:700px){#ftDeveloperFormatStudio .ft-dev-format-row{align-items:flex-start}.ft-dev-format-row img{width:82px;height:58px}}
+</style>
+<script id="ft-developer-format-library-js">
+(function(){
+  'use strict';
+  const KEY='ft_developer_format_templates';
+  const getRows=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')||[]}catch(e){return[]}};
+  const saveRows=rows=>localStorage.setItem(KEY,JSON.stringify(rows||[]));
+  const esc=v=>String(v==null?'':v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
+  function isDev(){return !!(typeof currentUser!=='undefined'&&currentUser&&(currentUser.role==='Developer'||currentUser.isDeveloper===true));}
+  function read(file){return new Promise((resolve,reject)=>{if(!file)return resolve('');const r=new FileReader();r.onload=()=>resolve(String(r.result||''));r.onerror=()=>reject(r.error||new Error('File read failed'));r.readAsDataURL(file);});}
+  function render(){
+    const box=document.getElementById('ftDevFormatList'); if(!box)return;
+    if(!isDev()){box.innerHTML='';return;}
+    const rows=getRows();
+    box.innerHTML=rows.length?rows.map((x,i)=>`<div class="ft-dev-format-row"><img src="${esc(x.image)}" alt="${esc(x.name)}"><div class="ft-dev-format-info"><strong>${esc(x.name||'Unnamed Format')}</strong><small>${esc(x.type||'other')} • Saved ${esc(x.savedAt||'')}</small></div><button type="button" class="ft-dev-format-delete" onclick="window.ftDeleteDeveloperFormat(${i})">Delete</button></div>`).join(''):'<div style="font-size:10px;color:#94a3b8;padding:8px 0;">No developer format images uploaded yet.</div>';
+  }
+  window.ftDeleteDeveloperFormat=function(i){
+    if(!isDev())return alert('Developer access only.');
+    const rows=getRows(); if(!rows[i])return;
+    if(!confirm('Delete this developer format reference?'))return;
+    rows.splice(i,1);saveRows(rows);render();
+  };
+  window.ftAddDeveloperFormat=async function(){
+    if(!isDev())return alert('Developer access only.');
+    const file=document.getElementById('ftDevFormatFile')?.files?.[0];
+    if(!file)return alert('Please select a format image first.');
+    const image=await read(file);
+    const name=(document.getElementById('ftDevFormatName')?.value||'Developer Format').trim();
+    const type=document.getElementById('ftDevFormatType')?.value||'other';
+    const rows=getRows(); rows.push({id:'FMT_'+Date.now(),name,type,image,savedAt:new Date().toISOString().slice(0,10)});saveRows(rows);render();
+    const f=document.getElementById('ftDevFormatFile');if(f)f.value='';
+    const n=document.getElementById('ftDevFormatName');if(n)n.value='';
+  };
+  function injectSaveButton(){
+    const panel=document.getElementById('ftDeveloperFormatStudio'); if(!panel||panel.querySelector('#ftDevFormatSaveBtn'))return;
+    const btn=document.createElement('button');btn.id='ftDevFormatSaveBtn';btn.type='button';btn.className='btn-add';btn.textContent='Save Format Image';btn.style.marginTop='8px';btn.onclick=()=>window.ftAddDeveloperFormat();
+    panel.appendChild(btn);
+  }
+  function sync(){
+    const panel=document.getElementById('ftDeveloperFormatStudio'); if(!panel)return;
+    const show=isDev(); panel.style.display=show?'block':'none'; if(show){injectSaveButton();render();}
+  }
+  const oldOpen=window.ftOpenOwnerStudio;
+  if(typeof oldOpen==='function'&&!window.__ftDevFormatOpenPatch){
+    window.ftOpenOwnerStudio=function(){
+      if(!isDev())return alert('Developer access only.');
+      const r=oldOpen.apply(this,arguments); setTimeout(sync,50); setTimeout(render,100); return r;
+    };
+    window.__ftDevFormatOpenPatch=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(sync,100);setTimeout(sync,500)});
+  window.addEventListener('load',()=>setTimeout(sync,150));
+  setInterval(sync,1500);
 })();
 </script>
 </body>
